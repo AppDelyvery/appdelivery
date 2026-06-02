@@ -47,9 +47,11 @@ Arquitetura: `useSim` (motor de simulação), `MapaAoVivo` e `AppShell` são ori
 reutilizados pelas 3 personas; cada persona tem seu Context. `(auth)/login|cadastro` ainda são
 placeholders (`EmBreve`) — auth real é a próxima fatia.
 
-**Supabase pronto pra plugar (NÃO ligado ainda):** `lib/supabase/browser.ts` + `admin.ts`,
-migrations `supabase/migrations/0001_schema.sql` (schema+PostGIS+matching) e `0002_rls.sql`
-(RLS v1 + `get_rastreio_publico`). Faltam: criar projeto Supabase + rodar as 2 migrations no
-SQL Editor + setar `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY` no `.env.local`; depois wire dos
-server actions (`actions/`) com read-after-write. Deploy Vercel: importar repo + setar
-`NEXT_PUBLIC_MAPBOX_TOKEN`.
+**Supabase CONECTADO (02/06):** projeto `cqmxjzrukbagvkznrunt` (https://cqmxjzrukbagvkznrunt.supabase.co),
+migrations `0001`/`0002` aplicadas, RLS ativo, função pública `get_rastreio_publico` respondendo —
+verificado por REST/RPC com a publishable key (`sb_publishable_...`, formato novo, faz papel de anon).
+`.env.local` (gitignored) tem `NEXT_PUBLIC_MAPBOX_TOKEN` + `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+MCP do Supabase configurado em `.mcp.json` mas ficou com setup issue (OAuth) — opcional, não bloqueia.
+**Próxima fatia (real):** auth + cadastro (lojista/entregador) gravando → `criarPedido` (Directions server +
+grava `pedidos`, read-after-write) → wire da comunicação ao vivo (`lib/realtime.ts`) com dado real.
+Deploy Vercel: importar repo + setar as 3 env vars `NEXT_PUBLIC_*`.
