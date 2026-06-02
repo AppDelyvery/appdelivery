@@ -3,9 +3,10 @@
 Bom dia, Eduardo. Resumo do que rodei enquanto você dormia. Tudo verde (tsc + eslint + build) e no GitHub.
 
 ## ✅ TO-DO DA MANHÃ (só você consegue fazer)
-1. **Rodar 2 migrations** no SQL Editor do Supabase (em ordem):
+1. **Rodar 3 migrations** no SQL Editor do Supabase, **nesta ordem**:
    - `supabase/migrations/0004_security_hardening.sql` — FECHA 2 furos de segurança (críticos).
    - `supabase/migrations/0005_vehicle_van.sql` — adiciona o veículo "van".
+   - `supabase/migrations/0006_mensagens.sql` — chat por pedido (3 pontas, incl. cliente final).
 2. **Seed do admin** (1 linha, no fim do 0004): `update profiles set role='admin' where id='<seu-uuid>';` (pega o uuid do seu usuário em Authentication → Users). Sem isso, ninguém aprova entregador.
 3. **(opcional) Limpar dados de teste:** rodar `scripts/cleanup-teste.sql` (criei vários usuários de teste nas provas).
 4. **Validar `baseVan`** em `lib/precos.ts` — pus R$20 de placeholder pro preço da van; me diz o valor real.
@@ -22,6 +23,7 @@ Bom dia, Eduardo. Resumo do que rodei enquanto você dormia. Tudo verde (tsc + e
 - (ontem) cadastro lojista + entregador gravando, `criarPedido`, rastreio público — todos provados.
 
 ## O que construí (código, build verde)
+- **Chat por pedido (3 pontas):** lojista + entregador (autenticados) + **cliente final pelo link, sem app** (funções por token). `lib/chat.ts` + `ChatBox` + wire no acompanhamento e na tela pública. Prova (`verify-chat.mjs`) espera a `0006`. Entregador entra na thread quando a corrida for atribuída (próxima fatia).
 - **Site institucional** na raiz `/` (`components/site/Landing.tsx`) — hero, diferencial (antecedentes), como funciona, CTA. Posicionamento corrigido: ancora em **antecedentes**, GPS como feature, **zero "único/primeiro"** (a Bee tem GPS em Palmas — ver RECON).
 - **Legal:** `/termos` e `/privacidade` (LGPD, com foco no dado sensível de antecedentes). ⚠️ **RASCUNHO — precisa de advogado** antes de publicar; placeholders `[RAZÃO SOCIAL/CNPJ/DPO]` pra preencher.
 - **Veículos:** moto / carro / **van** (tirei bike). Ícone de van + preço + seletores.
