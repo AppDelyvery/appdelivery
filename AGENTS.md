@@ -52,6 +52,14 @@ migrations `0001`/`0002` aplicadas, RLS ativo, função pública `get_rastreio_p
 verificado por REST/RPC com a publishable key (`sb_publishable_...`, formato novo, faz papel de anon).
 `.env.local` (gitignored) tem `NEXT_PUBLIC_MAPBOX_TOKEN` + `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 MCP do Supabase configurado em `.mcp.json` mas ficou com setup issue (OAuth) — opcional, não bloqueia.
-**Próxima fatia (real):** auth + cadastro (lojista/entregador) gravando → `criarPedido` (Directions server +
-grava `pedidos`, read-after-write) → wire da comunicação ao vivo (`lib/realtime.ts`) com dado real.
-Deploy Vercel: importar repo + setar as 3 env vars `NEXT_PUBLIC_*`.
+Config Auth: **Email provider ON + Confirm email OFF** (necessário pro signup devolver sessão).
+
+**PROVADO na fonte (02/06):** cadastro lojista (`auth.users`+`profiles`+`estabelecimentos`) e
+`criarPedido` (grava `pedidos` status 'buscando' + tracking_token) e **rastreio público** (anon acha
+o pedido por token via `get_rastreio_publico`) — tudo verificado por `scripts/verify-auth.mjs` e
+`scripts/verify-fluxo.mjs` no banco real, RLS ativo. `/cadastro` e `/login` reais; `actions/criarPedido.ts` real.
+
+**Próxima fatia:** (1) auth-gate da área `/negocio` + chamar `criarPedido` pelo form (com coords reais via
+Directions/Geocoding) em vez da simulação; (2) cadastro+verificação do entregador gravando; (3) wire do
+`lib/realtime.ts` com dado real (entregador transmite GPS → lojista/cliente recebem); (4) SMS (Zenvia, CNPJ do dono) + push.
+Pendência menor: limpar registros de teste no banco (Otica Teste/Fluxo). Deploy Vercel: importar repo + 3 env `NEXT_PUBLIC_*`.
