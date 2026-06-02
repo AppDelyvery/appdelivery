@@ -35,6 +35,7 @@ const main = async () => {
     headers: rep(tok),
     body: JSON.stringify({ status: "aprovado" }),
   }).then(j);
-  console.log("4) [TESTE DE FURO] entregador tentou se auto-aprovar ->", JSON.stringify(hack).slice(0, 160));
+  const statusPos = Array.isArray(hack) ? hack[0]?.status : hack?.status;
+  console.log("4) [TESTE DE FURO] auto-aprovacao -> status agora:", statusPos, statusPos === "aprovado" ? "❌ FURO ABERTO" : "✅ TRAVADO (revertido)");
 };
 main().catch((e) => console.log("ERRO:", e.message));

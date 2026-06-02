@@ -59,7 +59,14 @@ Config Auth: **Email provider ON + Confirm email OFF** (necessário pro signup d
 o pedido por token via `get_rastreio_publico`) — tudo verificado por `scripts/verify-auth.mjs` e
 `scripts/verify-fluxo.mjs` no banco real, RLS ativo. `/cadastro` e `/login` reais; `actions/criarPedido.ts` real.
 
-**Próxima fatia:** (1) auth-gate da área `/negocio` + chamar `criarPedido` pelo form (com coords reais via
-Directions/Geocoding) em vez da simulação; (2) cadastro+verificação do entregador gravando; (3) wire do
-`lib/realtime.ts` com dado real (entregador transmite GPS → lojista/cliente recebem); (4) SMS (Zenvia, CNPJ do dono) + push.
-Pendência menor: limpar registros de teste no banco (Otica Teste/Fluxo). Deploy Vercel: importar repo + 3 env `NEXT_PUBLIC_*`.
+**FEITO + PROVADO (02/06, cont.):** (1) `/negocio` auth-gated; form chama `criarPedido` real (grava pedido +
+mostra link `/rastreio/{token}`), fallback simulação. (2) Cadastro de entregador gravando (`/cadastro/entregador`
+→ profiles+entregadores); `/entregador` gated. (3) **Furo de auto-aprovação encontrado, provado e FECHADO** —
+migration `0003_entregador_status_guard.sql` (trigger SECURITY DEFINER: não-admin não muda status/rating; só
+`cadastro→em_verificacao`); re-ataque pelo `scripts/verify-entregador.mjs` confirma travado. **Migrations aplicadas: 0001,0002,0003.**
+
+**Próxima fatia:** (1) verificação real do entregador (FlagCheck antecedentes + Infosimples CNH) **server-side com
+service role** + função `solicitar_verificacao` SECURITY DEFINER + upload de docs no Storage; (2) wire do
+`lib/realtime.ts` com dado real (entregador transmite GPS → lojista/cliente veem ao vivo); (3) aprovação no admin (PIN);
+(4) SMS (Zenvia, CNPJ do dono) + push. Pendência: proxy.ts (refresh de sessão); limpar registros de teste; deploy Vercel.
+Hardening futuro: guard de transição em `pedidos.status` (status só avança com evidência), igual fizemos no entregador.
