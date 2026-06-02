@@ -149,7 +149,7 @@ export default function AdminPanel() {
           <div className="trust-banner">
             <Icon name="shield" />
             <div>
-              Nenhum concorrente local (TôNoLucro, apps de comida, transportadoras) checa antecedentes.{" "}
+              Nenhum concorrente local (TôNoLucro, Bee Delivery, apps de comida) checa antecedentes.{" "}
               <b>É o que torna a APPDELYVERY confiável para encomenda de empresa.</b>
             </div>
           </div>
