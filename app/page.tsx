@@ -35,7 +35,17 @@ export default function Entrada() {
             </span>
           </Link>
         ))}
-        <div className="lg-foot">Protótipo de demonstração · dados simulados</div>
+        <div className="lg-foot">
+          Protótipo de demonstração · dados simulados
+          <br />
+          <Link href="/termos" style={{ color: "var(--muted)", fontWeight: 600 }}>
+            Termos
+          </Link>{" "}
+          ·{" "}
+          <Link href="/privacidade" style={{ color: "var(--muted)", fontWeight: 600 }}>
+            Privacidade
+          </Link>
+        </div>
       </div>
     </div>
   );
