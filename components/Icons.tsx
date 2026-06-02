@@ -6,7 +6,7 @@ export type IconName =
   | "building" | "moto" | "chart" | "shield" | "check" | "checkThin"
   | "clock" | "pin" | "camera" | "pen" | "play" | "stop" | "refresh"
   | "pkg" | "star" | "upload" | "card" | "car" | "user" | "spinner"
-  | "arrow" | "send" | "money" | "list" | "bolt";
+  | "arrow" | "send" | "money" | "list" | "bolt" | "van";
 
 const stroke = {
   fill: "none" as const,
@@ -170,6 +170,14 @@ const ICONS: Record<IconName, (p: SVGProps<SVGSVGElement>) => React.ReactElement
   bolt: (p) => (
     <svg viewBox="0 0 24 24" {...stroke} {...p}>
       <polygon points="13 2 3 14 12 14 11 22 21 10 12 10" />
+    </svg>
+  ),
+  van: (p) => (
+    <svg viewBox="0 0 24 24" {...stroke} {...p}>
+      <path d="M1 6h13v10H1z" />
+      <path d="M14 9h4l3 3v4h-7z" />
+      <circle cx="6" cy="17.5" r="1.8" />
+      <circle cx="17" cy="17.5" r="1.8" />
     </svg>
   ),
 };

@@ -138,6 +138,10 @@ function FormScreen() {
               <Icon name="car" />
               <span className="vl">Carro</span>
             </div>
+            <div className={`veh-opt${veh === "van" ? " sel" : ""}`} onClick={() => setVeh("van")}>
+              <Icon name="van" />
+              <span className="vl">Van</span>
+            </div>
           </div>
         </div>
         <div className="field">

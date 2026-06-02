@@ -96,6 +96,10 @@ function Cadastro() {
               <Icon name="car" />
               <span className="vl">Carro</span>
             </div>
+            <div className="veh-opt">
+              <Icon name="van" />
+              <span className="vl">Van</span>
+            </div>
           </div>
         </div>
       </div>
