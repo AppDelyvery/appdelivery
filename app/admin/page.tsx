@@ -1,11 +1,5 @@
-import EmBreve from "@/components/EmBreve";
+import AdminPanel from "@/components/admin/AdminPanel";
 
 export default function AdminPage() {
-  return (
-    <EmBreve
-      ic="chart"
-      titulo="Painel de operação"
-      descricao="Dashboard, entregadores, fila de aprovação (PIN) e financeiro entram na próxima fatia."
-    />
-  );
+  return <AdminPanel />;
 }

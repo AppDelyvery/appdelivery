@@ -37,7 +37,19 @@ SVG inline em `components/Icons.tsx` (`<Icon name="..." />`). Classes visuais em
 - **Mobile e desktop**: mesmo componente, responsivo; nunca arquivo separado.
 
 ## Estado do build (atualizado nesta sessão)
-Scaffold + design system + esqueleto de pastas do blueprint feitos. **Fatia pronta:** fluxo do
-negócio `/negocio/novo-pedido` (form → matching → tracking → done) com mapa Mapbox + simulação
-GPS. Entregador/admin/rastreio/auth são placeholders (`EmBreve`). Próximas fatias: cadastro+
-verificação do entregador, painel admin, tela pública do cliente final, e wire do Supabase.
+Scaffold + design system + estrutura do blueprint. **Personas portadas (UI, demo/simulada):**
+- `negocio/novo-pedido` — form → matching → tracking → done (Mapbox + sim GPS).
+- `entregador` — cadastro → verificação → oferta → coleta → rota → finalizar → concluído (mapa em coleta/rota).
+- `admin` — KPIs + entregadores + fila de aprovação + diferencial.
+- `rastreio/[token]` — tela pública do cliente final (read-only, mapa ao vivo + status).
+
+Arquitetura: `useSim` (motor de simulação), `MapaAoVivo` e `AppShell` são orientados a props/
+reutilizados pelas 3 personas; cada persona tem seu Context. `(auth)/login|cadastro` ainda são
+placeholders (`EmBreve`) — auth real é a próxima fatia.
+
+**Supabase pronto pra plugar (NÃO ligado ainda):** `lib/supabase/browser.ts` + `admin.ts`,
+migrations `supabase/migrations/0001_schema.sql` (schema+PostGIS+matching) e `0002_rls.sql`
+(RLS v1 + `get_rastreio_publico`). Faltam: criar projeto Supabase + rodar as 2 migrations no
+SQL Editor + setar `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY` no `.env.local`; depois wire dos
+server actions (`actions/`) com read-after-write. Deploy Vercel: importar repo + setar
+`NEXT_PUBLIC_MAPBOX_TOKEN`.

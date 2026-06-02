@@ -1,26 +1,54 @@
 "use client";
 
 import { useEffect } from "react";
+import AppShell, { type ShellNavGroup } from "../AppShell";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
 import { money, PRICE, priceCalc } from "@/lib/precos";
 import { DESTINO, STEPS } from "@/lib/rota";
-import { useEntrega } from "./EntregaContext";
+import { useEntrega, type NegocioView } from "./EntregaContext";
 
 const km1 = (n: number) => n.toFixed(1).replace(".", ",");
 
+const TITLES: Record<NegocioView, string> = {
+  form: "Nova entrega",
+  matching: "Buscando entregador",
+  tracking: "Entrega em andamento",
+  done: "Entrega concluída",
+};
+
 export default function NovoPedidoFlow() {
-  const { view } = useEntrega();
+  const { view, setView, frac, running, done, eta, setRouteMeta } = useEntrega();
+  const emAndamento = (["matching", "tracking", "done"] as NegocioView[]).includes(view);
+
+  const nav: ShellNavGroup[] = [
+    {
+      group: "Operação",
+      items: [
+        { ic: "send", label: "Nova entrega", active: view === "form", onClick: () => setView("form") },
+        { ic: "moto", label: "Em andamento", active: emAndamento, onClick: () => setView("tracking"), disabled: !emAndamento },
+        { ic: "list", label: "Histórico", badge: "em breve", disabled: true },
+      ],
+    },
+    {
+      group: "Conta",
+      items: [
+        { ic: "money", label: "Carteira", badge: "em breve", disabled: true },
+        { ic: "building", label: "Meu negócio", badge: "em breve", disabled: true },
+      ],
+    },
+  ];
+
   return (
-    <>
+    <AppShell title={TITLES[view]} nav={nav} demo="negocio">
       <div className="panel">
         {view === "form" && <FormScreen />}
         {view === "matching" && <MatchingScreen />}
         {view === "tracking" && <TrackingScreen />}
         {view === "done" && <DoneScreen />}
       </div>
-      <MapaAoVivo />
-    </>
+      <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} />
+    </AppShell>
   );
 }
 

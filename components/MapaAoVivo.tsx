@@ -13,7 +13,16 @@ import {
   posAt,
   type LngLat,
 } from "@/lib/rota";
-import { useEntrega } from "./negocio/EntregaContext";
+
+type Props = {
+  frac: number;
+  running: boolean;
+  done: boolean;
+  eta: { min: number; km: string };
+  onRouteMeta?: (distKm: number, durMin: number) => void;
+  /** Texto da pílula quando parado (ex.: "Rastreamento ao vivo · Palmas-TO"). */
+  idleLabel?: string;
+};
 
 // SVGs crus p/ os marcadores DOM do Mapbox (zero emoji).
 const SVG_MOTO =
@@ -23,8 +32,14 @@ const SVG_PIN =
 const SVG_PKG =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>';
 
-export default function MapaAoVivo() {
-  const { frac, running, done, eta, setRouteMeta } = useEntrega();
+export default function MapaAoVivo({
+  frac,
+  running,
+  done,
+  eta,
+  onRouteMeta,
+  idleLabel = "Rastreamento ao vivo · Palmas-TO",
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MbMap | null>(null);
   const motoRef = useRef<MbMarker | null>(null);
@@ -32,9 +47,9 @@ export default function MapaAoVivo() {
   const readyRef = useRef(false);
 
   // Mantém o callback de meta sempre atual sem re-disparar o effect de mount.
-  const setMetaRef = useRef(setRouteMeta);
+  const metaRef = useRef(onRouteMeta);
   useEffect(() => {
-    setMetaRef.current = setRouteMeta;
+    metaRef.current = onRouteMeta;
   });
 
   useEffect(() => {
@@ -55,14 +70,12 @@ export default function MapaAoVivo() {
 
       map.on("load", async () => {
         if (cancelled) return;
-        // 1) rota real pelas ruas (Directions) — fallback p/ rota aproximada
         const real = await fetchDirections([ORIGEM.lng, ORIGEM.lat], [DESTINO.lng, DESTINO.lat]);
         const coords = real?.coords ?? buildRoute(ORIGEM, DESTINO);
-        if (real) setMetaRef.current(real.distKm, real.durMin);
+        if (real) metaRef.current?.(real.distKm, real.durMin);
         const { cum, total } = indexRoute(coords);
         routeRef.current = { coords, cum, total };
 
-        // 2) linha exata
         map.addSource("route", {
           type: "geojson",
           data: { type: "Feature", geometry: { type: "LineString", coordinates: coords }, properties: {} },
@@ -82,7 +95,6 @@ export default function MapaAoVivo() {
           layout: { "line-cap": "round", "line-join": "round" },
         });
 
-        // 3) pinos + motoboy
         const pin = (p: typeof ORIGEM, cls: "o" | "d", svgInner: string) => {
           const el = document.createElement("div");
           el.className = "pt-marker " + cls;
@@ -125,11 +137,7 @@ export default function MapaAoVivo() {
     mapRef.current.easeTo({ center: ll, duration: 230 });
   }, [frac]);
 
-  const badge = done
-    ? "Entrega concluída"
-    : running
-      ? `Lucas a caminho · ${eta.min} min`
-      : "Rastreamento ao vivo · Palmas-TO";
+  const badge = done ? "Entrega concluída" : running ? `A caminho · ${eta.min} min` : idleLabel;
 
   return (
     <div id="map" ref={containerRef}>

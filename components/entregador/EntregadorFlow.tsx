@@ -1,0 +1,419 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import AppShell, { type ShellNavGroup } from "../AppShell";
+import AssinaturaCanvas from "../AssinaturaCanvas";
+import { Icon } from "../Icons";
+import MapaAoVivo from "../MapaAoVivo";
+import { money, priceCalc } from "@/lib/precos";
+import { DESTINO, ORIGEM } from "@/lib/rota";
+import { useEntregador, type EntregadorView } from "./EntregadorContext";
+
+const km1 = (n: number) => n.toFixed(1).replace(".", ",");
+
+const TITLES: Record<EntregadorView, string> = {
+  cadastro: "Cadastro e verificação",
+  verificando: "Verificação",
+  disponivel: "Corridas disponíveis",
+  coleta: "Coleta",
+  rota: "Minha corrida",
+  finalizar: "Finalizar entrega",
+  concluido: "Corrida concluída",
+};
+
+export default function EntregadorFlow() {
+  const { view, setView, frac, running, done, eta, setRouteMeta } = useEntregador();
+  const emCorrida = (["coleta", "rota", "finalizar", "concluido"] as EntregadorView[]).includes(view);
+  const noMap = !(view === "coleta" || view === "rota");
+
+  const nav: ShellNavGroup[] = [
+    {
+      group: "Corridas",
+      items: [
+        { ic: "bolt", label: "Disponíveis", active: view === "disponivel", onClick: () => setView("disponivel") },
+        { ic: "moto", label: "Minha corrida", active: emCorrida, onClick: () => setView("rota"), disabled: !emCorrida },
+        { ic: "money", label: "Ganhos", badge: "em breve", disabled: true },
+      ],
+    },
+    {
+      group: "Conta",
+      items: [
+        {
+          ic: "shield",
+          label: "Verificação",
+          active: view === "cadastro" || view === "verificando",
+          onClick: () => setView("cadastro"),
+        },
+        { ic: "user", label: "Cadastro", onClick: () => setView("cadastro") },
+      ],
+    },
+  ];
+
+  return (
+    <AppShell title={TITLES[view]} nav={nav} demo="entregador" noMap={noMap}>
+      <div className="panel">
+        {view === "cadastro" && <Cadastro />}
+        {view === "verificando" && <Verificando />}
+        {view === "disponivel" && <Oferta />}
+        {view === "coleta" && <Coleta />}
+        {view === "rota" && <Rota />}
+        {view === "finalizar" && <Finalizar />}
+        {view === "concluido" && <Concluido />}
+      </div>
+      {!noMap && (
+        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} idleLabel="Sua localização · Palmas-TO" />
+      )}
+    </AppShell>
+  );
+}
+
+function Cadastro() {
+  const { cnhUp, crlvUp, selfieUp, setCnhUp, setCrlvUp, setSelfieUp, setView } = useEntregador();
+  const ok = cnhUp && crlvUp && selfieUp;
+  return (
+    <>
+      <div className="card">
+        <div className="card-h">
+          <Icon name="user" />
+          <h3>Cadastro de entregador</h3>
+        </div>
+        <div className="field">
+          <label>Nome completo</label>
+          <input className="input" defaultValue="Diego Alves de Souza" />
+        </div>
+        <div className="field">
+          <label>CPF</label>
+          <input className="input" defaultValue="047.***.***-12" />
+        </div>
+        <div className="field">
+          <label>Veículo</label>
+          <div className="veh-toggle">
+            <div className="veh-opt sel">
+              <Icon name="moto" />
+              <span className="vl">Moto</span>
+            </div>
+            <div className="veh-opt">
+              <Icon name="car" />
+              <span className="vl">Carro</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-h">
+          <Icon name="card" />
+          <h3>Documentos</h3>
+          <span className="right">obrigatório</span>
+        </div>
+        <div className={`upload${cnhUp ? " done" : ""}`} onClick={() => setCnhUp(true)} style={{ marginBottom: 10 }}>
+          <div className="ic">
+            <Icon name={cnhUp ? "checkThin" : "upload"} />
+          </div>
+          <div>
+            <div className="ut">CNH (categoria A)</div>
+            <div className="us">{cnhUp ? "cnh-frente.jpg · enviado" : "toque para enviar a foto"}</div>
+          </div>
+        </div>
+        <div className={`upload${crlvUp ? " done" : ""}`} onClick={() => setCrlvUp(true)} style={{ marginBottom: 10 }}>
+          <div className="ic">
+            <Icon name={crlvUp ? "checkThin" : "upload"} />
+          </div>
+          <div>
+            <div className="ut">CRLV do veículo</div>
+            <div className="us">{crlvUp ? "crlv-2026.pdf · enviado" : "toque para enviar"}</div>
+          </div>
+        </div>
+        <div className={`upload${selfieUp ? " done" : ""}`} onClick={() => setSelfieUp(true)}>
+          <div className="ic">
+            <Icon name={selfieUp ? "checkThin" : "camera"} />
+          </div>
+          <div>
+            <div className="ut">Selfie com documento</div>
+            <div className="us">{selfieUp ? "selfie.jpg · enviado" : "prova de vida"}</div>
+          </div>
+        </div>
+      </div>
+
+      <button className="btn btn-primary" disabled={!ok} onClick={() => setView("verificando")}>
+        <Icon name="shield" /> Enviar para verificação
+      </button>
+      <p className="hint">
+        {ok ? "Tudo pronto. Vamos checar antecedentes e habilitação." : "Envie os 3 documentos para continuar."}
+      </p>
+    </>
+  );
+}
+
+const CHECKS = [
+  { ic: "card" as const, t: "Validando CNH no Senatran", s: "categoria, validade e situação" },
+  { ic: "shield" as const, t: "Consultando antecedentes", s: "processos e restrições por CPF" },
+  { ic: "user" as const, t: "Conferindo identidade", s: "prova de vida x documento" },
+];
+
+function Verificando() {
+  const { setView } = useEntregador();
+  const [status, setStatus] = useState<("idle" | "run" | "ok")[]>(["idle", "idle", "idle"]);
+  const [aprovado, setAprovado] = useState(false);
+
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    CHECKS.forEach((_, i) => {
+      timers.push(setTimeout(() => setStatus((s) => s.map((v, j) => (j === i ? "run" : v))), i * 1100 + 200));
+      timers.push(setTimeout(() => setStatus((s) => s.map((v, j) => (j === i ? "ok" : v))), i * 1100 + 1100));
+    });
+    timers.push(setTimeout(() => setAprovado(true), 3700));
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  return (
+    <>
+      <div className="card">
+        <div className="card-h">
+          <Icon name="shield" />
+          <h3>Verificação de segurança</h3>
+        </div>
+        {CHECKS.map((c, i) => (
+          <div className={`vcheck${status[i] === "run" ? " run" : status[i] === "ok" ? " ok" : ""}`} key={c.t}>
+            <div className="vc-ic">
+              <Icon name={status[i] === "run" ? "spinner" : status[i] === "ok" ? "checkThin" : c.ic} />
+            </div>
+            <div>
+              <div className="vc-t">{c.t}</div>
+              <div className="vc-s">{c.s}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {aprovado && (
+        <>
+          <div className="card">
+            <div className="done-hero">
+              <div className="circle" style={{ background: "var(--brand-light)" }}>
+                <Icon name="shield" style={{ color: "var(--brand)" }} />
+              </div>
+              <div className="t">Cadastro aprovado</div>
+              <div className="s">Você é um entregador verificado APPDELYVERY</div>
+            </div>
+          </div>
+          <button className="btn btn-go" onClick={() => setView("disponivel")}>
+            <Icon name="moto" /> Começar a rodar
+          </button>
+        </>
+      )}
+    </>
+  );
+}
+
+function Oferta() {
+  const { distKm, durMin, setView } = useEntregador();
+  const pc = priceCalc("moto", distKm);
+  return (
+    <>
+      <div className="card">
+        <div className="card-h">
+          <Icon name="bolt" />
+          <h3>Nova corrida</h3>
+          <span className="right">você verificado</span>
+        </div>
+        <div className="offer-amount">+ {money(pc.driver)}</div>
+        <div className="offer-sub">
+          você recebe 80% · entrega de {km1(distKm)} km · ~{durMin} min
+        </div>
+        <div className="route-pts">
+          <div className="rpt">
+            <div className="pin o" />
+            <div className="txt">
+              <div className="a">{ORIGEM.nome}</div>
+              <div className="b">{ORIGEM.end} · coleta</div>
+            </div>
+          </div>
+          <div className="rpt">
+            <div className="pin d" />
+            <div className="txt">
+              <div className="a">{DESTINO.nome}</div>
+              <div className="b">{DESTINO.end} · entrega</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button className="btn btn-go" onClick={() => setView("coleta")}>
+        <Icon name="checkThin" /> Aceitar corrida
+      </button>
+      <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => setView("disponivel")}>
+        Recusar
+      </button>
+      <p className="countdown">
+        Oferta passa para o próximo em <b>28s</b>
+      </p>
+      <p className="hint">
+        No app real chega por push com som. O entregador
+        <br />
+        tem segundos para aceitar (matching por proximidade).
+      </p>
+    </>
+  );
+}
+
+function Coleta() {
+  const { coletaFoto, setColetaFoto, setView, start } = useEntregador();
+  return (
+    <>
+      <div className="card">
+        <div className="card-h">
+          <Icon name="pin" />
+          <h3>Vá até a coleta</h3>
+        </div>
+        <div className="rpt" style={{ padding: 0 }}>
+          <div className="pin o" style={{ marginTop: 5 }} />
+          <div className="txt">
+            <div className="a">{ORIGEM.nome}</div>
+            <div className="b">{ORIGEM.end}</div>
+          </div>
+        </div>
+      </div>
+      {coletaFoto ? (
+        <>
+          <div className="card">
+            <div className="card-h">
+              <Icon name="camera" />
+              <h3>Coleta registrada</h3>
+            </div>
+            <div className="photo">
+              <Icon name="pkg" className="pkg" />
+              <div className="geo">
+                <Icon name="pin" /> {ORIGEM.end} · 23:51
+              </div>
+            </div>
+          </div>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              setView("rota");
+              start();
+            }}
+          >
+            <Icon name="arrow" /> Iniciar entrega
+          </button>
+        </>
+      ) : (
+        <button className="btn btn-primary" onClick={() => setColetaFoto(true)}>
+          <Icon name="camera" /> Cheguei — registrar coleta (foto)
+        </button>
+      )}
+      <p className="hint">A foto na coleta entra na trilha de auditoria da encomenda.</p>
+    </>
+  );
+}
+
+function Rota() {
+  const { done, eta, distKm, setView } = useEntregador();
+  const pc = priceCalc("moto", distKm);
+  return (
+    <>
+      <div className="card">
+        <div className="card-h">
+          <Icon name="moto" />
+          <h3>{done ? "Você chegou ao destino" : "A caminho da entrega"}</h3>
+        </div>
+        <div className="rpt" style={{ padding: "0 0 12px" }}>
+          <div className="pin d" style={{ marginTop: 5 }} />
+          <div className="txt">
+            <div className="a">{DESTINO.nome}</div>
+            <div className="b">{DESTINO.end}</div>
+          </div>
+        </div>
+        <div className="eta-row">
+          <div className="eta-box">
+            <div className="big">{done ? 0 : eta.min}</div>
+            <div className="lbl">minutos</div>
+          </div>
+          <div className="eta-box">
+            <div className="big">{done ? "0,0" : eta.km.replace(".", ",")}</div>
+            <div className="lbl">km restantes</div>
+          </div>
+        </div>
+      </div>
+      <div className="card">
+        <div className="card-h">
+          <Icon name="money" />
+          <h3>Seu ganho</h3>
+        </div>
+        <div className="earn-big" style={{ fontSize: 30 }}>
+          {money(pc.driver)}
+        </div>
+      </div>
+      {done ? (
+        <button className="btn btn-go" onClick={() => setView("finalizar")}>
+          <Icon name="pen" /> Finalizar entrega
+        </button>
+      ) : (
+        <button className="btn btn-primary" disabled>
+          <Icon name="moto" /> Em rota — GPS ativo
+        </button>
+      )}
+      <p className="hint">O GPS do seu celular alimenta o mapa do cliente em tempo real.</p>
+    </>
+  );
+}
+
+function Finalizar() {
+  const { setSigData, setView } = useEntregador();
+  return (
+    <>
+      <div className="card">
+        <div className="card-h">
+          <Icon name="pen" />
+          <h3>Assinatura do destinatário</h3>
+        </div>
+        <p style={{ fontSize: 12.5, color: "var(--muted)", marginBottom: 10 }}>
+          Peça para quem recebeu assinar abaixo confirmando a entrega.
+        </p>
+        <AssinaturaCanvas onChange={setSigData} />
+      </div>
+      <button className="btn btn-go" onClick={() => setView("concluido")}>
+        <Icon name="check" /> Confirmar entrega
+      </button>
+      <p className="hint">Foto + assinatura fecham o ciclo e geram o comprovante do cliente.</p>
+    </>
+  );
+}
+
+function Concluido() {
+  const { distKm, setView, setColetaFoto, setSigData, reset } = useEntregador();
+  const pc = priceCalc("moto", distKm);
+  return (
+    <>
+      <div className="card">
+        <div className="done-hero">
+          <div className="circle">
+            <Icon name="check" />
+          </div>
+          <div className="t">Entrega concluída</div>
+          <div className="s">Comprovante enviado ao cliente</div>
+        </div>
+      </div>
+      <div className="card">
+        <div className="card-h">
+          <Icon name="money" />
+          <h3>Você ganhou</h3>
+        </div>
+        <div className="earn-big">+ {money(pc.driver)}</div>
+        <div style={{ textAlign: "center", fontSize: 12, color: "var(--muted)" }}>
+          creditado na sua conta · repasse automático
+        </div>
+      </div>
+      <button
+        className="btn btn-go"
+        onClick={() => {
+          setColetaFoto(false);
+          setSigData(null);
+          reset();
+          setView("disponivel");
+        }}
+      >
+        <Icon name="bolt" /> Buscar nova corrida
+      </button>
+    </>
+  );
+}

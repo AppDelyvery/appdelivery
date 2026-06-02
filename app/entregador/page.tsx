@@ -1,11 +1,5 @@
-import EmBreve from "@/components/EmBreve";
+import EntregadorFlow from "@/components/entregador/EntregadorFlow";
 
 export default function EntregadorPage() {
-  return (
-    <EmBreve
-      ic="moto"
-      titulo="Área do entregador"
-      descricao="Cadastro, verificação (FlagCheck + Infosimples) e corridas entram na próxima fatia."
-    />
-  );
+  return <EntregadorFlow />;
 }
