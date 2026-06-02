@@ -1,11 +1,5 @@
-import EmBreve from "@/components/EmBreve";
+import Login from "@/components/auth/Login";
 
 export default function LoginPage() {
-  return (
-    <EmBreve
-      ic="user"
-      titulo="Login"
-      descricao="Auth real (Supabase) entra quando a conta existir. Por enquanto, use a entrada por papel."
-    />
-  );
+  return <Login />;
 }

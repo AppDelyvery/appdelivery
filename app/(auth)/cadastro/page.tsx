@@ -1,11 +1,5 @@
-import EmBreve from "@/components/EmBreve";
+import CadastroNegocio from "@/components/auth/CadastroNegocio";
 
 export default function CadastroPage() {
-  return (
-    <EmBreve
-      ic="building"
-      titulo="Cadastro"
-      descricao="Cadastro de negócio e de entregador (3 passos) entram na próxima fatia."
-    />
-  );
+  return <CadastroNegocio />;
 }
