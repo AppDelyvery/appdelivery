@@ -2,9 +2,9 @@ import Link from "next/link";
 import { Icon, type IconName } from "@/components/Icons";
 
 const ROLES: { href: string; ic: IconName; titulo: string; sub: string }[] = [
-  { href: "/negocio/novo-pedido", ic: "building", titulo: "Entrar como Negócio", sub: "peço e acompanho minhas entregas" },
-  { href: "/entregador", ic: "moto", titulo: "Entrar como Entregador", sub: "recebo e faço corridas" },
-  { href: "/admin", ic: "chart", titulo: "Entrar como Operação", sub: "painel de gestão e aprovações" },
+  { href: "/cadastro", ic: "building", titulo: "Sou um Negócio", sub: "peço e acompanho minhas entregas" },
+  { href: "/cadastro/entregador", ic: "moto", titulo: "Sou Entregador", sub: "recebo e faço corridas" },
+  { href: "/admin", ic: "chart", titulo: "Operação", sub: "painel de gestão e aprovações" },
 ];
 
 export default function Entrada() {
