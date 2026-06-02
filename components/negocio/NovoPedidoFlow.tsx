@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import AppShell, { type ShellNavGroup } from "../AppShell";
+import ChatBox from "../Chat";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
+import { useChatAuth } from "@/lib/chat";
 import { criarPedido } from "@/actions/criarPedido";
 import { hasSupabase } from "@/lib/integracoes";
 import { money, PRICE, priceCalc } from "@/lib/precos";
@@ -251,6 +253,7 @@ function MatchingScreen() {
 
 function TrackingScreen() {
   const { step, done, running, eta, start, reset, setView, pedido, setPedido } = useEntrega();
+  const chat = useChatAuth(pedido?.id ?? null, "estabelecimento");
   return (
     <>
       <div className="card">
@@ -349,6 +352,8 @@ function TrackingScreen() {
           })}
         </div>
       </div>
+
+      {pedido && <ChatBox msgs={chat.msgs} enviar={chat.enviar} meuPapel="estabelecimento" />}
 
       {running ? (
         <button

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import ChatBox from "../Chat";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
+import { useChatPublico } from "@/lib/chat";
 import { STEPS } from "@/lib/rota";
 import { useSim } from "../useSim";
 
@@ -10,6 +12,7 @@ import { useSim } from "../useSim";
 // Hoje a posição roda em simulação; no real virá do Supabase Realtime via getRastreioPublico(token).
 export default function RastreioPublico({ token }: { token: string }) {
   const { frac, step, running, done, eta, start, setRouteMeta } = useSim();
+  const chat = useChatPublico(token);
 
   useEffect(() => {
     const t = setTimeout(() => start(), 900);
@@ -113,6 +116,8 @@ export default function RastreioPublico({ token }: { token: string }) {
               })}
             </div>
           </div>
+          <ChatBox msgs={chat.msgs} enviar={chat.enviar} meuPapel="cliente_final" titulo="Fale com o entregador" />
+
           <p className="hint">
             Você está acompanhando como cliente final. Link seguro, sem login —
             <br />
