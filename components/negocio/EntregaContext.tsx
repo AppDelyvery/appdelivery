@@ -6,11 +6,15 @@ import { useSim, type Sim } from "../useSim";
 
 export type NegocioView = "form" | "matching" | "tracking" | "done";
 
+export type PedidoRef = { id: string; token: string };
+
 type EntregaCtx = {
   veh: Veiculo;
   setVeh: (v: Veiculo) => void;
   view: NegocioView;
   setView: (v: NegocioView) => void;
+  pedido: PedidoRef | null;
+  setPedido: (p: PedidoRef | null) => void;
 } & Sim;
 
 const Ctx = createContext<EntregaCtx | null>(null);
@@ -24,6 +28,7 @@ export function useEntrega() {
 export function EntregaProvider({ children }: { children: React.ReactNode }) {
   const [veh, setVeh] = useState<Veiculo>("moto");
   const [view, setView] = useState<NegocioView>("form");
+  const [pedido, setPedido] = useState<PedidoRef | null>(null);
   const sim = useSim();
-  return <Ctx.Provider value={{ veh, setVeh, view, setView, ...sim }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ veh, setVeh, view, setView, pedido, setPedido, ...sim }}>{children}</Ctx.Provider>;
 }

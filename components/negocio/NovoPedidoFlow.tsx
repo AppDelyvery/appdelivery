@@ -1,12 +1,22 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import AppShell, { type ShellNavGroup } from "../AppShell";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
+import { criarPedido } from "@/actions/criarPedido";
+import { hasSupabase } from "@/lib/integracoes";
 import { money, PRICE, priceCalc } from "@/lib/precos";
-import { DESTINO, STEPS } from "@/lib/rota";
+import { DESTINO, ORIGEM, STEPS } from "@/lib/rota";
 import { useEntrega, type NegocioView } from "./EntregaContext";
+
+const MOTIVO: Record<string, string> = {
+  "supabase-nao-configurado": "Backend não configurado.",
+  "nao-autenticado": "Faça login para criar pedidos.",
+  "estabelecimento-nao-encontrado": "Conta sem estabelecimento. Refaça o cadastro.",
+  "nao-confirmado-na-fonte": "O pedido não confirmou no banco. Tente de novo.",
+};
+const traduzMotivo = (m: string) => MOTIVO[m] ?? `Falha ao criar o pedido (${m}).`;
 
 const km1 = (n: number) => n.toFixed(1).replace(".", ",");
 
@@ -53,8 +63,49 @@ export default function NovoPedidoFlow() {
 }
 
 function FormScreen() {
-  const { veh, setVeh, distKm, durMin, setView } = useEntrega();
+  const { veh, setVeh, distKm, durMin, setView, setPedido } = useEntrega();
   const pc = priceCalc(veh, distKm);
+  const [conteudo, setConteudo] = useState("Documentos + 1 par de óculos");
+  const [valor, setValor] = useState("R$ 350,00");
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function solicitar() {
+    setErro(null);
+    // Sem backend configurado → mantém a simulação (demo).
+    if (!hasSupabase()) {
+      setView("matching");
+      return;
+    }
+    setEnviando(true);
+    try {
+      const valorNum = Number(valor.replace(/[^\d,]/g, "").replace(",", ".")) || undefined;
+      const r = await criarPedido({
+        coletaEndereco: `${ORIGEM.nome} — ${ORIGEM.end}`,
+        coletaLat: ORIGEM.lat,
+        coletaLng: ORIGEM.lng,
+        entregaEndereco: `${DESTINO.nome} — ${DESTINO.end}`,
+        entregaLat: DESTINO.lat,
+        entregaLng: DESTINO.lng,
+        veiculo: veh,
+        conteudo,
+        valorDeclarado: valorNum,
+        distanciaKm: distKm,
+        duracaoMin: durMin,
+      });
+      if (!r.ok) {
+        setErro(traduzMotivo(r.motivo));
+        return;
+      }
+      setPedido({ id: r.pedidoId, token: r.trackingToken });
+      setView("matching");
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Falha ao criar o pedido.");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
   return (
     <>
       <div className="card">
@@ -91,13 +142,13 @@ function FormScreen() {
         </div>
         <div className="field">
           <label>O que será enviado</label>
-          <input className="input" defaultValue="Documentos + 1 par de óculos" />
+          <input className="input" value={conteudo} onChange={(e) => setConteudo(e.target.value)} />
         </div>
         <div className="field">
           <label>Valor declarado da encomenda</label>
           <div className="with-icon">
             <Icon name="money" />
-            <input className="input" defaultValue="R$ 350,00" />
+            <input className="input" value={valor} onChange={(e) => setValor(e.target.value)} />
           </div>
         </div>
       </div>
@@ -137,8 +188,14 @@ function FormScreen() {
         </div>
       </div>
 
-      <button className="btn btn-primary" onClick={() => setView("matching")}>
-        <Icon name="send" /> Solicitar entrega
+      {erro && (
+        <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)", marginBottom: 12 }}>
+          <Icon name="shield" />
+          <div>{erro}</div>
+        </div>
+      )}
+      <button className="btn btn-primary" onClick={solicitar} disabled={enviando}>
+        <Icon name={enviando ? "spinner" : "send"} /> {enviando ? "Criando pedido…" : "Solicitar entrega"}
       </button>
       <p className="hint">
         O preço é calculado pela fórmula km + coleta + paradas,
@@ -189,14 +246,14 @@ function MatchingScreen() {
 }
 
 function TrackingScreen() {
-  const { step, done, running, eta, start, reset, setView } = useEntrega();
+  const { step, done, running, eta, start, reset, setView, pedido, setPedido } = useEntrega();
   return (
     <>
       <div className="card">
         <div className="card-h">
           <Icon name="moto" />
           <h3>Entrega {done ? "concluída" : "em andamento"}</h3>
-          <span className="right">#4821</span>
+          <span className="right">#{pedido ? pedido.id.slice(0, 8) : "4821"}</span>
         </div>
         <div className="driver">
           <div className="avatar">LM</div>
@@ -228,6 +285,26 @@ function TrackingScreen() {
           </div>
         </div>
       </div>
+
+      {pedido && (
+        <div className="card">
+          <div className="card-h">
+            <Icon name="pin" />
+            <h3>Link de rastreio do cliente</h3>
+          </div>
+          <a
+            href={`/rastreio/${pedido.token}`}
+            target="_blank"
+            rel="noreferrer"
+            style={{ fontSize: 12.5, fontWeight: 600, color: "var(--brand)", wordBreak: "break-all" }}
+          >
+            /rastreio/{pedido.token}
+          </a>
+          <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 4 }}>
+            Enviado ao cliente final por SMS/WhatsApp — ele acompanha sem instalar app.
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <div className="card-h">
@@ -274,6 +351,7 @@ function TrackingScreen() {
           className="btn btn-ghost"
           onClick={() => {
             reset();
+            setPedido(null);
             setView("form");
           }}
         >
@@ -293,7 +371,7 @@ function TrackingScreen() {
 }
 
 function DoneScreen() {
-  const { veh, distKm, reset, setView } = useEntrega();
+  const { veh, distKm, reset, setView, setPedido } = useEntrega();
   const pc = priceCalc(veh, distKm);
   return (
     <>
@@ -339,6 +417,7 @@ function DoneScreen() {
         className="btn btn-primary"
         onClick={() => {
           reset();
+          setPedido(null);
           setView("form");
         }}
       >
