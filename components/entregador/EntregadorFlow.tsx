@@ -13,6 +13,7 @@ import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
 import { hasSupabase } from "@/lib/integracoes";
 import { useCorridasDisponiveis } from "@/lib/corridas";
+import { usePedido } from "@/lib/pedido";
 import { registrarColeta, registrarEntrega } from "@/lib/entrega";
 import { abrirDisputa } from "@/actions/disputas";
 import { useEnviarPosicao } from "@/lib/realtime";
@@ -413,22 +414,17 @@ function Coleta() {
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const { pos: gps } = useGeolocation(true);
-  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
+  const pedido = usePedido(pedidoId);
   const [aviso, setAviso] = useState<number | null>(null); // distância em metros se longe
 
-  useEffect(() => {
-    (async () => {
-      const sb = getBrowserSupabase();
-      if (!sb || !pedidoId) return;
-      const { data } = await sb.from("pedidos").select("coleta_lat,coleta_lng").eq("id", pedidoId).single();
-      if (data) setCoords({ lat: (data as { coleta_lat: number }).coleta_lat, lng: (data as { coleta_lng: number }).coleta_lng });
-    })();
-  }, [pedidoId]);
+  const colLat = pedido?.coleta_lat ?? null;
+  const colLng = pedido?.coleta_lng ?? null;
+  const colEnd = pedido?.coleta_endereco ?? ORIGEM.end;
 
   // gate de geofence: se o GPS diz que está longe, pede confirmação consciente
   const registrar = async () => {
-    if (estaLonge(gps, coords.lat, coords.lng)) {
-      setAviso(distanciaAte(gps, coords.lat, coords.lng));
+    if (estaLonge(gps, colLat, colLng)) {
+      setAviso(distanciaAte(gps, colLat, colLng));
       return;
     }
     await executar();
@@ -465,11 +461,18 @@ function Coleta() {
         <div className="rpt" style={{ padding: 0 }}>
           <div className="pin o" style={{ marginTop: 5 }} />
           <div className="txt">
-            <div className="a">{ORIGEM.nome}</div>
-            <div className="b">{ORIGEM.end}</div>
+            <div className="a">{colEnd}</div>
+            <div className="b">ponto de coleta</div>
           </div>
         </div>
-        <NavExterna lat={coords.lat} lng={coords.lng} label="Ir até a coleta" />
+        <NavExterna lat={colLat} lng={colLng} label="Ir até a coleta" />
+      </div>
+
+      <div className="card">
+        <div className="card-h"><Icon name="pkg" /><h3>O que você vai levar</h3></div>
+        <div style={{ fontSize: 13.5, color: "var(--ink)", fontWeight: 600 }}>{pedido?.descricao || "Encomenda"}</div>
+        {pedido?.valor_declarado ? <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 3 }}>Valor declarado: {money(pedido.valor_declarado)}</div> : null}
+        {pedido?.cliente_final_nome ? <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 3 }}>Entrega para: {pedido.cliente_final_nome}</div> : null}
       </div>
       {coletaFoto ? (
         <>
@@ -481,7 +484,7 @@ function Coleta() {
             <div className="photo">
               <Icon name="pkg" className="pkg" />
               <div className="geo">
-                <Icon name="pin" /> {ORIGEM.end} · 23:51
+                <Icon name="pin" /> {colEnd}
               </div>
             </div>
           </div>
@@ -517,25 +520,18 @@ function Coleta() {
         </>
       )}
       <p className="hint">A foto na coleta entra na trilha de auditoria da encomenda.</p>
-      {aviso != null && <AvisoForaDoLocal distancia={aviso} acao="registrar a coleta" onConfirmar={executar} onCancelar={() => setAviso(null)} />}
+      {aviso != null && <AvisoForaDoLocal distancia={aviso} acao="registrar a coleta" onConfirmar={() => void executar()} onCancelar={() => setAviso(null)} />}
     </>
   );
 }
 
 function Rota() {
   const { done, eta, distKm, setView, pedidoId, setPedidoId, setColetaFoto } = useEntregador();
-  const pc = priceCalc("moto", distKm);
+  const pedido = usePedido(pedidoId);
+  const pcSim = priceCalc("moto", distKm);
+  const ganho = pedido?.preco_entregador ?? pcSim.driver;
+  const entEnd = pedido?.entrega_endereco ?? DESTINO.end;
   const [cancelar, setCancelar] = useState(false);
-  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
-
-  useEffect(() => {
-    (async () => {
-      const sb = getBrowserSupabase();
-      if (!sb || !pedidoId) return;
-      const { data } = await sb.from("pedidos").select("entrega_lat,entrega_lng").eq("id", pedidoId).single();
-      if (data) setCoords({ lat: (data as { entrega_lat: number }).entrega_lat, lng: (data as { entrega_lng: number }).entrega_lng });
-    })();
-  }, [pedidoId]);
 
   const confirmarCancelamento = async (motivo: string) => {
     const sb = getBrowserSupabase();
@@ -556,8 +552,8 @@ function Rota() {
         <div className="rpt" style={{ padding: "0 0 12px" }}>
           <div className="pin d" style={{ marginTop: 5 }} />
           <div className="txt">
-            <div className="a">{DESTINO.nome}</div>
-            <div className="b">{DESTINO.end}</div>
+            <div className="a">{entEnd}</div>
+            <div className="b">{pedido?.cliente_final_nome ? `entregar para ${pedido.cliente_final_nome}` : "ponto de entrega"}</div>
           </div>
         </div>
         <div className="eta-row">
@@ -570,7 +566,7 @@ function Rota() {
             <div className="lbl">km restantes</div>
           </div>
         </div>
-        <NavExterna lat={coords.lat} lng={coords.lng} label="Ir até a entrega" />
+        <NavExterna lat={pedido?.entrega_lat ?? null} lng={pedido?.entrega_lng ?? null} label="Ir até a entrega" />
       </div>
       <div className="card">
         <div className="card-h">
@@ -578,7 +574,7 @@ function Rota() {
           <h3>Seu ganho</h3>
         </div>
         <div className="earn-big" style={{ fontSize: 30 }}>
-          {money(pc.driver)}
+          {money(ganho)}
         </div>
       </div>
       {done ? (
@@ -605,21 +601,12 @@ function Finalizar() {
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const { pos: gps } = useGeolocation(true);
-  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
+  const pedido = usePedido(pedidoId);
   const [aviso, setAviso] = useState<number | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      const sb = getBrowserSupabase();
-      if (!sb || !pedidoId) return;
-      const { data } = await sb.from("pedidos").select("entrega_lat,entrega_lng").eq("id", pedidoId).single();
-      if (data) setCoords({ lat: (data as { entrega_lat: number }).entrega_lat, lng: (data as { entrega_lng: number }).entrega_lng });
-    })();
-  }, [pedidoId]);
-
   const confirmar = async () => {
-    if (estaLonge(gps, coords.lat, coords.lng)) {
-      setAviso(distanciaAte(gps, coords.lat, coords.lng));
+    if (estaLonge(gps, pedido?.entrega_lat ?? null, pedido?.entrega_lng ?? null)) {
+      setAviso(distanciaAte(gps, pedido?.entrega_lat ?? null, pedido?.entrega_lng ?? null));
       return;
     }
     await executar();
