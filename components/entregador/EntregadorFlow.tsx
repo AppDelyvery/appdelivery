@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import AppShell, { type ShellNavGroup } from "../AppShell";
 import AssinaturaCanvas from "../AssinaturaCanvas";
+import BotaoSuporte from "../BotaoSuporte";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
 import { hasSupabase } from "@/lib/integracoes";
 import { useCorridasDisponiveis } from "@/lib/corridas";
 import { registrarColeta, registrarEntrega } from "@/lib/entrega";
+import { abrirDisputa } from "@/actions/disputas";
 import { useEnviarPosicao } from "@/lib/realtime";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
@@ -451,7 +453,7 @@ function Coleta() {
 }
 
 function Rota() {
-  const { done, eta, distKm, setView } = useEntregador();
+  const { done, eta, distKm, setView, pedidoId } = useEntregador();
   const pc = priceCalc("moto", distKm);
   return (
     <>
@@ -496,6 +498,7 @@ function Rota() {
           <Icon name="moto" /> Em rota — GPS ativo
         </button>
       )}
+      {pedidoId && <BotaoSuporte onEnviar={(t, d) => abrirDisputa(pedidoId, "entregador", t, d).then((r) => (r.ok ? "ok" : r.motivo))} />}
       <p className="hint">O GPS do seu celular alimenta o mapa do cliente em tempo real.</p>
     </>
   );

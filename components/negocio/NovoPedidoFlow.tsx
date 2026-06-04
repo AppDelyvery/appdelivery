@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import AppShell, { type ShellNavGroup } from "../AppShell";
+import BotaoSuporte from "../BotaoSuporte";
 import ChatBox from "../Chat";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
 import { useChatAuth } from "@/lib/chat";
 import { usePosicaoAoVivo } from "@/lib/realtime";
 import { criarPedido } from "@/actions/criarPedido";
+import { abrirDisputa } from "@/actions/disputas";
 import { hasSupabase } from "@/lib/integracoes";
 import { money, PRICE, priceCalc } from "@/lib/precos";
 import { DESTINO, ORIGEM, STEPS } from "@/lib/rota";
@@ -356,6 +358,7 @@ function TrackingScreen() {
       </div>
 
       {pedido && <ChatBox msgs={chat.msgs} enviar={chat.enviar} meuPapel="estabelecimento" />}
+      {pedido && <BotaoSuporte onEnviar={(t, d) => abrirDisputa(pedido.id, "estabelecimento", t, d).then((r) => (r.ok ? "ok" : r.motivo))} />}
 
       {running ? (
         <button

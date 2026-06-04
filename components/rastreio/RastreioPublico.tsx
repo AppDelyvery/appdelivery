@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import BotaoSuporte from "../BotaoSuporte";
 import ChatBox from "../Chat";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
@@ -141,6 +142,15 @@ export default function RastreioPublico({ token }: { token: string }) {
             </div>
           </div>
           <ChatBox msgs={chat.msgs} enviar={chat.enviar} meuPapel="cliente_final" titulo="Fale com o entregador" />
+
+          <BotaoSuporte
+            onEnviar={async (t, d) => {
+              const sb = getBrowserSupabase();
+              if (!sb) return "sem-backend";
+              const { data } = await sb.rpc("abrir_disputa_rastreio", { p_token: token, p_tipo: t, p_descricao: d });
+              return data === "ok" ? "ok" : String(data);
+            }}
+          />
 
           <p className="hint">
             Você está acompanhando como cliente final. Link seguro, sem login —

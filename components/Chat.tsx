@@ -8,6 +8,7 @@ const ROTULO: Record<string, string> = {
   estabelecimento: "Loja",
   entregador: "Entregador",
   cliente_final: "Cliente",
+  suporte: "Suporte",
 };
 
 export default function ChatBox({

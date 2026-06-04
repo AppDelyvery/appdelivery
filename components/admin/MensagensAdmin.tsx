@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AdminShell from "./AdminShell";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
@@ -13,24 +13,27 @@ type Msg = {
   pedidos: { coleta_endereco: string; entrega_endereco: string } | null;
 };
 
-const ROTULO: Record<string, string> = { estabelecimento: "Loja", entregador: "Entregador", cliente_final: "Cliente" };
+const ROTULO: Record<string, string> = { estabelecimento: "Loja", entregador: "Entregador", cliente_final: "Cliente", suporte: "Suporte" };
 const dt = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
 export default function MensagensAdmin() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [sel, setSel] = useState<string | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      const sb = getBrowserSupabase();
-      if (!sb) return;
-      const { data } = await sb
-        .from("mensagens")
-        .select("pedido_id,autor_papel,texto,created_at,pedidos(coleta_endereco,entrega_endereco)")
-        .order("created_at");
-      if (data) setMsgs(data as unknown as Msg[]);
-    })();
+  const carregar = useCallback(async () => {
+    const sb = getBrowserSupabase();
+    if (!sb) return;
+    const { data } = await sb
+      .from("mensagens")
+      .select("pedido_id,autor_papel,texto,created_at,pedidos(coleta_endereco,entrega_endereco)")
+      .order("created_at");
+    if (data) setMsgs(data as unknown as Msg[]);
   }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    carregar();
+  }, [carregar]);
 
   const threads = new Map<string, Msg[]>();
   for (const m of msgs) {
@@ -60,16 +63,33 @@ export default function MensagensAdmin() {
           ))
         )}
       </div>
-      <p className="hint">Acesso total às conversas (auditoria · só admin). Read-only.</p>
+      <p className="hint">Acesso total às conversas (auditoria · só admin). O admin pode entrar como “suporte”.</p>
 
       {sel && (
-        <Drawer titulo={thread[0]?.pedidos ? `${thread[0].pedidos.coleta_endereco} → ${thread[0].pedidos.entrega_endereco}` : `#${sel.slice(0, 8)}`} thread={thread} onClose={() => setSel(null)} />
+        <Drawer
+          titulo={thread[0]?.pedidos ? `${thread[0].pedidos.coleta_endereco} → ${thread[0].pedidos.entrega_endereco}` : `#${sel.slice(0, 8)}`}
+          pedidoId={sel}
+          thread={thread}
+          onClose={() => setSel(null)}
+          onEnviado={carregar}
+        />
       )}
     </AdminShell>
   );
 }
 
-function Drawer({ titulo, thread, onClose }: { titulo: string; thread: Msg[]; onClose: () => void }) {
+function Drawer({ titulo, pedidoId, thread, onClose, onEnviado }: { titulo: string; pedidoId: string; thread: Msg[]; onClose: () => void; onEnviado: () => void }) {
+  const [texto, setTexto] = useState("");
+
+  const enviar = async () => {
+    if (!texto.trim()) return;
+    const sb = getBrowserSupabase();
+    if (!sb) return;
+    await sb.from("mensagens").insert({ pedido_id: pedidoId, autor_papel: "suporte", texto: texto.trim() });
+    setTexto("");
+    onEnviado();
+  };
+
   useEffect(() => {
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", h);
@@ -99,6 +119,18 @@ function Drawer({ titulo, thread, onClose }: { titulo: string; thread: Msg[]; on
             );
           })}
         </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void enviar();
+          }}
+          style={{ display: "flex", gap: 8, marginTop: 14 }}
+        >
+          <input className="input" placeholder="Responder como suporte…" value={texto} onChange={(e) => setTexto(e.target.value)} />
+          <button className="btn btn-primary" type="submit" style={{ width: "auto", padding: "0 16px" }} aria-label="Enviar">
+            <Icon name="send" />
+          </button>
+        </form>
       </div>
     </>
   );
