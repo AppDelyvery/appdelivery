@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AdminShell from "./AdminShell";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
+import { promoverOperador } from "@/actions/operadores";
 
 type Row = {
   base_moto: number;
@@ -110,7 +111,75 @@ export default function ConfigAdmin() {
       <button className="btn btn-primary" disabled={salvando} onClick={salvar}>
         <Icon name={salvando ? "spinner" : "checkThin"} /> {salvando ? "Salvando…" : "Salvar configurações"}
       </button>
-      <p className="hint">Mudou aqui, vale na hora pros novos pedidos. Você não depende de ninguém pra ajustar o preço.</p>
+      <p className="hint" style={{ marginBottom: 18 }}>Mudou aqui, vale na hora pros novos pedidos. Você não depende de ninguém pra ajustar o preço.</p>
+
+      <Operadores pin={row.pin_supervisor ?? ""} />
     </AdminShell>
+  );
+}
+
+function Operadores({ pin }: { pin: string }) {
+  const [ops, setOps] = useState<{ email: string; nome: string; role: string }[]>([]);
+  const [email, setEmail] = useState("");
+  const [opPin, setOpPin] = useState("");
+  const [msg, setMsg] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const carregar = useCallback(async () => {
+    const sb = getBrowserSupabase();
+    if (!sb) return;
+    const { data } = await sb.rpc("listar_operadores");
+    if (data) setOps(data as { email: string; nome: string; role: string }[]);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    carregar();
+  }, [carregar]);
+
+  const agir = async (alvo: string, ativar: boolean) => {
+    setMsg(null);
+    setBusy(true);
+    const r = await promoverOperador(alvo, ativar, opPin || pin);
+    setBusy(false);
+    if (r.ok) {
+      setEmail("");
+      await carregar();
+    } else {
+      setMsg(r.motivo === "pin-invalido" ? "PIN incorreto." : r.motivo);
+    }
+  };
+
+  return (
+    <div className="card">
+      <div className="card-h">
+        <Icon name="user" />
+        <h3>Operadores</h3>
+      </div>
+      <p style={{ fontSize: 12.5, color: "var(--muted)", marginBottom: 10 }}>
+        Quem ajuda a operar (aprovar entregador, etc). A pessoa precisa já ter conta no app.
+      </p>
+      {ops.map((o) => (
+        <div key={o.email} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: "1px solid var(--line)" }}>
+          <div>
+            <div className="td-name" style={{ fontSize: 13 }}>{o.nome}</div>
+            <div style={{ fontSize: 11.5, color: "var(--muted)" }}>{o.email} · {o.role}</div>
+          </div>
+          {o.role === "operador" && (
+            <button className="btn btn-ghost" style={{ width: "auto", padding: "6px 12px", fontSize: 12 }} disabled={busy} onClick={() => agir(o.email, false)}>
+              Remover
+            </button>
+          )}
+        </div>
+      ))}
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <input className="input" type="email" placeholder="e-mail do operador" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <button className="btn btn-go" style={{ width: "auto", padding: "0 16px" }} disabled={busy || !email} onClick={() => agir(email, true)}>
+          <Icon name="checkThin" />
+        </button>
+      </div>
+      <input className="input" type="password" placeholder="PIN (se diferente do salvo)" value={opPin} onChange={(e) => setOpPin(e.target.value)} style={{ marginTop: 8 }} />
+      {msg && <div style={{ color: "var(--warn)", fontSize: 12.5, marginTop: 8, fontWeight: 600 }}>{msg}</div>}
+    </div>
   );
 }

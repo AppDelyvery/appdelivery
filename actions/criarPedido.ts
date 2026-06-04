@@ -37,10 +37,11 @@ export async function criarPedido(input: NovoPedidoInput): Promise<CriarPedidoRe
   // estabelecimento do usuário logado
   const { data: est, error: eEst } = await sb
     .from("estabelecimentos")
-    .select("id")
+    .select("id, ativo")
     .eq("profile_id", user.id)
     .single();
   if (eEst || !est) return { ok: false, motivo: "estabelecimento-nao-encontrado" };
+  if ((est as { ativo?: boolean }).ativo === false) return { ok: false, motivo: "negocio-suspenso" };
 
   const cfg = await getConfig(sb);
   const pc = priceCalc(input.veiculo, input.distanciaKm, cfg);
