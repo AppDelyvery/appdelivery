@@ -20,6 +20,7 @@ export default function AdminShell({ title, children }: { title: string; childre
       items: [
         it("chart", "Dashboard", "/admin"),
         it("pkg", "Corridas", "/admin/corridas"),
+        it("send", "Mensagens", "/admin/mensagens"),
         it("moto", "Entregadores", "/admin/entregadores"),
         it("building", "Negócios", "/admin/negocios"),
       ],
