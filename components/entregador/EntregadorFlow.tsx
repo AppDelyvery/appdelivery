@@ -7,6 +7,7 @@ import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
 import { hasSupabase } from "@/lib/integracoes";
 import { useCorridasDisponiveis } from "@/lib/corridas";
+import { registrarColeta, registrarEntrega } from "@/lib/entrega";
 import { money, priceCalc } from "@/lib/precos";
 import { DESTINO, ORIGEM } from "@/lib/rota";
 import { useEntregador, type EntregadorView } from "./EntregadorContext";
@@ -335,7 +336,31 @@ function Oferta() {
 }
 
 function Coleta() {
-  const { coletaFoto, setColetaFoto, setView, start } = useEntregador();
+  const { coletaFoto, setColetaFoto, setView, start, pedidoId } = useEntregador();
+  const [foto, setFoto] = useState<File | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  const registrar = async () => {
+    setErro(null);
+    if (!hasSupabase() || !pedidoId) {
+      setColetaFoto(true);
+      return;
+    }
+    setEnviando(true);
+    const r = await registrarColeta(pedidoId, foto);
+    setEnviando(false);
+    if (r === "ok") setColetaFoto(true);
+    else
+      setErro(
+        r === "status-invalido"
+          ? "Essa corrida não está na etapa de coleta."
+          : r === "nao-e-sua-corrida"
+            ? "Essa corrida não é sua."
+            : "Falha ao registrar a coleta.",
+      );
+  };
+
   return (
     <>
       <div className="card">
@@ -376,9 +401,27 @@ function Coleta() {
           </button>
         </>
       ) : (
-        <button className="btn btn-primary" onClick={() => setColetaFoto(true)}>
-          <Icon name="camera" /> Cheguei — registrar coleta (foto)
-        </button>
+        <>
+          <label className="upload" style={{ marginBottom: 10 }}>
+            <div className="ic">
+              <Icon name={foto ? "checkThin" : "camera"} />
+            </div>
+            <div>
+              <div className="ut">{foto ? foto.name : "Foto da encomenda na coleta"}</div>
+              <div className="us">{foto ? "pronta pra enviar" : "toque para tirar/escolher a foto"}</div>
+            </div>
+            <input type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={(e) => setFoto(e.target.files?.[0] ?? null)} />
+          </label>
+          {erro && (
+            <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)", marginBottom: 10 }}>
+              <Icon name="shield" />
+              <div>{erro}</div>
+            </div>
+          )}
+          <button className="btn btn-primary" disabled={enviando} onClick={registrar}>
+            <Icon name={enviando ? "spinner" : "camera"} /> {enviando ? "Registrando…" : "Cheguei — registrar coleta"}
+          </button>
+        </>
       )}
       <p className="hint">A foto na coleta entra na trilha de auditoria da encomenda.</p>
     </>
@@ -437,7 +480,24 @@ function Rota() {
 }
 
 function Finalizar() {
-  const { setSigData, setView } = useEntregador();
+  const { setSigData, sigData, setView, pedidoId } = useEntregador();
+  const [foto, setFoto] = useState<File | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  const confirmar = async () => {
+    setErro(null);
+    if (!hasSupabase() || !pedidoId) {
+      setView("concluido");
+      return;
+    }
+    setEnviando(true);
+    const r = await registrarEntrega(pedidoId, foto, sigData);
+    setEnviando(false);
+    if (r === "ok") setView("concluido");
+    else setErro(r === "status-invalido" ? "Essa corrida não está na etapa de entrega." : "Falha ao registrar a entrega.");
+  };
+
   return (
     <>
       <div className="card">
@@ -450,8 +510,24 @@ function Finalizar() {
         </p>
         <AssinaturaCanvas onChange={setSigData} />
       </div>
-      <button className="btn btn-go" onClick={() => setView("concluido")}>
-        <Icon name="check" /> Confirmar entrega
+      <label className="upload" style={{ marginBottom: 10 }}>
+        <div className="ic">
+          <Icon name={foto ? "checkThin" : "camera"} />
+        </div>
+        <div>
+          <div className="ut">{foto ? foto.name : "Foto da entrega"}</div>
+          <div className="us">{foto ? "pronta pra enviar" : "toque para tirar/escolher a foto"}</div>
+        </div>
+        <input type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={(e) => setFoto(e.target.files?.[0] ?? null)} />
+      </label>
+      {erro && (
+        <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)", marginBottom: 10 }}>
+          <Icon name="shield" />
+          <div>{erro}</div>
+        </div>
+      )}
+      <button className="btn btn-go" disabled={enviando} onClick={confirmar}>
+        <Icon name={enviando ? "spinner" : "check"} /> {enviando ? "Confirmando…" : "Confirmar entrega"}
       </button>
       <p className="hint">Foto + assinatura fecham o ciclo e geram o comprovante do cliente.</p>
     </>
