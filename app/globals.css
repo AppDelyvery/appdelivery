@@ -345,12 +345,26 @@ tr:last-child td { border-bottom: none; }
   .topbar .ts { display: none; }
   .topbar .tt { font-size: 15.5px; }
 
-  /* Conteúdo empilha: painel em cima, mapa embaixo (some quando no-map) */
+  /* Telas SEM mapa (listas/painéis): empilha simples, painel ocupa tudo */
   .content { flex-direction: column; overflow-y: auto; }
   .content .panel { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--line); flex-shrink: 1; }
   .content.no-map .panel { max-width: none; margin: 0; }
   .panel { width: 100%; min-width: 0; padding: 16px; overflow-y: visible; }
   #map { flex: none; height: 56vh; min-height: 320px; border-left: none; }
+
+  /* Telas COM mapa (fluxo entregador/negócio): mapa de fundo no topo +
+     painel como bottom-sheet arredondado sobrepondo (feel app de navegação, padrão 99) */
+  .content:not(.no-map) { flex-direction: column-reverse; }
+  .content:not(.no-map) .panel {
+    border-radius: 20px 20px 0 0; border-bottom: none; margin-top: -22px;
+    position: relative; z-index: 2; box-shadow: 0 -8px 24px rgba(13,20,36,.08);
+    padding-top: 20px;
+  }
+  .content:not(.no-map) .panel::before {
+    content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    width: 38px; height: 4px; border-radius: 4px; background: var(--line-2);
+  }
+  .content:not(.no-map) #map { height: 46vh; }
 
   /* KPIs: 2 colunas no compacto */
   .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
