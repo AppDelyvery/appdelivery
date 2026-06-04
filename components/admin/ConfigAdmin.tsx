@@ -7,11 +7,9 @@ import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { promoverOperador } from "@/actions/operadores";
 
 type Row = {
-  base_moto: number;
-  base_carro: number;
-  base_van: number;
-  per_km: number;
-  minimo: number;
+  base_moto: number; per_km_moto: number; min_moto: number;
+  base_carro: number; per_km_carro: number; min_carro: number;
+  base_van: number; per_km_van: number; min_van: number;
   take_rate: number;
   raio_m: number;
   pin_supervisor: string | null;
@@ -67,11 +65,21 @@ export default function ConfigAdmin() {
           <Icon name="money" />
           <h3>Tabela de preço</h3>
         </div>
-        {moeda("Bandeirada moto (R$)", "base_moto")}
-        {moeda("Bandeirada carro (R$)", "base_carro")}
-        {moeda("Bandeirada van (R$)", "base_van")}
-        {moeda("Por km (R$)", "per_km")}
-        {moeda("Valor mínimo (R$)", "minimo")}
+        <div className="cfg-veic"><div className="cfg-veic-h">Moto</div>
+          {moeda("Bandeirada (R$)", "base_moto")}
+          {moeda("Por km (R$)", "per_km_moto")}
+          {moeda("Mínimo (R$)", "min_moto")}
+        </div>
+        <div className="cfg-veic"><div className="cfg-veic-h">Carro</div>
+          {moeda("Bandeirada (R$)", "base_carro")}
+          {moeda("Por km (R$)", "per_km_carro")}
+          {moeda("Mínimo (R$)", "min_carro")}
+        </div>
+        <div className="cfg-veic"><div className="cfg-veic-h">Van</div>
+          {moeda("Bandeirada (R$)", "base_van")}
+          {moeda("Por km (R$)", "per_km_van")}
+          {moeda("Mínimo (R$)", "min_van")}
+        </div>
         <div className="field">
           <label>Take rate da plataforma (%)</label>
           <input

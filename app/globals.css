@@ -119,6 +119,23 @@ body {
 .veh-opt.sel { border-color: var(--brand); background: var(--brand-light); }
 .veh-opt.sel svg, .veh-opt.sel .vl { color: var(--brand); }
 
+/* Card de escolha de veículo com preço (form do lojista) */
+.veh-card { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; border: 1.5px solid var(--line-2); border-radius: 13px; padding: 12px 14px; margin-bottom: 9px; background: #fbfcfe; cursor: pointer; transition: .15s; font-family: inherit; }
+.veh-card:last-child { margin-bottom: 0; }
+.veh-card.sel { border-color: var(--brand); background: var(--brand-light); box-shadow: 0 0 0 3px var(--brand-light); }
+.veh-card .veh-ic { width: 42px; height: 42px; border-radius: 11px; background: #fff; border: 1px solid var(--line); display: grid; place-items: center; flex-shrink: 0; }
+.veh-card .veh-ic svg { width: 22px; height: 22px; color: var(--brand); }
+.veh-card .veh-meta { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.veh-card .veh-n { font-size: 14.5px; font-weight: 800; color: var(--ink); }
+.veh-card .veh-d { font-size: 11.5px; color: var(--muted); }
+.veh-card .veh-p { font-size: 17px; font-weight: 800; color: var(--brand); letter-spacing: -.4px; }
+
+/* Config: tabela de preço agrupada por veículo */
+.cfg-veic { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
+.cfg-veic-h { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; color: var(--brand); margin-bottom: 8px; }
+.cfg-veic .field { margin-bottom: 9px; }
+.cfg-veic .field:last-child { margin-bottom: 0; }
+
 /* UPLOAD */
 .upload { display: flex; align-items: center; gap: 11px; border: 1.5px dashed var(--line-2); border-radius: 11px; padding: 13px; cursor: pointer; transition: .15s; background: #fbfcfe; }
 .upload:hover { border-color: var(--brand); background: var(--brand-light); }

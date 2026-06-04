@@ -14,7 +14,7 @@ import { usePosicaoAoVivo } from "@/lib/realtime";
 import { criarPedido } from "@/actions/criarPedido";
 import { abrirDisputa } from "@/actions/disputas";
 import { hasSupabase } from "@/lib/integracoes";
-import { money, PRICE, priceCalc } from "@/lib/precos";
+import { money, PRICE, priceCalc, faixaDoVeiculo, VEICULOS } from "@/lib/precos";
 import { DESTINO, ORIGEM, STEPS } from "@/lib/rota";
 import { useEntrega, type NegocioView } from "./EntregaContext";
 
@@ -138,23 +138,6 @@ function FormScreen() {
           </div>
         </div>
         <div className="field">
-          <label>Tipo de veículo</label>
-          <div className="veh-toggle">
-            <div className={`veh-opt${veh === "moto" ? " sel" : ""}`} onClick={() => setVeh("moto")}>
-              <Icon name="moto" />
-              <span className="vl">Moto</span>
-            </div>
-            <div className={`veh-opt${veh === "carro" ? " sel" : ""}`} onClick={() => setVeh("carro")}>
-              <Icon name="car" />
-              <span className="vl">Carro</span>
-            </div>
-            <div className={`veh-opt${veh === "van" ? " sel" : ""}`} onClick={() => setVeh("van")}>
-              <Icon name="van" />
-              <span className="vl">Van</span>
-            </div>
-          </div>
-        </div>
-        <div className="field">
           <label>O que será enviado</label>
           <input className="input" value={conteudo} onChange={(e) => setConteudo(e.target.value)} />
         </div>
@@ -169,28 +152,42 @@ function FormScreen() {
 
       <div className="card">
         <div className="card-h">
+          <Icon name="moto" />
+          <h3>Escolha o veículo</h3>
+          <span className="right">{km1(distKm)} km</span>
+        </div>
+        {VEICULOS.map((v) => {
+          const p = priceCalc(v.id, distKm);
+          return (
+            <button key={v.id} type="button" className={`veh-card${veh === v.id ? " sel" : ""}`} onClick={() => setVeh(v.id)}>
+              <span className="veh-ic"><Icon name={v.id === "carro" ? "car" : v.id === "van" ? "van" : "moto"} /></span>
+              <span className="veh-meta">
+                <span className="veh-n">{v.nome}</span>
+                <span className="veh-d">{v.desc}</span>
+              </span>
+              <span className="veh-p">{money(p.total)}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="card">
+        <div className="card-h">
           <Icon name="money" />
-          <h3>Valor da entrega</h3>
-          <span className="right">cálculo automático</span>
+          <h3>Detalhe do {VEICULOS.find((v) => v.id === veh)?.nome}</h3>
         </div>
         <div className="price-line">
-          <span>Bandeirada + coleta ({veh})</span>
-          <span>{money(pc.base)}</span>
+          <span>Bandeirada</span>
+          <span>{money(faixaDoVeiculo(veh).base)}</span>
         </div>
         <div className="price-line">
-          <span>
-            Distância · {km1(distKm)} km × {money(PRICE.perKm)}
-          </span>
+          <span>Distância · {km1(distKm)} km × {money(faixaDoVeiculo(veh).perKm)}</span>
           <span>{money(pc.dist)}</span>
-        </div>
-        <div className="price-line">
-          <span>Pontos adicionais</span>
-          <span>R$ 0,00</span>
         </div>
         {pc.aplicouMin && (
           <div className="price-line">
-            <span>Valor mínimo da corrida</span>
-            <span>{money(PRICE.min)}</span>
+            <span>Valor mínimo ({VEICULOS.find((v) => v.id === veh)?.nome})</span>
+            <span>{money(faixaDoVeiculo(veh).min)}</span>
           </div>
         )}
         <div className="price-line total">

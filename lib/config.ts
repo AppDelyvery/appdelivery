@@ -1,37 +1,40 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { TabelaPreco } from "./precos";
 
-export type Config = {
-  baseMoto: number;
-  baseCarro: number;
-  baseVan: number;
-  perKm: number;
-  min: number;
-  driverPct: number;
+// Config = tabela de preço (por veículo) + raio de matching + PIN do supervisor.
+export type Config = TabelaPreco & {
   raioM: number;
   pin: string | null;
 };
 
 export const CONFIG_DEFAULT: Config = {
-  baseMoto: 8,
-  baseCarro: 13,
-  baseVan: 20,
-  perKm: 1.5,
-  min: 10,
+  baseMoto: 8, perKmMoto: 1.5, minMoto: 10,
+  baseCarro: 13, perKmCarro: 2.5, minCarro: 15,
+  baseVan: 20, perKmVan: 3.0, minVan: 25,
   driverPct: 0.8,
   raioM: 5000,
   pin: null,
 };
 
+function num(v: unknown, fallback: number): number {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 function mapRow(r: Record<string, unknown> | null): Config {
   if (!r) return CONFIG_DEFAULT;
   return {
-    baseMoto: Number(r.base_moto),
-    baseCarro: Number(r.base_carro),
-    baseVan: Number(r.base_van),
-    perKm: Number(r.per_km),
-    min: Number(r.minimo),
-    driverPct: 1 - Number(r.take_rate),
-    raioM: Number(r.raio_m),
+    baseMoto: num(r.base_moto, CONFIG_DEFAULT.baseMoto),
+    perKmMoto: num(r.per_km_moto, CONFIG_DEFAULT.perKmMoto),
+    minMoto: num(r.min_moto, CONFIG_DEFAULT.minMoto),
+    baseCarro: num(r.base_carro, CONFIG_DEFAULT.baseCarro),
+    perKmCarro: num(r.per_km_carro, CONFIG_DEFAULT.perKmCarro),
+    minCarro: num(r.min_carro, CONFIG_DEFAULT.minCarro),
+    baseVan: num(r.base_van, CONFIG_DEFAULT.baseVan),
+    perKmVan: num(r.per_km_van, CONFIG_DEFAULT.perKmVan),
+    minVan: num(r.min_van, CONFIG_DEFAULT.minVan),
+    driverPct: 1 - num(r.take_rate, 0.2),
+    raioM: num(r.raio_m, CONFIG_DEFAULT.raioM),
     pin: (r.pin_supervisor as string | null) ?? null,
   };
 }
