@@ -24,6 +24,7 @@ export default function AdminShell({ title, children }: { title: string; childre
         it("send", "Mensagens", "/admin/mensagens"),
         it("moto", "Entregadores", "/admin/entregadores"),
         it("building", "Negócios", "/admin/negocios"),
+        it("send", "Comunicados", "/admin/comunicados"),
       ],
     },
     { group: "Inteligência", items: [it("bolt", "Rankings", "/admin/rankings"), it("star", "Avaliações", "/admin/avaliacoes")] },
