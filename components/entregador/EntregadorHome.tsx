@@ -12,6 +12,8 @@ import { useCorridasDisponiveis } from "@/lib/corridas";
 import { useDisponibilidade, useAtualizarPosicao } from "@/lib/disponibilidade";
 import { useEntregador } from "./EntregadorContext";
 
+type PerfilMenu = { nome: string; rating: number | null; total_entregas: number; taxa_aceitacao: number | null; taxa_finalizacao: number | null };
+const iniciais = (nome: string) => nome.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
 const km1 = (n: number) => n.toFixed(1).replace(".", ",");
 const inicioDoDia = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
 const VEIC: Record<string, string> = { moto: "Moto", carro: "Carro", van: "Van", bike: "Bike" };
@@ -28,7 +30,7 @@ export default function EntregadorHome() {
   const [tema, setTema] = useState<TemaMapa>("auto");
   const [menu, setMenu] = useState(false);
   const [seletorTema, setSeletorTema] = useState(false);
-  const [perfil, setPerfil] = useState<{ nome: string; rating: number | null } | null>(null);
+  const [perfil, setPerfil] = useState<PerfilMenu | null>(null);
   const [ganhoHoje, setGanhoHoje] = useState(0);
   const [msg, setMsg] = useState<string | null>(null);
   const recenterRef = useRef<(() => void) | null>(null);
@@ -37,8 +39,16 @@ export default function EntregadorHome() {
     (async () => {
       const sb = getBrowserSupabase();
       if (!sb) return;
-      const { data: e } = await sb.from("entregadores").select("nome,rating").limit(1).maybeSingle();
-      if (e) setPerfil(e as { nome: string; rating: number | null });
+      const { data: e } = await sb.from("entregadores").select("nome").limit(1).maybeSingle();
+      const { data: m } = await sb.rpc("metricas_entregador");
+      const met = (m ?? {}) as { rating?: number | null; total_entregas?: number; taxa_aceitacao?: number | null; taxa_finalizacao?: number | null };
+      setPerfil({
+        nome: (e as { nome?: string } | null)?.nome ?? "Entregador",
+        rating: met.rating ?? null,
+        total_entregas: met.total_entregas ?? 0,
+        taxa_aceitacao: met.taxa_aceitacao ?? null,
+        taxa_finalizacao: met.taxa_finalizacao ?? null,
+      });
       const { data: p } = await sb.from("pedidos").select("preco_entregador,status,entregue_at");
       if (p) {
         const hoje = (p as { preco_entregador: number | null; status: string; entregue_at: string | null }[])
@@ -76,12 +86,15 @@ export default function EntregadorHome() {
         {money(ganhoHoje)} <Icon name="arrow" />
       </button>
 
-      {/* ícones flutuantes à direita */}
+      {/* ícones flutuantes à direita: recentralizar + tema + reportar */}
       <div className="emap-side">
-        <button className="emap-fab" onClick={() => recenterRef.current?.()} aria-label="Centralizar"><Icon name="pin" /></button>
-        <button className="emap-fab" onClick={() => setSeletorTema((s) => !s)} aria-label="Tema do mapa"><Icon name="star" /></button>
-        <button className="emap-fab" onClick={() => (window.location.href = "/entregador/perfil")} aria-label="Verificação"><Icon name="shield" /></button>
+        <button className="emap-fab" onClick={() => recenterRef.current?.()} aria-label="Centralizar no meu local"><Icon name="target" /></button>
+        <button className="emap-fab" onClick={() => setSeletorTema((s) => !s)} aria-label="Tema do mapa"><Icon name="layers" /></button>
+        <button className="emap-fab" onClick={() => (window.location.href = "/entregador/comunicados")} aria-label="Reportar / central"><Icon name="report" /></button>
       </div>
+
+      {/* escudo / verificação (canto inferior esquerdo) */}
+      <button className="emap-shield" onClick={() => (window.location.href = "/entregador/perfil")} aria-label="Verificação e segurança"><Icon name="shield" /></button>
 
       {seletorTema && (
         <div className="emap-tema">
@@ -143,7 +156,7 @@ export default function EntregadorHome() {
   );
 }
 
-function MenuDrawer({ perfil, onFechar }: { perfil: { nome: string; rating: number | null } | null; onFechar: () => void }) {
+function MenuDrawer({ perfil, onFechar }: { perfil: PerfilMenu | null; onFechar: () => void }) {
   const router = useRouter();
   const ir = (href: string) => { onFechar(); router.push(href); };
   const sair = async () => {
@@ -154,16 +167,19 @@ function MenuDrawer({ perfil, onFechar }: { perfil: { nome: string; rating: numb
   const item = (ic: Parameters<typeof Icon>[0]["name"], label: string, href: string) => (
     <button className="sb-item" onClick={() => ir(href)}><Icon name={ic} /><span>{label}</span></button>
   );
+  const pct = (v: number | null) => (v == null ? "—" : `${v}%`);
   return (
     <>
       <div className="nav-scrim" style={{ display: "block", position: "fixed", inset: 0, zIndex: 330 }} onClick={onFechar} />
       <aside className="sidebar open" style={{ display: "flex", position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 331, transform: "translateX(0)", width: 280, maxWidth: "86vw" }}>
-        <div className="sb-logo">
-          <div className="mark"><Icon name="moto" /></div>
-          <div>
-            <div className="name"><b>{perfil?.nome ?? "Entregador"}</b></div>
-            <div className="sub">{perfil?.rating != null ? `${perfil.rating} ★` : "APPDELYVERY"}</div>
-          </div>
+        <div className="menu-perfil">
+          <div className="menu-avatar">{iniciais(perfil?.nome ?? "E")}</div>
+          <div className="menu-nome">{perfil?.nome ?? "Entregador"}</div>
+          <div className="menu-rating"><Icon name="star" /> {perfil?.rating != null ? perfil.rating : "—"} · {perfil?.total_entregas ?? 0} entregas</div>
+        </div>
+        <div className="menu-taxas">
+          <div className="menu-taxa"><div className="v">{pct(perfil?.taxa_aceitacao ?? null)}</div><div className="l">Taxa de Aceitação</div></div>
+          <div className="menu-taxa"><div className="v">{pct(perfil?.taxa_finalizacao ?? null)}</div><div className="l">Taxa de Finalização</div></div>
         </div>
         <div className="sb-group">
           <div className="gh">Corridas</div>

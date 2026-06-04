@@ -6,7 +6,7 @@ export type IconName =
   | "building" | "moto" | "chart" | "shield" | "check" | "checkThin"
   | "clock" | "pin" | "camera" | "pen" | "play" | "stop" | "refresh"
   | "pkg" | "star" | "upload" | "download" | "card" | "car" | "user" | "spinner"
-  | "arrow" | "send" | "money" | "list" | "bolt" | "van" | "menu";
+  | "arrow" | "send" | "money" | "list" | "bolt" | "van" | "menu" | "layers" | "report" | "target";
 
 const stroke = {
   fill: "none" as const,
@@ -127,6 +127,29 @@ const ICONS: Record<IconName, (p: SVGProps<SVGSVGElement>) => React.ReactElement
       <line x1="3" y1="6" x2="21" y2="6" />
       <line x1="3" y1="12" x2="21" y2="12" />
       <line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  ),
+  layers: (p) => (
+    <svg viewBox="0 0 24 24" {...stroke} {...p}>
+      <polygon points="12 2 22 8.5 12 15 2 8.5 12 2" />
+      <polyline points="2 15.5 12 22 22 15.5" />
+    </svg>
+  ),
+  report: (p) => (
+    <svg viewBox="0 0 24 24" {...stroke} {...p}>
+      <path d="M10.3 3.8 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  ),
+  target: (p) => (
+    <svg viewBox="0 0 24 24" {...stroke} {...p}>
+      <circle cx="12" cy="12" r="8" />
+      <circle cx="12" cy="12" r="3" />
+      <line x1="12" y1="1" x2="12" y2="4" />
+      <line x1="12" y1="20" x2="12" y2="23" />
+      <line x1="1" y1="12" x2="4" y2="12" />
+      <line x1="20" y1="12" x2="23" y2="12" />
     </svg>
   ),
   card: (p) => (
