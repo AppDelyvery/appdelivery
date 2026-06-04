@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import AppShell, { type ShellNavGroup } from "../AppShell";
 import BotaoSuporte from "../BotaoSuporte";
+import SlideConfirm from "../SlideConfirm";
+import CancelarCorrida from "../CancelarCorrida";
 import ChatBox from "../Chat";
+import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
 import { useChatAuth } from "@/lib/chat";
@@ -205,9 +208,7 @@ function FormScreen() {
           <div>{erro}</div>
         </div>
       )}
-      <button className="btn btn-primary" onClick={solicitar} disabled={enviando}>
-        <Icon name={enviando ? "spinner" : "send"} /> {enviando ? "Criando pedido…" : "Solicitar entrega"}
-      </button>
+      <SlideConfirm label="Solicitar entrega" icon="send" color="brand" busy={enviando} onConfirm={solicitar} />
       <p className="hint">
         O preço é calculado pela fórmula km + coleta + paradas,
         <br />
@@ -259,6 +260,17 @@ function MatchingScreen() {
 function TrackingScreen() {
   const { step, done, running, eta, start, reset, setView, pedido, setPedido } = useEntrega();
   const chat = useChatAuth(pedido?.id ?? null, "estabelecimento");
+  const [cancelar, setCancelar] = useState(false);
+
+  const cancelarPedido = async (motivo: string) => {
+    const sb = getBrowserSupabase();
+    if (sb && pedido) await sb.rpc("cancelar_pedido_estabelecimento", { p_pedido_id: pedido.id, p_motivo: motivo });
+    setCancelar(false);
+    reset();
+    setPedido(null);
+    setView("form");
+  };
+
   return (
     <>
       <div className="card">
@@ -360,6 +372,20 @@ function TrackingScreen() {
 
       {pedido && <ChatBox msgs={chat.msgs} enviar={chat.enviar} meuPapel="estabelecimento" />}
       {pedido && <BotaoSuporte onEnviar={(t, d) => abrirDisputa(pedido.id, "estabelecimento", t, d).then((r) => (r.ok ? "ok" : r.motivo))} />}
+
+      {pedido && !done && (
+        <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => setCancelar(true)}>
+          <Icon name="stop" /> Cancelar pedido
+        </button>
+      )}
+      {cancelar && (
+        <CancelarCorrida
+          titulo="Cancelar pedido"
+          motivos={["Não preciso mais da entrega", "Cliente cancelou a compra", "Vou levar eu mesmo", "Erro no pedido (endereço/itens)", "Demora pra achar entregador", "Outro"]}
+          onConfirmar={cancelarPedido}
+          onFechar={() => setCancelar(false)}
+        />
+      )}
 
       {running ? (
         <button
