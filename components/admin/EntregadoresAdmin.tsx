@@ -4,9 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import AdminShell from "./AdminShell";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
-import { aprovarEntregador } from "@/actions/aprovarEntregador";
+import { definirStatusEntregador, type StatusEntregador } from "@/actions/moderarEntregador";
 
-type Ent = { id: string; nome: string; vehicle_type: string; status: string; rating: number | null };
+type Ent = { id: string; nome: string; cpf: string; vehicle_type: string; placa: string | null; status: string; rating: number | null; total_entregas: number | null };
+type Verif = { tipo: string; resultado: string; provedor: string | null; criado_at: string };
+type Doc = { tipo: string; url: string };
+
 const PILL: Record<string, { cls: string; txt: string }> = {
   aprovado: { cls: "s-ok", txt: "Aprovado" },
   em_verificacao: { cls: "s-pend", txt: "Em verificação" },
@@ -17,14 +20,12 @@ const PILL: Record<string, { cls: string; txt: string }> = {
 
 export default function EntregadoresAdmin() {
   const [ents, setEnts] = useState<Ent[]>([]);
-  const [aprovando, setAprovando] = useState<string | null>(null);
-  const [pin, setPin] = useState("");
-  const [msg, setMsg] = useState<string | null>(null);
+  const [sel, setSel] = useState<Ent | null>(null);
 
   const carregar = useCallback(async () => {
     const sb = getBrowserSupabase();
     if (!sb) return;
-    const { data } = await sb.from("entregadores").select("id,nome,vehicle_type,status,rating").order("created_at", { ascending: false });
+    const { data } = await sb.from("entregadores").select("id,nome,cpf,vehicle_type,placa,status,rating,total_entregas").order("created_at", { ascending: false });
     if (data) setEnts(data as Ent[]);
   }, []);
 
@@ -33,76 +34,138 @@ export default function EntregadoresAdmin() {
     carregar();
   }, [carregar]);
 
-  const confirmar = async (id: string) => {
-    setMsg(null);
-    const r = await aprovarEntregador(id, pin);
-    if (r.ok) {
-      setAprovando(null);
-      setPin("");
-      await carregar();
-    } else {
-      setMsg(r.motivo === "pin-invalido" ? "PIN incorreto." : r.motivo);
-    }
-  };
-
   const pendentes = ents.filter((e) => e.status === "em_verificacao" || e.status === "cadastro");
+
+  const linha = (e: Ent) => (
+    <div key={e.id} onClick={() => setSel(e)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 0", borderBottom: "1px solid var(--line)", cursor: "pointer" }}>
+      <div>
+        <div className="td-name" style={{ fontSize: 13.5 }}>{e.nome}</div>
+        <div style={{ color: "var(--muted)", fontSize: 11.5, marginTop: 2 }}>{e.vehicle_type}{e.placa ? ` · ${e.placa}` : ""}</div>
+      </div>
+      <span className={`status-pill ${PILL[e.status]?.cls ?? "s-pend"}`}>{PILL[e.status]?.txt ?? e.status}</span>
+    </div>
+  );
 
   return (
     <AdminShell title="Entregadores">
       <div className="card">
-        <div className="card-h">
-          <Icon name="shield" />
-          <h3>Fila de aprovação</h3>
-          <span className="right">{pendentes.length} pendente(s)</span>
-        </div>
-        {pendentes.length === 0 && (
+        <div className="card-h"><Icon name="shield" /><h3>Fila de aprovação</h3><span className="right">{pendentes.length} pendente(s)</span></div>
+        {pendentes.length === 0 ? (
           <div style={{ fontSize: 13, color: "var(--muted)", textAlign: "center", padding: "12px 0" }}>Nenhum entregador na fila.</div>
+        ) : (
+          pendentes.map(linha)
         )}
-        {pendentes.map((e) => (
-          <div key={e.id} style={{ padding: "11px 0", borderBottom: "1px solid var(--line)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div className="td-name" style={{ fontSize: 13.5 }}>{e.nome}</div>
-                <div style={{ color: "var(--muted)", fontSize: 11.5, marginTop: 2 }}>{e.vehicle_type} · {PILL[e.status]?.txt ?? e.status}</div>
-              </div>
-              {aprovando !== e.id && (
-                <button className="btn btn-go" style={{ width: "auto", padding: "8px 15px", fontSize: 12.5 }} onClick={() => { setAprovando(e.id); setPin(""); setMsg(null); }}>
-                  <Icon name="checkThin" /> Aprovar
-                </button>
-              )}
-            </div>
-            {aprovando === e.id && (
-              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                <input className="input" type="password" placeholder="PIN do supervisor" value={pin} onChange={(ev) => setPin(ev.target.value)} />
-                <button className="btn btn-go" style={{ width: "auto", padding: "0 14px" }} onClick={() => confirmar(e.id)}><Icon name="checkThin" /></button>
-                <button className="btn btn-ghost" style={{ width: "auto", padding: "0 12px" }} onClick={() => { setAprovando(null); setMsg(null); }}><Icon name="stop" /></button>
-              </div>
-            )}
-          </div>
-        ))}
-        {msg && <div style={{ color: "var(--warn)", fontSize: 12.5, marginTop: 8, fontWeight: 600 }}>{msg}</div>}
       </div>
 
       <div className="card">
-        <div className="card-h">
-          <Icon name="moto" />
-          <h3>Todos os entregadores</h3>
-          <span className="right">{ents.length}</span>
-        </div>
-        <table>
-          <tbody>
-            <tr><th>Nome</th><th>Veículo</th><th>Status</th></tr>
-            {ents.map((e) => (
-              <tr key={e.id}>
-                <td className="td-name">{e.nome}</td>
-                <td>{e.vehicle_type}</td>
-                <td><span className={`status-pill ${PILL[e.status]?.cls ?? "s-pend"}`}><Icon name={e.status === "aprovado" ? "checkThin" : "clock"} /> {PILL[e.status]?.txt ?? e.status}</span></td>
-              </tr>
-            ))}
-            {ents.length === 0 && <tr><td colSpan={3} style={{ color: "var(--faint)", fontSize: 12.5 }}>Nenhum entregador ainda.</td></tr>}
-          </tbody>
-        </table>
+        <div className="card-h"><Icon name="moto" /><h3>Todos os entregadores</h3><span className="right">{ents.length}</span></div>
+        {ents.length === 0 ? (
+          <div style={{ fontSize: 12.5, color: "var(--faint)" }}>Nenhum entregador ainda.</div>
+        ) : (
+          ents.map(linha)
+        )}
       </div>
+      <p className="hint">Clique num entregador pra ver o perfil (documentos, verificação) e aprovar / suspender / recusar.</p>
+
+      {sel && <Drawer ent={sel} onClose={() => setSel(null)} onMudou={async () => { await carregar(); setSel(null); }} />}
     </AdminShell>
+  );
+}
+
+function Drawer({ ent, onClose, onMudou }: { ent: Ent; onClose: () => void; onMudou: () => void }) {
+  const [verifs, setVerifs] = useState<Verif[]>([]);
+  const [docs, setDocs] = useState<Doc[]>([]);
+  const [pin, setPin] = useState("");
+  const [msg, setMsg] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [onClose]);
+
+  useEffect(() => {
+    (async () => {
+      const sb = getBrowserSupabase();
+      if (!sb) return;
+      const { data: v } = await sb.from("verificacoes").select("tipo,resultado,provedor,criado_at").eq("entregador_id", ent.id).order("criado_at", { ascending: false });
+      if (v) setVerifs(v as Verif[]);
+      const { data: d } = await sb.from("entregador_documentos").select("tipo,url").eq("entregador_id", ent.id);
+      if (d) setDocs(d as Doc[]);
+    })();
+  }, [ent.id]);
+
+  const acao = async (status: StatusEntregador) => {
+    setMsg(null);
+    setBusy(true);
+    const r = await definirStatusEntregador(ent.id, status, pin);
+    setBusy(false);
+    if (r.ok) onMudou();
+    else setMsg(r.motivo === "pin-invalido" ? "PIN incorreto." : r.motivo);
+  };
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", zIndex: 200 }} />
+      <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "min(440px,100vw)", background: "var(--bg)", borderLeft: "1px solid var(--line)", boxShadow: "var(--shadow-lg)", zIndex: 201, overflowY: "auto", padding: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <div style={{ fontSize: 16, fontWeight: 800 }}>{ent.nome}</div>
+          <button className="btn btn-ghost" style={{ width: "auto", padding: "6px 12px" }} onClick={onClose}><Icon name="stop" /></button>
+        </div>
+
+        <div className="card">
+          <div className="card-h"><Icon name="user" /><h3>Cadastro</h3><span className={`right status-pill ${PILL[ent.status]?.cls ?? "s-pend"}`}>{PILL[ent.status]?.txt ?? ent.status}</span></div>
+          <div style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.9 }}>
+            CPF: {ent.cpf}
+            <br />
+            Veículo: {ent.vehicle_type}{ent.placa ? ` · ${ent.placa}` : ""}
+            <br />
+            Rating: {ent.rating ?? "—"} · Entregas: {ent.total_entregas ?? 0}
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-h"><Icon name="shield" /><h3>Verificação (LGPD · só admin)</h3></div>
+          {verifs.length === 0 ? (
+            <div style={{ fontSize: 12.5, color: "var(--faint)" }}>Sem verificações registradas (rodam quando FlagCheck/Infosimples/idwall estiverem plugados).</div>
+          ) : (
+            verifs.map((v, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, padding: "5px 0" }}>
+                <span>{v.tipo}{v.provedor ? ` · ${v.provedor}` : ""}</span>
+                <span className={`status-pill ${v.resultado === "aprovado" ? "s-ok" : "s-pend"}`}>{v.resultado}</span>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="card">
+          <div className="card-h"><Icon name="card" /><h3>Documentos</h3></div>
+          {docs.length === 0 ? (
+            <div style={{ fontSize: 12.5, color: "var(--faint)" }}>Sem documentos enviados ainda.</div>
+          ) : (
+            docs.map((d, i) => (
+              <a key={i} href={d.url} target="_blank" rel="noreferrer" style={{ display: "block", fontSize: 12.5, color: "var(--brand)", padding: "4px 0" }}>
+                {d.tipo} →
+              </a>
+            ))
+          )}
+        </div>
+
+        <div className="card">
+          <div className="card-h"><Icon name="bolt" /><h3>Ações</h3></div>
+          <input className="input" type="password" placeholder="PIN do supervisor" value={pin} onChange={(e) => setPin(e.target.value)} style={{ marginBottom: 10 }} />
+          <div className="btn-row" style={{ marginBottom: 8 }}>
+            <button className="btn btn-go" disabled={busy} onClick={() => acao("aprovado")}><Icon name="checkThin" /> Aprovar</button>
+            <button className="btn btn-ghost" disabled={busy} onClick={() => acao("recusado")}>Recusar</button>
+          </div>
+          <div className="btn-row">
+            <button className="btn btn-ghost" disabled={busy} onClick={() => acao("suspenso")}>Suspender</button>
+            <button className="btn btn-ghost" disabled={busy} onClick={() => acao("em_verificacao")}>Reverificar</button>
+          </div>
+          {msg && <div style={{ color: "var(--warn)", fontSize: 12.5, marginTop: 8, fontWeight: 600 }}>{msg}</div>}
+        </div>
+      </div>
+    </>
   );
 }
