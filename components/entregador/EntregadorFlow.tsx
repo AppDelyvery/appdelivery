@@ -7,6 +7,7 @@ import BotaoSuporte from "../BotaoSuporte";
 import SlideConfirm from "../SlideConfirm";
 import AvisoForaDoLocal from "../AvisoForaDoLocal";
 import CancelarCorrida from "../CancelarCorrida";
+import NavExterna from "../NavExterna";
 import { distanciaAte, estaLonge } from "@/lib/geofence";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
@@ -468,6 +469,7 @@ function Coleta() {
             <div className="b">{ORIGEM.end}</div>
           </div>
         </div>
+        <NavExterna lat={coords.lat} lng={coords.lng} label="Ir até a coleta" />
       </div>
       {coletaFoto ? (
         <>
@@ -524,6 +526,16 @@ function Rota() {
   const { done, eta, distKm, setView, pedidoId, setPedidoId, setColetaFoto } = useEntregador();
   const pc = priceCalc("moto", distKm);
   const [cancelar, setCancelar] = useState(false);
+  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
+
+  useEffect(() => {
+    (async () => {
+      const sb = getBrowserSupabase();
+      if (!sb || !pedidoId) return;
+      const { data } = await sb.from("pedidos").select("entrega_lat,entrega_lng").eq("id", pedidoId).single();
+      if (data) setCoords({ lat: (data as { entrega_lat: number }).entrega_lat, lng: (data as { entrega_lng: number }).entrega_lng });
+    })();
+  }, [pedidoId]);
 
   const confirmarCancelamento = async (motivo: string) => {
     const sb = getBrowserSupabase();
@@ -558,6 +570,7 @@ function Rota() {
             <div className="lbl">km restantes</div>
           </div>
         </div>
+        <NavExterna lat={coords.lat} lng={coords.lng} label="Ir até a entrega" />
       </div>
       <div className="card">
         <div className="card-h">
