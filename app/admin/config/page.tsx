@@ -1,5 +1,5 @@
-import EmConstrucao from "@/components/admin/EmConstrucao";
+import ConfigAdmin from "@/components/admin/ConfigAdmin";
 
 export default function Page() {
-  return <EmConstrucao title="Configurações" msg="Tabela de preço + take rate editáveis, operadores, PIN, regras — seção 5 (a autonomia do dono)." />;
+  return <ConfigAdmin />;
 }

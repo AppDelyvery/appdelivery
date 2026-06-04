@@ -2,6 +2,7 @@
 
 import { getServerSupabase } from "@/lib/supabase/server";
 import { priceCalc, type Veiculo } from "@/lib/precos";
+import { getConfig } from "@/lib/config";
 
 export type NovoPedidoInput = {
   coletaEndereco: string;
@@ -41,7 +42,8 @@ export async function criarPedido(input: NovoPedidoInput): Promise<CriarPedidoRe
     .single();
   if (eEst || !est) return { ok: false, motivo: "estabelecimento-nao-encontrado" };
 
-  const pc = priceCalc(input.veiculo, input.distanciaKm);
+  const cfg = await getConfig(sb);
+  const pc = priceCalc(input.veiculo, input.distanciaKm, cfg);
 
   const { data: novo, error: eIns } = await sb
     .from("pedidos")

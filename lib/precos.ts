@@ -22,19 +22,29 @@ export type Preco = {
   taxa: number;
 };
 
-export function priceCalc(veh: Veiculo, distKm: number): Preco {
-  const base = veh === "moto" ? PRICE.baseMoto : veh === "carro" ? PRICE.baseCarro : PRICE.baseVan;
-  const dist = +(distKm * PRICE.perKm).toFixed(2);
+// cfg = tabela de preço (default = constantes; em produção vem da config editável do dono)
+export type TabelaPreco = {
+  baseMoto: number;
+  baseCarro: number;
+  baseVan: number;
+  perKm: number;
+  min: number;
+  driverPct: number;
+};
+
+export function priceCalc(veh: Veiculo, distKm: number, cfg: TabelaPreco = PRICE): Preco {
+  const base = veh === "moto" ? cfg.baseMoto : veh === "carro" ? cfg.baseCarro : cfg.baseVan;
+  const dist = +(distKm * cfg.perKm).toFixed(2);
   let total = base + dist;
-  const aplicouMin = total < PRICE.min;
-  if (aplicouMin) total = PRICE.min;
+  const aplicouMin = total < cfg.min;
+  if (aplicouMin) total = cfg.min;
   total = +total.toFixed(2);
   return {
     base,
     dist,
     total,
     aplicouMin,
-    driver: +(total * PRICE.driverPct).toFixed(2),
-    taxa: +(total * (1 - PRICE.driverPct)).toFixed(2),
+    driver: +(total * cfg.driverPct).toFixed(2),
+    taxa: +(total * (1 - cfg.driverPct)).toFixed(2),
   };
 }
