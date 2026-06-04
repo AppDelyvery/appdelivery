@@ -14,6 +14,8 @@ type Pedido = {
   coleta_endereco: string;
   entrega_endereco: string;
   created_at: string;
+  aceito_at: string | null;
+  entregue_at: string | null;
 };
 
 const ATIVOS = ["buscando", "aceito", "a_caminho_coleta", "coletado", "a_caminho_entrega"];
@@ -37,7 +39,7 @@ export default function Dashboard() {
       if (!sb) return;
       const { data } = await sb
         .from("pedidos")
-        .select("id,status,preco_total,preco_plataforma,coleta_endereco,entrega_endereco,created_at")
+        .select("id,status,preco_total,preco_plataforma,coleta_endereco,entrega_endereco,created_at,aceito_at,entregue_at")
         .order("created_at", { ascending: false });
       if (data) setPeds(data as Pedido[]);
       const { count } = await sb.from("entregadores").select("id", { count: "exact", head: true }).eq("status", "aprovado");
@@ -46,8 +48,15 @@ export default function Dashboard() {
   }, []);
 
   const emAndamento = peds.filter((p) => ATIVOS.includes(p.status));
-  const faturamento = peds.filter((p) => p.status === "entregue").reduce((s, p) => s + (p.preco_plataforma ?? 0), 0);
+  const entregues = peds.filter((p) => p.status === "entregue");
+  const cancelados = peds.filter((p) => p.status === "cancelado");
+  const faturamento = entregues.reduce((s, p) => s + (p.preco_plataforma ?? 0), 0);
   const recentes = peds.slice(0, 8);
+
+  const finalizados = entregues.length + cancelados.length;
+  const taxaConclusao = finalizados ? Math.round((entregues.length / finalizados) * 100) : null;
+  const tempos = entregues.filter((p) => p.aceito_at && p.entregue_at).map((p) => (new Date(p.entregue_at!).getTime() - new Date(p.aceito_at!).getTime()) / 60000);
+  const tempoMedio = tempos.length ? Math.round(tempos.reduce((s, t) => s + t, 0) / tempos.length) : null;
 
   return (
     <AdminShell title="Dashboard">
@@ -59,13 +68,28 @@ export default function Dashboard() {
         </div>
         <div className="kpi">
           <div className="ic"><Icon name="checkThin" /></div>
-          <div className="v">{aprovados}</div>
-          <div className="l">Entregadores aprovados</div>
+          <div className="v">{entregues.length}</div>
+          <div className="l">Entregas concluídas</div>
         </div>
         <div className="kpi">
           <div className="ic"><Icon name="money" /></div>
           <div className="v" style={{ fontSize: 19 }}>{money(faturamento)}</div>
           <div className="l">Faturamento (take rate)</div>
+        </div>
+        <div className="kpi">
+          <div className="ic"><Icon name="user" /></div>
+          <div className="v">{aprovados}</div>
+          <div className="l">Entregadores aprovados</div>
+        </div>
+        <div className="kpi">
+          <div className="ic"><Icon name="chart" /></div>
+          <div className="v">{taxaConclusao !== null ? `${taxaConclusao}%` : "—"}</div>
+          <div className="l">Taxa de conclusão</div>
+        </div>
+        <div className="kpi">
+          <div className="ic"><Icon name="clock" /></div>
+          <div className="v">{tempoMedio !== null ? `${tempoMedio} min` : "—"}</div>
+          <div className="l">Tempo médio</div>
         </div>
       </div>
 
