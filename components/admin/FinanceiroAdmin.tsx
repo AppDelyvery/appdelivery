@@ -5,6 +5,7 @@ import AdminShell from "./AdminShell";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { money } from "@/lib/precos";
+import { baixarCSV } from "@/lib/csv";
 
 type Ped = { status: string; preco_plataforma: number | null; preco_entregador: number | null; entregadores: { nome: string } | null };
 type Carteira = { razao_social: string; saldo_carteira: number | null };
@@ -44,7 +45,13 @@ export default function FinanceiroAdmin() {
       </div>
 
       <div className="card">
-        <div className="card-h"><Icon name="moto" /><h3>Repasses por entregador</h3></div>
+        <div className="card-h">
+          <Icon name="moto" /><h3>Repasses por entregador</h3>
+          <button className="btn btn-ghost right" style={{ width: "auto", padding: "6px 12px", fontSize: 12 }} disabled={repasses.length === 0}
+            onClick={() => baixarCSV("repasses-entregadores.csv", [{ chave: "entregador", titulo: "Entregador" }, { chave: "recebido", titulo: "Recebido (R$)" }], repasses.map(([nome, v]) => ({ entregador: nome, recebido: v })))}>
+            <Icon name="download" /> Exportar CSV
+          </button>
+        </div>
         <table>
           <tbody>
             <tr><th>Entregador</th><th>Recebido</th></tr>
@@ -57,7 +64,13 @@ export default function FinanceiroAdmin() {
       </div>
 
       <div className="card">
-        <div className="card-h"><Icon name="building" /><h3>Carteiras dos lojistas</h3></div>
+        <div className="card-h">
+          <Icon name="building" /><h3>Carteiras dos lojistas</h3>
+          <button className="btn btn-ghost right" style={{ width: "auto", padding: "6px 12px", fontSize: 12 }} disabled={carteiras.length === 0}
+            onClick={() => baixarCSV("carteiras-lojistas.csv", [{ chave: "negocio", titulo: "Negócio" }, { chave: "saldo", titulo: "Saldo (R$)" }], carteiras.map((c) => ({ negocio: c.razao_social, saldo: c.saldo_carteira ?? 0 })))}>
+            <Icon name="download" /> Exportar CSV
+          </button>
+        </div>
         <table>
           <tbody>
             <tr><th>Negócio</th><th>Saldo</th></tr>

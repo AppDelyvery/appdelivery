@@ -6,6 +6,7 @@ import Busca, { norm } from "./Busca";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { money } from "@/lib/precos";
+import { baixarCSV } from "@/lib/csv";
 
 type Corrida = {
   id: string;
@@ -78,6 +79,37 @@ export default function CorridasAdmin() {
     .filter((c) => (filtro === "todas" ? true : filtro === "ativas" ? ATIVOS.includes(c.status) : c.status === filtro))
     .filter((c) => norm(`${c.coleta_endereco} ${c.entrega_endereco} ${c.entregadores?.nome ?? ""} ${c.estabelecimentos?.razao_social ?? ""}`).includes(norm(q)));
 
+  const exportar = () =>
+    baixarCSV(
+      "corridas.csv",
+      [
+        { chave: "criado", titulo: "Criado" },
+        { chave: "negocio", titulo: "Negócio" },
+        { chave: "coleta", titulo: "Coleta" },
+        { chave: "entrega", titulo: "Entrega" },
+        { chave: "entregador", titulo: "Entregador" },
+        { chave: "veiculo", titulo: "Veículo" },
+        { chave: "km", titulo: "Km" },
+        { chave: "total", titulo: "Total" },
+        { chave: "entregadorR", titulo: "Entregador (R$)" },
+        { chave: "plataformaR", titulo: "Plataforma (R$)" },
+        { chave: "status", titulo: "Status" },
+      ],
+      lista.map((c) => ({
+        criado: dt(c.created_at) ?? "",
+        negocio: c.estabelecimentos?.razao_social ?? "",
+        coleta: c.coleta_endereco,
+        entrega: c.entrega_endereco,
+        entregador: c.entregadores?.nome ?? "",
+        veiculo: c.vehicle_type,
+        km: c.distancia_km ?? "",
+        total: c.preco_total ?? 0,
+        entregadorR: c.preco_entregador ?? 0,
+        plataformaR: c.preco_plataforma ?? 0,
+        status: ST[c.status]?.txt ?? c.status,
+      })),
+    );
+
   return (
     <AdminShell title="Corridas">
       <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
@@ -98,7 +130,9 @@ export default function CorridasAdmin() {
         <div className="card-h">
           <Icon name="pkg" />
           <h3>Corridas</h3>
-          <span className="right">{lista.length}</span>
+          <button className="btn btn-ghost right" style={{ width: "auto", padding: "6px 12px", fontSize: 12 }} disabled={lista.length === 0} onClick={exportar}>
+            <Icon name="download" /> Exportar CSV
+          </button>
         </div>
         <table>
           <tbody>
