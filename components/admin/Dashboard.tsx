@@ -29,9 +29,17 @@ const ST: Record<string, { txt: string; cls: string }> = {
   cancelado: { txt: "Cancelado", cls: "s-pend" },
 };
 
+const PERIODOS = [
+  { k: "hoje", txt: "Hoje", dias: 1 },
+  { k: "7d", txt: "7 dias", dias: 7 },
+  { k: "30d", txt: "30 dias", dias: 30 },
+  { k: "tudo", txt: "Tudo", dias: 0 },
+];
+
 export default function Dashboard() {
   const [peds, setPeds] = useState<Pedido[]>([]);
   const [aprovados, setAprovados] = useState(0);
+  const [periodo, setPeriodo] = useState("tudo");
 
   useEffect(() => {
     (async () => {
@@ -47,11 +55,18 @@ export default function Dashboard() {
     })();
   }, []);
 
+  // estado atual (não escopado por período)
   const emAndamento = peds.filter((p) => ATIVOS.includes(p.status));
-  const entregues = peds.filter((p) => p.status === "entregue");
-  const cancelados = peds.filter((p) => p.status === "cancelado");
+
+  // recorte por período: filtra pelos pedidos criados desde o corte
+  const dias = PERIODOS.find((x) => x.k === periodo)?.dias ?? 0;
+  const desde = dias ? Date.now() - dias * 86400000 : 0;
+  const noPeriodo = desde ? peds.filter((p) => new Date(p.created_at).getTime() >= desde) : peds;
+
+  const entregues = noPeriodo.filter((p) => p.status === "entregue");
+  const cancelados = noPeriodo.filter((p) => p.status === "cancelado");
   const faturamento = entregues.reduce((s, p) => s + (p.preco_plataforma ?? 0), 0);
-  const recentes = peds.slice(0, 8);
+  const recentes = noPeriodo.slice(0, 8);
 
   const finalizados = entregues.length + cancelados.length;
   const taxaConclusao = finalizados ? Math.round((entregues.length / finalizados) * 100) : null;
@@ -60,6 +75,18 @@ export default function Dashboard() {
 
   return (
     <AdminShell title="Dashboard">
+      <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+        {PERIODOS.map((f) => (
+          <button
+            key={f.k}
+            onClick={() => setPeriodo(f.k)}
+            className="btn"
+            style={{ width: "auto", padding: "7px 14px", fontSize: 12.5, background: periodo === f.k ? "var(--brand)" : "#fff", color: periodo === f.k ? "#fff" : "var(--ink-2)", border: "1px solid var(--line-2)" }}
+          >
+            {f.txt}
+          </button>
+        ))}
+      </div>
       <div className="kpis">
         <div className="kpi">
           <div className="ic"><Icon name="moto" /></div>
