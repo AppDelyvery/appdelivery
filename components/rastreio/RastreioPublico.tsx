@@ -5,6 +5,7 @@ import ChatBox from "../Chat";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
 import { useChatPublico } from "@/lib/chat";
+import { usePosicaoAoVivo } from "@/lib/realtime";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { STEPS } from "@/lib/rota";
 import { useSim } from "../useSim";
@@ -14,6 +15,7 @@ import { useSim } from "../useSim";
 export default function RastreioPublico({ token }: { token: string }) {
   const { frac, step, running, done, eta, start, setRouteMeta } = useSim();
   const chat = useChatPublico(token);
+  const posReal = usePosicaoAoVivo(token);
   const [codigo, setCodigo] = useState<string | null>(null);
 
   useEffect(() => {
@@ -147,7 +149,7 @@ export default function RastreioPublico({ token }: { token: string }) {
           </p>
         </div>
 
-        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} idleLabel="Localizando entregador…" />
+        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} idleLabel="Localizando entregador…" posicaoReal={posReal} />
       </div>
     </div>
   );

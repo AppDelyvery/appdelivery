@@ -8,6 +8,9 @@ import MapaAoVivo from "../MapaAoVivo";
 import { hasSupabase } from "@/lib/integracoes";
 import { useCorridasDisponiveis } from "@/lib/corridas";
 import { registrarColeta, registrarEntrega } from "@/lib/entrega";
+import { useEnviarPosicao } from "@/lib/realtime";
+import { useGeolocation } from "@/lib/useGeolocation";
+import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { money, priceCalc } from "@/lib/precos";
 import { DESTINO, ORIGEM } from "@/lib/rota";
 import { useEntregador, type EntregadorView } from "./EntregadorContext";
@@ -25,7 +28,26 @@ const TITLES: Record<EntregadorView, string> = {
 };
 
 export default function EntregadorFlow() {
-  const { view, setView, frac, running, done, eta, setRouteMeta } = useEntregador();
+  const { view, setView, frac, running, done, eta, setRouteMeta, pedidoId } = useEntregador();
+
+  // GPS real → Broadcast no canal do pedido (token), pra lojista e cliente verem ao vivo.
+  const [token, setToken] = useState<string | null>(null);
+  useEffect(() => {
+    (async () => {
+      const sb = getBrowserSupabase();
+      if (!sb || !pedidoId) {
+        setToken(null);
+        return;
+      }
+      const { data } = await sb.from("pedidos").select("tracking_token").eq("id", pedidoId).single();
+      setToken((data as { tracking_token?: string } | null)?.tracking_token ?? null);
+    })();
+  }, [pedidoId]);
+  const enviarPos = useEnviarPosicao(token);
+  const { pos: gps } = useGeolocation(view === "coleta" || view === "rota");
+  useEffect(() => {
+    if (gps) enviarPos(gps);
+  }, [gps, enviarPos]);
   const emCorrida = (["coleta", "rota", "finalizar", "concluido"] as EntregadorView[]).includes(view);
   const noMap = !(view === "coleta" || view === "rota");
 
@@ -64,7 +86,7 @@ export default function EntregadorFlow() {
         {view === "concluido" && <Concluido />}
       </div>
       {!noMap && (
-        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} idleLabel="Sua localização · Palmas-TO" />
+        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} idleLabel="Sua localização · Palmas-TO" posicaoReal={gps} />
       )}
     </AppShell>
   );

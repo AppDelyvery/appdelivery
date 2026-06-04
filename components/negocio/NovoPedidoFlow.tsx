@@ -6,6 +6,7 @@ import ChatBox from "../Chat";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
 import { useChatAuth } from "@/lib/chat";
+import { usePosicaoAoVivo } from "@/lib/realtime";
 import { criarPedido } from "@/actions/criarPedido";
 import { hasSupabase } from "@/lib/integracoes";
 import { money, PRICE, priceCalc } from "@/lib/precos";
@@ -30,7 +31,8 @@ const TITLES: Record<NegocioView, string> = {
 };
 
 export default function NovoPedidoFlow() {
-  const { view, setView, frac, running, done, eta, setRouteMeta } = useEntrega();
+  const { view, setView, frac, running, done, eta, setRouteMeta, pedido } = useEntrega();
+  const posReal = usePosicaoAoVivo(pedido?.token ?? null);
   const emAndamento = (["matching", "tracking", "done"] as NegocioView[]).includes(view);
 
   const nav: ShellNavGroup[] = [
@@ -59,7 +61,7 @@ export default function NovoPedidoFlow() {
         {view === "tracking" && <TrackingScreen />}
         {view === "done" && <DoneScreen />}
       </div>
-      <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} />
+      <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} posicaoReal={posReal} />
     </AppShell>
   );
 }

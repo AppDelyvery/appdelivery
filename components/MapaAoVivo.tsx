@@ -22,6 +22,8 @@ type Props = {
   onRouteMeta?: (distKm: number, durMin: number) => void;
   /** Texto da pílula quando parado (ex.: "Rastreamento ao vivo · Palmas-TO"). */
   idleLabel?: string;
+  /** Posição real [lng,lat] do entregador (GPS via Realtime). Sobrepõe a simulação quando presente. */
+  posicaoReal?: [number, number] | null;
 };
 
 // SVGs crus p/ os marcadores DOM do Mapbox (zero emoji).
@@ -39,6 +41,7 @@ export default function MapaAoVivo({
   eta,
   onRouteMeta,
   idleLabel = "Rastreamento ao vivo · Palmas-TO",
+  posicaoReal,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MbMap | null>(null);
@@ -128,14 +131,14 @@ export default function MapaAoVivo({
     };
   }, []);
 
-  // Move o motoboy conforme a fração da simulação.
+  // Move o motoboy: posição real (GPS via Realtime) se houver; senão a simulação.
   useEffect(() => {
     const r = routeRef.current;
     if (!readyRef.current || !r || !motoRef.current || !mapRef.current) return;
-    const ll = posAt(r.coords, r.cum, r.total, frac);
+    const ll: LngLat = posicaoReal ?? posAt(r.coords, r.cum, r.total, frac);
     motoRef.current.setLngLat(ll);
     mapRef.current.easeTo({ center: ll, duration: 230 });
-  }, [frac]);
+  }, [frac, posicaoReal]);
 
   const badge = done ? "Entrega concluída" : running ? `A caminho · ${eta.min} min` : idleLabel;
 
