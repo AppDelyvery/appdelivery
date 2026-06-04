@@ -5,6 +5,8 @@ import AppShell, { type ShellNavGroup } from "../AppShell";
 import AssinaturaCanvas from "../AssinaturaCanvas";
 import BotaoSuporte from "../BotaoSuporte";
 import SlideConfirm from "../SlideConfirm";
+import AvisoForaDoLocal from "../AvisoForaDoLocal";
+import { distanciaAte, estaLonge } from "@/lib/geofence";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
 import { hasSupabase } from "@/lib/integracoes";
@@ -408,8 +410,30 @@ function Coleta() {
   const [foto, setFoto] = useState<File | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const { pos: gps } = useGeolocation(true);
+  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
+  const [aviso, setAviso] = useState<number | null>(null); // distância em metros se longe
 
+  useEffect(() => {
+    (async () => {
+      const sb = getBrowserSupabase();
+      if (!sb || !pedidoId) return;
+      const { data } = await sb.from("pedidos").select("coleta_lat,coleta_lng").eq("id", pedidoId).single();
+      if (data) setCoords({ lat: (data as { coleta_lat: number }).coleta_lat, lng: (data as { coleta_lng: number }).coleta_lng });
+    })();
+  }, [pedidoId]);
+
+  // gate de geofence: se o GPS diz que está longe, pede confirmação consciente
   const registrar = async () => {
+    if (estaLonge(gps, coords.lat, coords.lng)) {
+      setAviso(distanciaAte(gps, coords.lat, coords.lng));
+      return;
+    }
+    await executar();
+  };
+
+  const executar = async () => {
+    setAviso(null);
     setErro(null);
     if (!hasSupabase() || !pedidoId) {
       setColetaFoto(true);
@@ -490,6 +514,7 @@ function Coleta() {
         </>
       )}
       <p className="hint">A foto na coleta entra na trilha de auditoria da encomenda.</p>
+      {aviso != null && <AvisoForaDoLocal distancia={aviso} acao="registrar a coleta" onConfirmar={executar} onCancelar={() => setAviso(null)} />}
     </>
   );
 }
@@ -550,8 +575,29 @@ function Finalizar() {
   const [codigo, setCodigo] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const { pos: gps } = useGeolocation(true);
+  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
+  const [aviso, setAviso] = useState<number | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const sb = getBrowserSupabase();
+      if (!sb || !pedidoId) return;
+      const { data } = await sb.from("pedidos").select("entrega_lat,entrega_lng").eq("id", pedidoId).single();
+      if (data) setCoords({ lat: (data as { entrega_lat: number }).entrega_lat, lng: (data as { entrega_lng: number }).entrega_lng });
+    })();
+  }, [pedidoId]);
 
   const confirmar = async () => {
+    if (estaLonge(gps, coords.lat, coords.lng)) {
+      setAviso(distanciaAte(gps, coords.lat, coords.lng));
+      return;
+    }
+    await executar();
+  };
+
+  const executar = async () => {
+    setAviso(null);
     setErro(null);
     if (!hasSupabase() || !pedidoId) {
       setView("concluido");
@@ -619,6 +665,7 @@ function Finalizar() {
       )}
       <SlideConfirm label="Confirmar entrega" icon="check" busy={enviando} onConfirm={confirmar} />
       <p className="hint">Foto + assinatura fecham o ciclo e geram o comprovante do cliente.</p>
+      {aviso != null && <AvisoForaDoLocal distancia={aviso} acao="registrar a entrega" onConfirmar={executar} onCancelar={() => setAviso(null)} />}
     </>
   );
 }
