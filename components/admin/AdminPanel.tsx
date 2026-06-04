@@ -21,6 +21,7 @@ const NAV: ShellNavGroup[] = [
 ];
 
 type Ent = { id: string; nome: string; vehicle_type: string; status: string; rating: number | null };
+type Negocio = { id: string; razao_social: string; cnpj: string | null; endereco: string | null; created_at: string };
 
 const PILL: Record<string, { cls: string; txt: string }> = {
   aprovado: { cls: "s-ok", txt: "Aprovado" },
@@ -32,6 +33,7 @@ const PILL: Record<string, { cls: string; txt: string }> = {
 
 export default function AdminPanel() {
   const [ents, setEnts] = useState<Ent[]>([]);
+  const [negocios, setNegocios] = useState<Negocio[]>([]);
   const [aprovando, setAprovando] = useState<string | null>(null);
   const [pin, setPin] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
@@ -41,6 +43,8 @@ export default function AdminPanel() {
     if (!sb) return;
     const { data } = await sb.from("entregadores").select("id,nome,vehicle_type,status,rating").order("created_at", { ascending: false });
     if (data) setEnts(data as Ent[]);
+    const { data: negs } = await sb.from("estabelecimentos").select("id,razao_social,cnpj,endereco,created_at").order("created_at", { ascending: false });
+    if (negs) setNegocios(negs as Negocio[]);
   }, []);
 
   useEffect(() => {
@@ -150,6 +154,29 @@ export default function AdminPanel() {
               ))}
               {ents.length === 0 && (
                 <tr><td colSpan={3} style={{ color: "var(--faint)", fontSize: 12.5 }}>Nenhum entregador ainda.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="card">
+          <div className="card-h">
+            <Icon name="building" />
+            <h3>Negócios cadastrados</h3>
+            <span className="right">{negocios.length}</span>
+          </div>
+          <table>
+            <tbody>
+              <tr><th>Negócio</th><th>CNPJ/CPF</th><th>Endereço</th></tr>
+              {negocios.map((n) => (
+                <tr key={n.id}>
+                  <td className="td-name">{n.razao_social}</td>
+                  <td>{n.cnpj ?? "—"}</td>
+                  <td style={{ color: "var(--muted)" }}>{n.endereco ?? "—"}</td>
+                </tr>
+              ))}
+              {negocios.length === 0 && (
+                <tr><td colSpan={3} style={{ color: "var(--faint)", fontSize: 12.5 }}>Nenhum negócio ainda.</td></tr>
               )}
             </tbody>
           </table>
