@@ -31,13 +31,14 @@ const main = async () => {
   const col = await fetch(`${U}/rest/v1/rpc/registrar_coleta`, { method: "POST", headers: h(tok), body: JSON.stringify({ p_pedido_id: pedidoId, p_foto_url: "https://teste/coleta.jpg" }) }).then(j);
   console.log("4) registrar coleta ->", JSON.stringify(col), col === "ok" ? "✅" : "");
 
-  const ent = await fetch(`${U}/rest/v1/rpc/registrar_entrega`, { method: "POST", headers: h(tok), body: JSON.stringify({ p_pedido_id: pedidoId, p_foto_url: "https://teste/entrega.jpg", p_assinatura_url: "https://teste/ass.png" }) }).then(j);
-  console.log("5) registrar entrega ->", JSON.stringify(ent), ent === "ok" ? "✅" : "");
+  // pega o código de entrega (o entregador designado lê o pedido) e testa código errado vs certo
+  const cod = (await fetch(`${U}/rest/v1/pedidos?id=eq.${pedidoId}&select=codigo_entrega`, { headers: h(tok) }).then(j))[0]?.codigo_entrega;
+  const errado = await fetch(`${U}/rest/v1/rpc/registrar_entrega`, { method: "POST", headers: h(tok), body: JSON.stringify({ p_pedido_id: pedidoId, p_foto_url: "x", p_assinatura_url: "x", p_codigo: "9999" }) }).then(j);
+  console.log("5a) código ERRADO ->", JSON.stringify(errado), errado === "codigo-invalido" ? "✅ barrou" : "❌");
+  const ent = await fetch(`${U}/rest/v1/rpc/registrar_entrega`, { method: "POST", headers: h(tok), body: JSON.stringify({ p_pedido_id: pedidoId, p_foto_url: "https://teste/entrega.jpg", p_assinatura_url: "https://teste/ass.png", p_codigo: cod }) }).then(j);
+  console.log("5b) código CERTO (" + cod + ") ->", JSON.stringify(ent), ent === "ok" ? "✅" : "");
 
-  // estado final + comprovantes (lê pela função pública)
-  const pub = await fetch(`${U}/rest/v1/rpc/get_rastreio_publico`, { method: "POST", headers: h(), body: JSON.stringify({ p_token: lista[0].id }) }).then(() => null);
   const status = await fetch(`${U}/rest/v1/pedidos?id=eq.${pedidoId}&select=status,coletado_at,entregue_at`, { headers: h(tok) }).then(j);
   console.log("6) pedido final ->", JSON.stringify(status[0]), status[0]?.status === "entregue" ? "✅ ENTREGUE com trilha de auditoria" : "❌");
-  void pub;
 };
 main().catch((e) => console.log("ERRO:", e.message));

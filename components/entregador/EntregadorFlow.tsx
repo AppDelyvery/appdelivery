@@ -482,6 +482,7 @@ function Rota() {
 function Finalizar() {
   const { setSigData, sigData, setView, pedidoId } = useEntregador();
   const [foto, setFoto] = useState<File | null>(null);
+  const [codigo, setCodigo] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -492,10 +493,17 @@ function Finalizar() {
       return;
     }
     setEnviando(true);
-    const r = await registrarEntrega(pedidoId, foto, sigData);
+    const r = await registrarEntrega(pedidoId, foto, sigData, codigo);
     setEnviando(false);
     if (r === "ok") setView("concluido");
-    else setErro(r === "status-invalido" ? "Essa corrida não está na etapa de entrega." : "Falha ao registrar a entrega.");
+    else
+      setErro(
+        r === "codigo-invalido"
+          ? "Código do cliente incorreto — confira com quem recebeu."
+          : r === "status-invalido"
+            ? "Essa corrida não está na etapa de entrega."
+            : "Falha ao registrar a entrega.",
+      );
   };
 
   return (
@@ -509,6 +517,24 @@ function Finalizar() {
           Peça para quem recebeu assinar abaixo confirmando a entrega.
         </p>
         <AssinaturaCanvas onChange={setSigData} />
+      </div>
+      <div className="card">
+        <div className="card-h">
+          <Icon name="shield" />
+          <h3>Código do cliente</h3>
+        </div>
+        <p style={{ fontSize: 12.5, color: "var(--muted)", marginBottom: 8 }}>
+          Peça o código de 4 dígitos que aparece no rastreio do cliente.
+        </p>
+        <input
+          className="input"
+          inputMode="numeric"
+          maxLength={4}
+          placeholder="0000"
+          value={codigo}
+          onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, 4))}
+          style={{ fontSize: 22, textAlign: "center", letterSpacing: 8, fontWeight: 800 }}
+        />
       </div>
       <label className="upload" style={{ marginBottom: 10 }}>
         <div className="ic">

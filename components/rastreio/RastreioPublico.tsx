@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ChatBox from "../Chat";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
 import { useChatPublico } from "@/lib/chat";
+import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { STEPS } from "@/lib/rota";
 import { useSim } from "../useSim";
 
@@ -13,11 +14,22 @@ import { useSim } from "../useSim";
 export default function RastreioPublico({ token }: { token: string }) {
   const { frac, step, running, done, eta, start, setRouteMeta } = useSim();
   const chat = useChatPublico(token);
+  const [codigo, setCodigo] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => start(), 900);
     return () => clearTimeout(t);
   }, [start]);
+
+  useEffect(() => {
+    (async () => {
+      const sb = getBrowserSupabase();
+      if (!sb) return;
+      const { data } = await sb.rpc("get_rastreio_publico", { p_token: token });
+      const row = (data as { codigo_entrega?: string }[] | null)?.[0];
+      if (row?.codigo_entrega) setCodigo(row.codigo_entrega);
+    })();
+  }, [token]);
 
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
@@ -76,6 +88,16 @@ export default function RastreioPublico({ token }: { token: string }) {
               </div>
             </div>
           </div>
+
+          {codigo && !done && (
+            <div className="card" style={{ textAlign: "center", background: "linear-gradient(160deg,#fff,var(--brand-light))", border: "1px solid #dfe3ff" }}>
+              <div style={{ fontSize: 11.5, fontWeight: 800, color: "var(--brand)", textTransform: "uppercase", letterSpacing: ".6px" }}>
+                Código de entrega
+              </div>
+              <div style={{ fontSize: 38, fontWeight: 900, letterSpacing: 10, color: "var(--ink)", margin: "6px 0 2px" }}>{codigo}</div>
+              <div style={{ fontSize: 12, color: "var(--muted)" }}>Informe ao entregador na hora de receber — sem o código, ele não fecha a entrega.</div>
+            </div>
+          )}
 
           <div className="card">
             <div className="card-h">

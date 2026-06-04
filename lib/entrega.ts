@@ -26,13 +26,13 @@ export async function registrarColeta(pedidoId: string, foto: File | null): Prom
 }
 
 // Registra a entrega (foto + assinatura) → status entregue. Retorna 'ok' | motivo.
-export async function registrarEntrega(pedidoId: string, foto: File | null, assinaturaDataUrl: string | null): Promise<string> {
+export async function registrarEntrega(pedidoId: string, foto: File | null, assinaturaDataUrl: string | null, codigo: string): Promise<string> {
   const sb = getBrowserSupabase();
   if (!sb) return "sem-backend";
   const fotoUrl = foto ? await upload(pedidoId, foto, "entrega") : null;
   const assBlob = assinaturaDataUrl ? await dataUrlToBlob(assinaturaDataUrl) : null;
   const assUrl = assBlob ? await upload(pedidoId, assBlob, "assinatura") : null;
-  const { data, error } = await sb.rpc("registrar_entrega", { p_pedido_id: pedidoId, p_foto_url: fotoUrl ?? "", p_assinatura_url: assUrl ?? "" });
+  const { data, error } = await sb.rpc("registrar_entrega", { p_pedido_id: pedidoId, p_foto_url: fotoUrl ?? "", p_assinatura_url: assUrl ?? "", p_codigo: codigo });
   if (error) return error.message;
   return (data as string) ?? "erro";
 }
