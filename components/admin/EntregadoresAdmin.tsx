@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AdminShell from "./AdminShell";
+import Busca, { norm } from "./Busca";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { definirStatusEntregador, type StatusEntregador } from "@/actions/moderarEntregador";
@@ -21,6 +22,7 @@ const PILL: Record<string, { cls: string; txt: string }> = {
 export default function EntregadoresAdmin() {
   const [ents, setEnts] = useState<Ent[]>([]);
   const [sel, setSel] = useState<Ent | null>(null);
+  const [q, setQ] = useState("");
 
   const carregar = useCallback(async () => {
     const sb = getBrowserSupabase();
@@ -59,11 +61,11 @@ export default function EntregadoresAdmin() {
 
       <div className="card">
         <div className="card-h"><Icon name="moto" /><h3>Todos os entregadores</h3><span className="right">{ents.length}</span></div>
-        {ents.length === 0 ? (
-          <div style={{ fontSize: 12.5, color: "var(--faint)" }}>Nenhum entregador ainda.</div>
-        ) : (
-          ents.map(linha)
-        )}
+        <Busca value={q} onChange={setQ} placeholder="Buscar por nome ou CPF…" />
+        {(() => {
+          const f = ents.filter((e) => norm(`${e.nome} ${e.cpf}`).includes(norm(q)));
+          return f.length === 0 ? <div style={{ fontSize: 12.5, color: "var(--faint)" }}>Nenhum entregador encontrado.</div> : f.map(linha);
+        })()}
       </div>
       <p className="hint">Clique num entregador pra ver o perfil (documentos, verificação) e aprovar / suspender / recusar.</p>
 

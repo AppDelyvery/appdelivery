@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AdminShell from "./AdminShell";
+import Busca, { norm } from "./Busca";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 
@@ -19,6 +20,7 @@ const dt = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", 
 export default function MensagensAdmin() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [sel, setSel] = useState<string | null>(null);
+  const [q, setQ] = useState("");
 
   const carregar = useCallback(async () => {
     const sb = getBrowserSupabase();
@@ -42,6 +44,7 @@ export default function MensagensAdmin() {
   }
   const lista = [...threads.entries()]
     .map(([id, ms]) => ({ id, ms, last: ms[ms.length - 1] }))
+    .filter((t) => norm(`${t.last.pedidos?.coleta_endereco ?? ""} ${t.last.pedidos?.entrega_endereco ?? ""} ${t.ms.map((m) => m.texto).join(" ")}`).includes(norm(q)))
     .sort((a, b) => b.last.created_at.localeCompare(a.last.created_at));
 
   const thread = sel ? threads.get(sel) ?? [] : [];
@@ -50,6 +53,7 @@ export default function MensagensAdmin() {
     <AdminShell title="Mensagens">
       <div className="card">
         <div className="card-h"><Icon name="send" /><h3>Conversas</h3><span className="right">{lista.length}</span></div>
+        <Busca value={q} onChange={setQ} placeholder="Buscar por endereço ou conteúdo…" />
         {lista.length === 0 ? (
           <div style={{ fontSize: 13, color: "var(--muted)", textAlign: "center", padding: "12px 0" }}>Nenhuma conversa ainda.</div>
         ) : (

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AdminShell from "./AdminShell";
+import Busca, { norm } from "./Busca";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { money } from "@/lib/precos";
@@ -48,6 +49,7 @@ const dt = (s: string | null) => (s ? new Date(s).toLocaleString("pt-BR", { day:
 export default function CorridasAdmin() {
   const [corridas, setCorridas] = useState<Corrida[]>([]);
   const [filtro, setFiltro] = useState("todas");
+  const [q, setQ] = useState("");
   const [sel, setSel] = useState<Corrida | null>(null);
   const [comp, setComp] = useState<Comprovante[]>([]);
 
@@ -72,9 +74,9 @@ export default function CorridasAdmin() {
     if (data) setComp(data as Comprovante[]);
   }, []);
 
-  const lista = corridas.filter((c) =>
-    filtro === "todas" ? true : filtro === "ativas" ? ATIVOS.includes(c.status) : c.status === filtro,
-  );
+  const lista = corridas
+    .filter((c) => (filtro === "todas" ? true : filtro === "ativas" ? ATIVOS.includes(c.status) : c.status === filtro))
+    .filter((c) => norm(`${c.coleta_endereco} ${c.entrega_endereco} ${c.entregadores?.nome ?? ""} ${c.estabelecimentos?.razao_social ?? ""}`).includes(norm(q)));
 
   return (
     <AdminShell title="Corridas">
@@ -90,6 +92,7 @@ export default function CorridasAdmin() {
           </button>
         ))}
       </div>
+      <Busca value={q} onChange={setQ} placeholder="Buscar por endereço, entregador ou negócio…" />
 
       <div className="card">
         <div className="card-h">

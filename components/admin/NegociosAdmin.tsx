@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AdminShell from "./AdminShell";
+import Busca, { norm } from "./Busca";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { money } from "@/lib/precos";
@@ -12,6 +13,8 @@ type Negocio = { id: string; razao_social: string; cnpj: string | null; endereco
 export default function NegociosAdmin() {
   const [negocios, setNegocios] = useState<Negocio[]>([]);
   const [sel, setSel] = useState<Negocio | null>(null);
+  const [q, setQ] = useState("");
+  const filtrados = negocios.filter((n) => norm(`${n.razao_social} ${n.cnpj ?? ""}`).includes(norm(q)));
 
   const carregar = useCallback(async () => {
     const sb = getBrowserSupabase();
@@ -29,17 +32,18 @@ export default function NegociosAdmin() {
     <AdminShell title="Negócios">
       <div className="card">
         <div className="card-h"><Icon name="building" /><h3>Negócios cadastrados</h3><span className="right">{negocios.length}</span></div>
+        <Busca value={q} onChange={setQ} placeholder="Buscar por nome ou CNPJ…" />
         <table>
           <tbody>
             <tr><th>Negócio</th><th>CNPJ/CPF</th><th>Saldo</th></tr>
-            {negocios.map((n) => (
+            {filtrados.map((n) => (
               <tr key={n.id} style={{ cursor: "pointer" }} onClick={() => setSel(n)}>
                 <td className="td-name">{n.razao_social}{!n.ativo && <span style={{ color: "var(--warn)", fontWeight: 600 }}> · suspenso</span>}</td>
                 <td>{n.cnpj ?? "—"}</td>
                 <td>{money(n.saldo_carteira ?? 0)}</td>
               </tr>
             ))}
-            {negocios.length === 0 && <tr><td colSpan={3} style={{ color: "var(--faint)", fontSize: 12.5 }}>Nenhum negócio ainda.</td></tr>}
+            {filtrados.length === 0 && <tr><td colSpan={3} style={{ color: "var(--faint)", fontSize: 12.5 }}>Nenhum negócio encontrado.</td></tr>}
           </tbody>
         </table>
       </div>
