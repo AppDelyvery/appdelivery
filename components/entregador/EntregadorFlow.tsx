@@ -6,6 +6,7 @@ import AssinaturaCanvas from "../AssinaturaCanvas";
 import BotaoSuporte from "../BotaoSuporte";
 import SlideConfirm from "../SlideConfirm";
 import AvisoForaDoLocal from "../AvisoForaDoLocal";
+import CancelarCorrida from "../CancelarCorrida";
 import { distanciaAte, estaLonge } from "@/lib/geofence";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
@@ -520,8 +521,19 @@ function Coleta() {
 }
 
 function Rota() {
-  const { done, eta, distKm, setView, pedidoId } = useEntregador();
+  const { done, eta, distKm, setView, pedidoId, setPedidoId, setColetaFoto } = useEntregador();
   const pc = priceCalc("moto", distKm);
+  const [cancelar, setCancelar] = useState(false);
+
+  const confirmarCancelamento = async (motivo: string) => {
+    const sb = getBrowserSupabase();
+    if (sb && pedidoId) await sb.rpc("cancelar_corrida_entregador", { p_pedido_id: pedidoId, p_motivo: motivo });
+    setCancelar(false);
+    setColetaFoto(false);
+    setPedidoId(null);
+    setView("disponivel");
+  };
+
   return (
     <>
       <div className="card">
@@ -564,7 +576,11 @@ function Rota() {
         </button>
       )}
       {pedidoId && <BotaoSuporte onEnviar={(t, d) => abrirDisputa(pedidoId, "entregador", t, d).then((r) => (r.ok ? "ok" : r.motivo))} />}
+      <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => setCancelar(true)}>
+        <Icon name="stop" /> Cancelar entrega
+      </button>
       <p className="hint">O GPS do seu celular alimenta o mapa do cliente em tempo real.</p>
+      {cancelar && <CancelarCorrida onConfirmar={confirmarCancelamento} onFechar={() => setCancelar(false)} />}
     </>
   );
 }
