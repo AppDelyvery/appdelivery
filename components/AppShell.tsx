@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Icon, type IconName } from "./Icons";
+import UserMenu from "./UserMenu";
 
 export type Persona = "negocio" | "entregador" | "admin";
 export type ShellNavItem = {
@@ -96,9 +97,7 @@ export default function AppShell({
             <div className="ts">APPDELYVERY · Logística sob demanda · Palmas-TO</div>
           </div>
           <div className="right">
-            <span className="demo-tag">
-              <Icon name="bolt" /> Protótipo
-            </span>
+            <UserMenu />
           </div>
         </div>
         <div className={`content${noMap ? " no-map" : ""}`}>{children}</div>
