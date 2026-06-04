@@ -283,10 +283,61 @@ tr:last-child td { border-bottom: none; }
 .lg-role .arr svg { width: 18px; height: 18px; }
 .lg-foot { text-align: center; font-size: 11.5px; color: var(--faint); margin-top: 16px; }
 
-@media (max-width: 900px) {
-  .sidebar { display: none; }
-  .content .panel { width: 100%; border-right: none; }
-  .panel { width: 100%; min-width: 0; }
+/* Hambúrguer + scrim: só existem no modo compacto (escondidos no desktop) */
+.topbar-l { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.nav-toggle { display: none; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 11px; border: 1px solid var(--line-2); background: #fff; color: var(--ink-2); cursor: pointer; flex-shrink: 0; }
+.nav-toggle svg { width: 22px; height: 22px; }
+.nav-scrim { display: none; }
+
+/* ===== Modo compacto (tablet + celular): 90% dos acessos ===== */
+@media (max-width: 1023px) {
+  /* Sidebar vira drawer off-canvas com slide-in */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 320;
+    width: 280px; max-width: 86vw;
+    transform: translateX(-100%); transition: transform .22s ease;
+    box-shadow: var(--shadow-lg);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .nav-scrim { display: block; position: fixed; inset: 0; z-index: 310; background: rgba(13,20,36,.45); backdrop-filter: blur(1px); }
+  .nav-toggle { display: inline-flex; }
+
+  /* Alvos de toque ≥44px no menu */
+  .sb-item { padding: 12px 12px; font-size: 14.5px; min-height: 46px; }
+  .sb-item svg { width: 19px; height: 19px; }
+  .sb-demo a { padding: 11px 4px; }
+
+  /* Topbar mais enxuta */
+  .topbar { padding: 0 14px; height: 58px; }
+  .topbar .ts { display: none; }
+  .topbar .tt { font-size: 15.5px; }
+
+  /* Conteúdo empilha: painel em cima, mapa embaixo (some quando no-map) */
+  .content { flex-direction: column; overflow-y: auto; }
+  .content .panel { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--line); flex-shrink: 1; }
+  .content.no-map .panel { max-width: none; margin: 0; }
+  .panel { width: 100%; min-width: 0; padding: 16px; overflow-y: visible; }
+  #map { flex: none; height: 56vh; min-height: 320px; border-left: none; }
+
+  /* KPIs: 2 colunas no compacto */
+  .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Tabelas largas rolam na horizontal dentro do card */
+  .card { overflow-x: auto; }
+  table { min-width: 460px; }
+
+  /* Botões/inputs com toque confortável */
+  .btn { padding: 13px; }
+  .field .input, .input { font-size: 16px; } /* 16px evita zoom automático no iOS */
+}
+
+/* Celular estreito */
+@media (max-width: 560px) {
+  .kpis { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .kpi { padding: 13px; }
+  .kpi .v { font-size: 20px; }
+  .panel { padding: 13px; }
+  #map { height: 50vh; }
 }
 
 /* ===== Documentos legais (Termos / Privacidade) ===== */

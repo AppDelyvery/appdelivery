@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Icon, type IconName } from "./Icons";
 import UserMenu from "./UserMenu";
@@ -35,9 +36,12 @@ export default function AppShell({
   noMap?: boolean;
   children: React.ReactNode;
 }) {
+  const [navOpen, setNavOpen] = useState(false);
+  const fechar = () => setNavOpen(false);
   return (
     <div className="shell">
-      <aside className="sidebar">
+      {navOpen && <div className="nav-scrim" onClick={fechar} />}
+      <aside className={`sidebar${navOpen ? " open" : ""}`}>
         <div className="sb-logo">
           <div className="mark">
             <Icon name="moto" />
@@ -56,7 +60,7 @@ export default function AppShell({
             <div className="gh">{gr.group}</div>
             {gr.items.map((it) =>
               it.href ? (
-                <Link key={it.label} href={it.href} className={`sb-item${it.active ? " active" : ""}`}>
+                <Link key={it.label} href={it.href} className={`sb-item${it.active ? " active" : ""}`} onClick={fechar}>
                   <Icon name={it.ic} />
                   <span>{it.label}</span>
                   {it.badge && <span className="badge">{it.badge}</span>}
@@ -66,7 +70,10 @@ export default function AppShell({
                   key={it.label}
                   className={`sb-item${it.active ? " active" : ""}`}
                   disabled={it.disabled}
-                  onClick={it.onClick}
+                  onClick={() => {
+                    it.onClick?.();
+                    fechar();
+                  }}
                 >
                   <Icon name={it.ic} />
                   <span>{it.label}</span>
@@ -81,7 +88,7 @@ export default function AppShell({
           <div className="sb-demo-h">Demo · ver como</div>
           <div className="sb-demo">
             {DEMO.map((d) => (
-              <Link key={d.persona} href={d.href} className={demo === d.persona ? "on" : ""}>
+              <Link key={d.persona} href={d.href} className={demo === d.persona ? "on" : ""} onClick={fechar}>
                 <Icon name={d.ic} />
                 {d.label}
               </Link>
@@ -92,9 +99,14 @@ export default function AppShell({
 
       <main className="main">
         <div className="topbar">
-          <div>
-            <div className="tt">{title}</div>
-            <div className="ts">APPDELYVERY · Logística sob demanda · Palmas-TO</div>
+          <div className="topbar-l">
+            <button className="nav-toggle" onClick={() => setNavOpen(true)} aria-label="Abrir menu">
+              <Icon name="menu" />
+            </button>
+            <div>
+              <div className="tt">{title}</div>
+              <div className="ts">APPDELYVERY · Logística sob demanda · Palmas-TO</div>
+            </div>
           </div>
           <div className="right">
             <UserMenu />

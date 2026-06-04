@@ -6,7 +6,7 @@ export type IconName =
   | "building" | "moto" | "chart" | "shield" | "check" | "checkThin"
   | "clock" | "pin" | "camera" | "pen" | "play" | "stop" | "refresh"
   | "pkg" | "star" | "upload" | "download" | "card" | "car" | "user" | "spinner"
-  | "arrow" | "send" | "money" | "list" | "bolt" | "van";
+  | "arrow" | "send" | "money" | "list" | "bolt" | "van" | "menu";
 
 const stroke = {
   fill: "none" as const,
@@ -120,6 +120,13 @@ const ICONS: Record<IconName, (p: SVGProps<SVGSVGElement>) => React.ReactElement
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="7 10 12 15 17 10" />
       <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  ),
+  menu: (p) => (
+    <svg viewBox="0 0 24 24" {...stroke} {...p}>
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="21" y2="18" />
     </svg>
   ),
   card: (p) => (
