@@ -3,7 +3,6 @@ const U = process.env.U;
 const K = process.env.K;
 const SENHA = "Demo1234";
 const h = (tok) => ({ apikey: K, Authorization: `Bearer ${tok || K}`, "Content-Type": "application/json" });
-const rep = (tok) => ({ ...h(tok), Prefer: "return=representation" });
 const j = (r) => r.json();
 
 const NEGOCIOS = [
