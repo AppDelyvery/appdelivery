@@ -14,7 +14,7 @@ import { useEnviarPosicao } from "@/lib/realtime";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { money, priceCalc } from "@/lib/precos";
-import { DESTINO, ORIGEM } from "@/lib/rota";
+import { DESTINO, ORIGEM, geoDist } from "@/lib/rota";
 import { useEntregador, type EntregadorView } from "./EntregadorContext";
 
 const km1 = (n: number) => n.toFixed(1).replace(".", ",");
@@ -232,10 +232,19 @@ function Verificando() {
   );
 }
 
+const VEIC: Record<string, string> = { moto: "Moto", carro: "Carro", van: "Van", bike: "Bike" };
+
 function Disponiveis() {
   const { setView, setPedidoId } = useEntregador();
   const { corridas, aceitar } = useCorridasDisponiveis();
+  const { pos: gps } = useGeolocation(true);
   const [msg, setMsg] = useState<string | null>(null);
+
+  // distância em km do entregador até a coleta (precisa do GPS + coords da coleta)
+  const ateColeta = (c: { coleta_lat: number | null; coleta_lng: number | null }) => {
+    if (!gps || c.coleta_lat == null || c.coleta_lng == null) return null;
+    return geoDist(gps, [c.coleta_lng, c.coleta_lat]) / 1000;
+  };
 
   const onAceitar = async (id: string) => {
     setMsg(null);
@@ -265,33 +274,47 @@ function Disponiveis() {
             Nenhuma corrida no momento. Fique online — as novas aparecem aqui.
           </div>
         )}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {corridas.map((c) => (
-            <div key={c.id} style={{ border: "1px solid var(--line)", borderRadius: 12, padding: 12 }}>
-              <div className="offer-amount" style={{ fontSize: 24, margin: "2px 0" }}>
-                + {money(c.preco_entregador ?? 0)}
-              </div>
-              <div className="route-pts" style={{ margin: "10px 0" }}>
-                <div className="rpt">
-                  <div className="pin o" />
-                  <div className="txt">
-                    <div className="a">{c.coleta_endereco}</div>
-                    <div className="b">coleta</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {corridas.map((c) => {
+            const dc = ateColeta(c);
+            return (
+              <div key={c.id} className="offer-card">
+                <div className="offer-top">
+                  <div>
+                    <div className="offer-amount-xl">{money(c.preco_entregador ?? 0)}</div>
+                    <div className="offer-amount-sub">você recebe 80% do frete</div>
+                  </div>
+                  <span className="verif-chip"><Icon name="shield" /> Parceiro verificado</span>
+                </div>
+
+                <div className="offer-meta">
+                  <span className="veh-badge"><Icon name={c.vehicle_type === "carro" ? "car" : c.vehicle_type === "van" ? "van" : "moto"} /> {VEIC[c.vehicle_type] ?? c.vehicle_type}</span>
+                </div>
+
+                <div className="route-pts" style={{ margin: "12px 0" }}>
+                  <div className="rpt">
+                    <div className="pin o" />
+                    <div className="txt">
+                      <div className="a">{c.coleta_endereco}</div>
+                      <div className="b">{dc != null ? `${km1(dc)} km até a coleta` : "ponto de coleta"}</div>
+                    </div>
+                  </div>
+                  <div className="rpt">
+                    <div className="pin d" />
+                    <div className="txt">
+                      <div className="a">{c.entrega_endereco}</div>
+                      <div className="b">{c.distancia_km ? `${km1(c.distancia_km)} km de entrega` : "destino"}{c.duracao_min ? ` · ${c.duracao_min} min` : ""}</div>
+                    </div>
                   </div>
                 </div>
-                <div className="rpt">
-                  <div className="pin d" />
-                  <div className="txt">
-                    <div className="a">{c.entrega_endereco}</div>
-                    <div className="b">entrega{c.distancia_km ? ` · ${km1(c.distancia_km)} km` : ""}</div>
-                  </div>
-                </div>
+
+                <button className="btn btn-go" onClick={() => onAceitar(c.id)}>
+                  <Icon name="checkThin" /> Aceitar entrega
+                </button>
+                <div className="offer-foot">Recusar não afeta sua pontuação · o conteúdo aparece ao aceitar</div>
               </div>
-              <button className="btn btn-go" onClick={() => onAceitar(c.id)}>
-                <Icon name="checkThin" /> Aceitar corrida
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       {msg && (

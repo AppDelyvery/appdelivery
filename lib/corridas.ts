@@ -7,6 +7,8 @@ export type CorridaDisponivel = {
   id: string;
   coleta_endereco: string;
   entrega_endereco: string;
+  coleta_lat: number | null;
+  coleta_lng: number | null;
   distancia_km: number | null;
   duracao_min: number | null;
   preco_entregador: number | null;
