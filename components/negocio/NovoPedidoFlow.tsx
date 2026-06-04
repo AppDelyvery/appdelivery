@@ -43,14 +43,15 @@ export default function NovoPedidoFlow() {
       items: [
         { ic: "send", label: "Nova entrega", active: view === "form", onClick: () => setView("form") },
         { ic: "moto", label: "Em andamento", active: emAndamento, onClick: () => setView("tracking"), disabled: !emAndamento },
-        { ic: "list", label: "Histórico", badge: "em breve", disabled: true },
+        { ic: "list", label: "Histórico", href: "/negocio/historico" },
       ],
     },
+    { group: "Avisos", items: [{ ic: "send", label: "Comunicados", href: "/negocio/comunicados" }] },
     {
       group: "Conta",
       items: [
-        { ic: "money", label: "Carteira", badge: "em breve", disabled: true },
-        { ic: "building", label: "Meu negócio", badge: "em breve", disabled: true },
+        { ic: "money", label: "Carteira", href: "/negocio/carteira" },
+        { ic: "building", label: "Meu negócio", href: "/negocio/perfil" },
       ],
     },
   ];
