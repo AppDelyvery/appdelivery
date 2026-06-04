@@ -1,5 +1,5 @@
-import EmConstrucao from "@/components/admin/EmConstrucao";
+import RankingsAdmin from "@/components/admin/RankingsAdmin";
 
 export default function Page() {
-  return <EmConstrucao title="Rankings" msg="Melhores entregadores, empresas e áreas — entra quando houver corridas concluídas pra rankear (seção 4)." />;
+  return <RankingsAdmin />;
 }
