@@ -5,6 +5,8 @@ import AppShell, { type ShellNavGroup } from "../AppShell";
 import AssinaturaCanvas from "../AssinaturaCanvas";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
+import { hasSupabase } from "@/lib/integracoes";
+import { useCorridasDisponiveis } from "@/lib/corridas";
 import { money, priceCalc } from "@/lib/precos";
 import { DESTINO, ORIGEM } from "@/lib/rota";
 import { useEntregador, type EntregadorView } from "./EntregadorContext";
@@ -54,7 +56,7 @@ export default function EntregadorFlow() {
       <div className="panel">
         {view === "cadastro" && <Cadastro />}
         {view === "verificando" && <Verificando />}
-        {view === "disponivel" && <Oferta />}
+        {view === "disponivel" && (hasSupabase() ? <Disponiveis /> : <Oferta />)}
         {view === "coleta" && <Coleta />}
         {view === "rota" && <Rota />}
         {view === "finalizar" && <Finalizar />}
@@ -205,6 +207,79 @@ function Verificando() {
           </button>
         </>
       )}
+    </>
+  );
+}
+
+function Disponiveis() {
+  const { setView, setPedidoId } = useEntregador();
+  const { corridas, aceitar } = useCorridasDisponiveis();
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const onAceitar = async (id: string) => {
+    setMsg(null);
+    const r = await aceitar(id);
+    if (r === "ok") {
+      setPedidoId(id);
+      setView("coleta");
+    } else if (r === "nao-aprovado") {
+      setMsg("Seu cadastro ainda não foi aprovado pela operação.");
+    } else if (r === "indisponivel") {
+      setMsg("Outro entregador pegou essa corrida primeiro.");
+    } else {
+      setMsg("Não foi possível aceitar agora.");
+    }
+  };
+
+  return (
+    <>
+      <div className="card">
+        <div className="card-h">
+          <Icon name="bolt" />
+          <h3>Corridas disponíveis</h3>
+          <span className="right">{corridas.length}</span>
+        </div>
+        {corridas.length === 0 && (
+          <div style={{ fontSize: 13, color: "var(--muted)", textAlign: "center", padding: "14px 0" }}>
+            Nenhuma corrida no momento. Fique online — as novas aparecem aqui.
+          </div>
+        )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {corridas.map((c) => (
+            <div key={c.id} style={{ border: "1px solid var(--line)", borderRadius: 12, padding: 12 }}>
+              <div className="offer-amount" style={{ fontSize: 24, margin: "2px 0" }}>
+                + {money(c.preco_entregador ?? 0)}
+              </div>
+              <div className="route-pts" style={{ margin: "10px 0" }}>
+                <div className="rpt">
+                  <div className="pin o" />
+                  <div className="txt">
+                    <div className="a">{c.coleta_endereco}</div>
+                    <div className="b">coleta</div>
+                  </div>
+                </div>
+                <div className="rpt">
+                  <div className="pin d" />
+                  <div className="txt">
+                    <div className="a">{c.entrega_endereco}</div>
+                    <div className="b">entrega{c.distancia_km ? ` · ${km1(c.distancia_km)} km` : ""}</div>
+                  </div>
+                </div>
+              </div>
+              <button className="btn btn-go" onClick={() => onAceitar(c.id)}>
+                <Icon name="checkThin" /> Aceitar corrida
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+      {msg && (
+        <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)" }}>
+          <Icon name="shield" />
+          <div>{msg}</div>
+        </div>
+      )}
+      <p className="hint">Aceite atômico: se outro pegar primeiro, o sistema avisa e a corrida some da lista.</p>
     </>
   );
 }

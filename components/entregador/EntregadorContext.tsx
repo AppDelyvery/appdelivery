@@ -25,6 +25,8 @@ type EntregadorCtx = {
   setColetaFoto: (b: boolean) => void;
   sigData: string | null;
   setSigData: (s: string | null) => void;
+  pedidoId: string | null;
+  setPedidoId: (s: string | null) => void;
 } & Sim;
 
 const Ctx = createContext<EntregadorCtx | null>(null);
@@ -42,6 +44,7 @@ export function EntregadorProvider({ children }: { children: React.ReactNode }) 
   const [selfieUp, setSelfieUp] = useState(false);
   const [coletaFoto, setColetaFoto] = useState(false);
   const [sigData, setSigData] = useState<string | null>(null);
+  const [pedidoId, setPedidoId] = useState<string | null>(null);
   const sim = useSim();
 
   return (
@@ -59,6 +62,8 @@ export function EntregadorProvider({ children }: { children: React.ReactNode }) 
         setColetaFoto,
         sigData,
         setSigData,
+        pedidoId,
+        setPedidoId,
         ...sim,
       }}
     >
