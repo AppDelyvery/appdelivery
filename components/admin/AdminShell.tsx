@@ -25,7 +25,7 @@ export default function AdminShell({ title, children }: { title: string; childre
       ],
     },
     { group: "Inteligência", items: [it("bolt", "Rankings", "/admin/rankings")] },
-    { group: "Financeiro", items: [it("money", "Financeiro", "/admin/financeiro", "em breve")] },
+    { group: "Financeiro", items: [it("money", "Financeiro", "/admin/financeiro")] },
     { group: "Configurações", items: [it("shield", "Configurações", "/admin/config")] },
   ];
 

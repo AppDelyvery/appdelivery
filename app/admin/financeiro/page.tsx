@@ -1,5 +1,5 @@
-import EmConstrucao from "@/components/admin/EmConstrucao";
+import FinanceiroAdmin from "@/components/admin/FinanceiroAdmin";
 
 export default function Page() {
-  return <EmConstrucao title="Financeiro" msg="Faturamento, repasses e carteiras — entra com a conta Asaas (build-spec/06-FINANCEIRO)." />;
+  return <FinanceiroAdmin />;
 }
