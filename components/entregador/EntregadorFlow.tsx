@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import AppShell, { type ShellNavGroup } from "../AppShell";
 import AssinaturaCanvas from "../AssinaturaCanvas";
 import BotaoSuporte from "../BotaoSuporte";
+import SlideConfirm from "../SlideConfirm";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
 import { hasSupabase } from "@/lib/integracoes";
@@ -12,6 +13,7 @@ import { registrarColeta, registrarEntrega } from "@/lib/entrega";
 import { abrirDisputa } from "@/actions/disputas";
 import { useEnviarPosicao } from "@/lib/realtime";
 import { useGeolocation } from "@/lib/useGeolocation";
+import { useDisponibilidade, useAtualizarPosicao } from "@/lib/disponibilidade";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { money, priceCalc } from "@/lib/precos";
 import { DESTINO, ORIGEM, geoDist } from "@/lib/rota";
@@ -238,6 +240,8 @@ function Disponiveis() {
   const { setView, setPedidoId } = useEntregador();
   const { corridas, aceitar } = useCorridasDisponiveis();
   const { pos: gps } = useGeolocation(true);
+  const { online, busy, erro, alternar } = useDisponibilidade();
+  useAtualizarPosicao(online, gps);
   const [msg, setMsg] = useState<string | null>(null);
 
   // distância em km do entregador até a coleta (precisa do GPS + coords da coleta)
@@ -263,15 +267,35 @@ function Disponiveis() {
 
   return (
     <>
+      <div className={`status-online ${online ? "on" : "off"}`}>
+        <div className="so-dot" />
+        <div className="so-txt">
+          <b>{online ? "Você está online" : "Você está offline"}</b>
+          <span>{online ? "Recebendo entregas na sua região" : "Conecte pra começar a receber entregas"}</span>
+        </div>
+        <button className="btn" disabled={busy} onClick={() => alternar(!online, gps)}
+          style={{ width: "auto", padding: "10px 18px", background: online ? "#fff" : "var(--go)", color: online ? "var(--ink-2)" : "#fff", border: online ? "1px solid var(--line-2)" : "none" }}>
+          {busy ? "…" : online ? "Desconectar" : "Conectar"}
+        </button>
+      </div>
+      {erro && <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)" }}><Icon name="shield" /><div>{erro}</div></div>}
+
+      {!online ? (
+        <div className="card" style={{ textAlign: "center", padding: "30px 18px" }}>
+          <div style={{ fontSize: 13.5, color: "var(--muted)", lineHeight: 1.6 }}>
+            Toque em <b>Conectar</b> pra ficar disponível.<br />As entregas da sua região aparecem aqui.
+          </div>
+        </div>
+      ) : (
       <div className="card">
         <div className="card-h">
           <Icon name="bolt" />
-          <h3>Corridas disponíveis</h3>
+          <h3>Entregas disponíveis</h3>
           <span className="right">{corridas.length}</span>
         </div>
         {corridas.length === 0 && (
           <div style={{ fontSize: 13, color: "var(--muted)", textAlign: "center", padding: "14px 0" }}>
-            Nenhuma corrida no momento. Fique online — as novas aparecem aqui.
+            Nenhuma entrega no momento. Fique online — as novas aparecem aqui.
           </div>
         )}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -317,13 +341,14 @@ function Disponiveis() {
           })}
         </div>
       </div>
+      )}
       {msg && (
         <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)" }}>
           <Icon name="shield" />
           <div>{msg}</div>
         </div>
       )}
-      <p className="hint">Aceite atômico: se outro pegar primeiro, o sistema avisa e a corrida some da lista.</p>
+      {online && <p className="hint">Aceite atômico: se outro pegar primeiro, o sistema avisa e a corrida some da lista.</p>}
     </>
   );
 }
@@ -433,15 +458,15 @@ function Coleta() {
               </div>
             </div>
           </div>
-          <button
-            className="btn btn-primary"
-            onClick={() => {
+          <SlideConfirm
+            label="Iniciar entrega"
+            icon="arrow"
+            color="brand"
+            onConfirm={() => {
               setView("rota");
               start();
             }}
-          >
-            <Icon name="arrow" /> Iniciar entrega
-          </button>
+          />
         </>
       ) : (
         <>
@@ -461,9 +486,7 @@ function Coleta() {
               <div>{erro}</div>
             </div>
           )}
-          <button className="btn btn-primary" disabled={enviando} onClick={registrar}>
-            <Icon name={enviando ? "spinner" : "camera"} /> {enviando ? "Registrando…" : "Cheguei — registrar coleta"}
-          </button>
+          <SlideConfirm label="Cheguei — registrar coleta" icon="camera" busy={enviando} onConfirm={registrar} />
         </>
       )}
       <p className="hint">A foto na coleta entra na trilha de auditoria da encomenda.</p>
@@ -509,9 +532,7 @@ function Rota() {
         </div>
       </div>
       {done ? (
-        <button className="btn btn-go" onClick={() => setView("finalizar")}>
-          <Icon name="pen" /> Finalizar entrega
-        </button>
+        <SlideConfirm label="Cheguei — finalizar entrega" icon="pen" onConfirm={() => setView("finalizar")} />
       ) : (
         <button className="btn btn-primary" disabled>
           <Icon name="moto" /> Em rota — GPS ativo
@@ -596,9 +617,7 @@ function Finalizar() {
           <div>{erro}</div>
         </div>
       )}
-      <button className="btn btn-go" disabled={enviando} onClick={confirmar}>
-        <Icon name={enviando ? "spinner" : "check"} /> {enviando ? "Confirmando…" : "Confirmar entrega"}
-      </button>
+      <SlideConfirm label="Confirmar entrega" icon="check" busy={enviando} onConfirm={confirmar} />
       <p className="hint">Foto + assinatura fecham o ciclo e geram o comprovante do cliente.</p>
     </>
   );
