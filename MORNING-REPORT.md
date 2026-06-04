@@ -3,10 +3,18 @@
 Bom dia, Eduardo. Resumo do que rodei enquanto você dormia. Tudo verde (tsc + eslint + build) e no GitHub.
 
 ## ✅ TO-DO DA MANHÃ (só você consegue fazer)
-1. **Rodar 3 migrations** no SQL Editor do Supabase, **nesta ordem**:
-   - `supabase/migrations/0004_security_hardening.sql` — FECHA 2 furos de segurança (críticos).
-   - `supabase/migrations/0005_vehicle_van.sql` — adiciona o veículo "van".
-   - `supabase/migrations/0006_mensagens.sql` — chat por pedido (3 pontas, incl. cliente final).
+1. **Rodar 4 migrations** no SQL Editor do Supabase, **nesta ordem**:
+   - `0004_security_hardening.sql` — FECHA 2 furos de segurança (críticos, abertos AGORA).
+   - `0005_vehicle_van.sql` — veículo "van".
+   - `0006_mensagens.sql` — chat por pedido (3 pontas, incl. cliente final).
+   - `0007_atribuicao_corrida.sql` — entregador aprovado vê/aceita corrida (aceite atômico).
+
+   Depois eu provo TUDO de uma vez na fonte:
+   ```
+   node scripts/verify-chat.mjs       # chat 3-pontas
+   node scripts/verify-corrida.mjs    # atribuicao + aceite atomico
+   node scripts/audit-rls.mjs         # furos fechados (pos-0004)
+   ```
 2. **Seed do admin** (1 linha, no fim do 0004): `update profiles set role='admin' where id='<seu-uuid>';` (pega o uuid do seu usuário em Authentication → Users). Sem isso, ninguém aprova entregador.
 3. **(opcional) Limpar dados de teste:** rodar `scripts/cleanup-teste.sql` (criei vários usuários de teste nas provas).
 4. **Validar `baseVan`** em `lib/precos.ts` — pus R$20 de placeholder pro preço da van; me diz o valor real.
