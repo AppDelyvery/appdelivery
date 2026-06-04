@@ -59,18 +59,14 @@ export default function EntregadorFlow() {
       items: [
         { ic: "bolt", label: "Disponíveis", active: view === "disponivel", onClick: () => setView("disponivel") },
         { ic: "moto", label: "Minha corrida", active: emCorrida, onClick: () => setView("rota"), disabled: !emCorrida },
-        { ic: "money", label: "Ganhos", badge: "em breve", disabled: true },
+        { ic: "money", label: "Ganhos", href: "/entregador/ganhos" },
       ],
     },
+    { group: "Avisos", items: [{ ic: "send", label: "Comunicados", href: "/entregador/comunicados" }] },
     {
       group: "Conta",
       items: [
-        {
-          ic: "shield",
-          label: "Verificação",
-          active: view === "cadastro" || view === "verificando",
-          onClick: () => setView("cadastro"),
-        },
+        { ic: "shield", label: "Verificação", href: "/entregador/perfil" },
         { ic: "user", label: "Cadastro", onClick: () => setView("cadastro") },
       ],
     },
