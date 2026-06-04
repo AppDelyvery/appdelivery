@@ -222,6 +222,33 @@ tr:last-child td { border-bottom: none; }
 .veh-badge svg { width: 14px; height: 14px; color: var(--brand); }
 .offer-foot { text-align: center; font-size: 11px; color: var(--faint); font-weight: 600; margin-top: 9px; }
 
+/* ===== HOME IMERSIVA DO ENTREGADOR (mapa tela-cheia, padrão 99) ===== */
+.emap { position: fixed; inset: 0; overflow: hidden; background: var(--bg); }
+.me-marker { width: 18px; height: 18px; border-radius: 50%; background: var(--brand); border: 3px solid #fff; box-shadow: 0 0 0 3px rgba(79,70,229,.3), 0 2px 6px rgba(0,0,0,.3); }
+.emap-fab { position: absolute; width: 46px; height: 46px; border-radius: 14px; background: #fff; border: none; box-shadow: 0 3px 12px rgba(13,20,36,.18); display: grid; place-items: center; color: var(--ink-2); cursor: pointer; z-index: 5; }
+.emap-fab svg { width: 21px; height: 21px; }
+.emap-burger { top: calc(env(safe-area-inset-top, 0px) + 12px); left: 14px; }
+.emap-pill { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 14px); left: 50%; transform: translateX(-50%); z-index: 5; background: var(--ink); color: #fff; border: none; border-radius: 30px; padding: 11px 18px; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 14px rgba(13,20,36,.25); cursor: pointer; }
+.emap-pill svg { width: 15px; height: 15px; transform: rotate(90deg); opacity: .7; }
+.emap-side { position: absolute; right: 14px; top: 42%; display: flex; flex-direction: column; gap: 10px; z-index: 5; }
+.emap-side .emap-fab { position: static; }
+.emap-side .emap-fab svg { color: var(--brand); }
+.emap-tema { position: absolute; right: 70px; top: 42%; z-index: 6; background: #fff; border-radius: 12px; box-shadow: var(--shadow-lg); overflow: hidden; }
+.emap-tema button { display: block; width: 130px; text-align: left; padding: 12px 14px; border: none; background: #fff; font-size: 13.5px; font-weight: 600; color: var(--ink-2); cursor: pointer; font-family: inherit; border-bottom: 1px solid var(--line); }
+.emap-tema button:last-child { border-bottom: none; }
+.emap-tema button.on { background: var(--brand-light); color: var(--brand); }
+.emap-sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--card); border-radius: 22px 22px 0 0; box-shadow: 0 -8px 28px rgba(13,20,36,.14); padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); max-height: 62vh; display: flex; flex-direction: column; }
+.emap-grab { width: 40px; height: 4px; border-radius: 4px; background: var(--line-2); margin: 4px auto 12px; flex-shrink: 0; }
+.emap-status { display: inline-flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 800; color: var(--ink); }
+.emap-status .dot { width: 10px; height: 10px; border-radius: 50%; }
+.emap-status.on .dot { background: var(--go); animation: pulse2 1.6s infinite; }
+.emap-status.off .dot { background: var(--faint); }
+.emap-sub { font-size: 12.5px; color: var(--muted); margin: 5px 0 12px; }
+.emap-online-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.emap-offers { overflow-y: auto; }
+.emap-vazio { text-align: center; font-size: 13px; color: var(--faint); padding: 20px 0; }
+.emap-erro { font-size: 12.5px; color: var(--warn); font-weight: 600; margin-bottom: 10px; }
+
 /* STATUS ONLINE/OFFLINE (Conectar/Desconectar) */
 .status-online { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; margin-bottom: 14px; border: 1px solid var(--line); }
 .status-online.on { background: linear-gradient(135deg, var(--go-bg), #d6f3e6); border-color: #aee4c8; }

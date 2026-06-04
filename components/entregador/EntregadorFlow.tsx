@@ -12,16 +12,15 @@ import { distanciaAte, estaLonge } from "@/lib/geofence";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
 import { hasSupabase } from "@/lib/integracoes";
-import { useCorridasDisponiveis } from "@/lib/corridas";
 import { usePedido } from "@/lib/pedido";
+import EntregadorHome from "./EntregadorHome";
 import { registrarColeta, registrarEntrega } from "@/lib/entrega";
 import { abrirDisputa } from "@/actions/disputas";
 import { useEnviarPosicao } from "@/lib/realtime";
 import { useGeolocation } from "@/lib/useGeolocation";
-import { useDisponibilidade, useAtualizarPosicao } from "@/lib/disponibilidade";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { money, priceCalc } from "@/lib/precos";
-import { DESTINO, ORIGEM, geoDist } from "@/lib/rota";
+import { DESTINO, ORIGEM } from "@/lib/rota";
 import { useEntregador, type EntregadorView } from "./EntregadorContext";
 
 const km1 = (n: number) => n.toFixed(1).replace(".", ",");
@@ -79,12 +78,15 @@ export default function EntregadorFlow() {
     },
   ];
 
+  // Home imersiva (padrão 99): a tela principal é o MAPA. Resto no menu.
+  if (view === "disponivel" && hasSupabase()) return <EntregadorHome />;
+
   return (
     <AppShell title={TITLES[view]} nav={nav} demo="entregador" noMap={noMap}>
       <div className="panel">
         {view === "cadastro" && <Cadastro />}
         {view === "verificando" && <Verificando />}
-        {view === "disponivel" && (hasSupabase() ? <Disponiveis /> : <Oferta />)}
+        {view === "disponivel" && <Oferta />}
         {view === "coleta" && <Coleta />}
         {view === "rota" && <Rota />}
         {view === "finalizar" && <Finalizar />}
@@ -235,125 +237,6 @@ function Verificando() {
           </button>
         </>
       )}
-    </>
-  );
-}
-
-const VEIC: Record<string, string> = { moto: "Moto", carro: "Carro", van: "Van", bike: "Bike" };
-
-function Disponiveis() {
-  const { setView, setPedidoId } = useEntregador();
-  const { corridas, aceitar } = useCorridasDisponiveis();
-  const { pos: gps } = useGeolocation(true);
-  const { online, busy, erro, alternar } = useDisponibilidade();
-  useAtualizarPosicao(online, gps);
-  const [msg, setMsg] = useState<string | null>(null);
-
-  // distância em km do entregador até a coleta (precisa do GPS + coords da coleta)
-  const ateColeta = (c: { coleta_lat: number | null; coleta_lng: number | null }) => {
-    if (!gps || c.coleta_lat == null || c.coleta_lng == null) return null;
-    return geoDist(gps, [c.coleta_lng, c.coleta_lat]) / 1000;
-  };
-
-  const onAceitar = async (id: string) => {
-    setMsg(null);
-    const r = await aceitar(id);
-    if (r === "ok") {
-      setPedidoId(id);
-      setView("coleta");
-    } else if (r === "nao-aprovado") {
-      setMsg("Seu cadastro ainda não foi aprovado pela operação.");
-    } else if (r === "indisponivel") {
-      setMsg("Outro entregador pegou essa corrida primeiro.");
-    } else {
-      setMsg("Não foi possível aceitar agora.");
-    }
-  };
-
-  return (
-    <>
-      <div className={`status-online ${online ? "on" : "off"}`}>
-        <div className="so-dot" />
-        <div className="so-txt">
-          <b>{online ? "Você está online" : "Você está offline"}</b>
-          <span>{online ? "Recebendo entregas na sua região" : "Conecte pra começar a receber entregas"}</span>
-        </div>
-        <button className="btn" disabled={busy} onClick={() => alternar(!online, gps)}
-          style={{ width: "auto", padding: "10px 18px", background: online ? "#fff" : "var(--go)", color: online ? "var(--ink-2)" : "#fff", border: online ? "1px solid var(--line-2)" : "none" }}>
-          {busy ? "…" : online ? "Desconectar" : "Conectar"}
-        </button>
-      </div>
-      {erro && <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)" }}><Icon name="shield" /><div>{erro}</div></div>}
-
-      {!online ? (
-        <div className="card" style={{ textAlign: "center", padding: "30px 18px" }}>
-          <div style={{ fontSize: 13.5, color: "var(--muted)", lineHeight: 1.6 }}>
-            Toque em <b>Conectar</b> pra ficar disponível.<br />As entregas da sua região aparecem aqui.
-          </div>
-        </div>
-      ) : (
-      <div className="card">
-        <div className="card-h">
-          <Icon name="bolt" />
-          <h3>Entregas disponíveis</h3>
-          <span className="right">{corridas.length}</span>
-        </div>
-        {corridas.length === 0 && (
-          <div style={{ fontSize: 13, color: "var(--muted)", textAlign: "center", padding: "14px 0" }}>
-            Nenhuma entrega no momento. Fique online — as novas aparecem aqui.
-          </div>
-        )}
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {corridas.map((c) => {
-            const dc = ateColeta(c);
-            return (
-              <div key={c.id} className="offer-card">
-                <div className="offer-top">
-                  <div>
-                    <div className="offer-amount-xl">{money(c.preco_entregador ?? 0)}</div>
-                    <div className="offer-amount-sub">você recebe 80% do frete</div>
-                  </div>
-                  <span className="verif-chip"><Icon name="shield" /> Parceiro verificado</span>
-                </div>
-
-                <div className="offer-meta">
-                  <span className="veh-badge"><Icon name={c.vehicle_type === "carro" ? "car" : c.vehicle_type === "van" ? "van" : "moto"} /> {VEIC[c.vehicle_type] ?? c.vehicle_type}</span>
-                </div>
-
-                <div className="route-pts" style={{ margin: "12px 0" }}>
-                  <div className="rpt">
-                    <div className="pin o" />
-                    <div className="txt">
-                      <div className="a">{c.coleta_endereco}</div>
-                      <div className="b">{dc != null ? `${km1(dc)} km até a coleta` : "ponto de coleta"}</div>
-                    </div>
-                  </div>
-                  <div className="rpt">
-                    <div className="pin d" />
-                    <div className="txt">
-                      <div className="a">{c.entrega_endereco}</div>
-                      <div className="b">{c.distancia_km ? `${km1(c.distancia_km)} km de entrega` : "destino"}{c.duracao_min ? ` · ${c.duracao_min} min` : ""}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <button className="btn btn-go" onClick={() => onAceitar(c.id)}>
-                  <Icon name="checkThin" /> Aceitar entrega
-                </button>
-                <div className="offer-foot">Recusar não afeta sua pontuação · o conteúdo aparece ao aceitar</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      )}
-      {msg && (
-        <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)" }}>
-          <Icon name="shield" />
-          <div>{msg}</div>
-        </div>
-      )}
-      {online && <p className="hint">Aceite atômico: se outro pegar primeiro, o sistema avisa e a corrida some da lista.</p>}
     </>
   );
 }
