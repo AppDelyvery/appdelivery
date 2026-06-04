@@ -1,7 +1,11 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import AppShell, { type ShellNavGroup } from "../AppShell";
 import { Icon } from "../Icons";
+import { getBrowserSupabase } from "@/lib/supabase/browser";
+import { hasSupabase } from "@/lib/integracoes";
+import { aprovarEntregador } from "@/actions/aprovarEntregador";
 
 const NAV: ShellNavGroup[] = [
   {
@@ -13,139 +17,146 @@ const NAV: ShellNavGroup[] = [
       { ic: "pkg", label: "Entregas", badge: "em breve", disabled: true },
     ],
   },
-  {
-    group: "Financeiro",
-    items: [{ ic: "money", label: "Financeiro", badge: "em breve", disabled: true }],
-  },
+  { group: "Financeiro", items: [{ ic: "money", label: "Financeiro", badge: "em breve", disabled: true }] },
 ];
 
+type Ent = { id: string; nome: string; vehicle_type: string; status: string; rating: number | null };
+
+const PILL: Record<string, { cls: string; txt: string }> = {
+  aprovado: { cls: "s-ok", txt: "Aprovado" },
+  em_verificacao: { cls: "s-pend", txt: "Em verificação" },
+  cadastro: { cls: "s-pend", txt: "Cadastro" },
+  recusado: { cls: "s-pend", txt: "Recusado" },
+  suspenso: { cls: "s-pend", txt: "Suspenso" },
+};
+
 export default function AdminPanel() {
+  const [ents, setEnts] = useState<Ent[]>([]);
+  const [aprovando, setAprovando] = useState<string | null>(null);
+  const [pin, setPin] = useState("");
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const carregar = useCallback(async () => {
+    const sb = getBrowserSupabase();
+    if (!sb) return;
+    const { data } = await sb.from("entregadores").select("id,nome,vehicle_type,status,rating").order("created_at", { ascending: false });
+    if (data) setEnts(data as Ent[]);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    carregar();
+  }, [carregar]);
+
+  const confirmarAprovacao = async (id: string) => {
+    setMsg(null);
+    const r = await aprovarEntregador(id, pin);
+    if (r.ok) {
+      setAprovando(null);
+      setPin("");
+      await carregar();
+    } else {
+      setMsg(r.motivo === "pin-invalido" ? "PIN incorreto." : r.motivo);
+    }
+  };
+
+  const pendentes = ents.filter((e) => e.status === "em_verificacao" || e.status === "cadastro");
+  const online = ents.filter((e) => e.status === "aprovado").length;
+
   return (
     <AppShell title="Operação" nav={NAV} demo="admin" noMap>
       <div className="panel">
         <div className="kpis">
           <div className="kpi">
-            <div className="ic">
-              <Icon name="pkg" />
-            </div>
-            <div className="v">37</div>
-            <div className="l">Entregas hoje</div>
+            <div className="ic"><Icon name="moto" /></div>
+            <div className="v">{ents.length}</div>
+            <div className="l">Entregadores</div>
           </div>
           <div className="kpi">
-            <div className="ic">
-              <Icon name="money" />
-            </div>
-            <div className="v">528</div>
-            <div className="l">Faturado R$</div>
+            <div className="ic"><Icon name="shield" /></div>
+            <div className="v">{pendentes.length}</div>
+            <div className="l">Na fila</div>
           </div>
           <div className="kpi">
-            <div className="ic">
-              <Icon name="moto" />
-            </div>
-            <div className="v">9</div>
-            <div className="l">Online</div>
+            <div className="ic"><Icon name="checkThin" /></div>
+            <div className="v">{online}</div>
+            <div className="l">Aprovados</div>
           </div>
-        </div>
-
-        <div className="card">
-          <div className="card-h">
-            <Icon name="moto" />
-            <h3>Entregadores</h3>
-            <span className="right">verificação</span>
-          </div>
-          <table>
-            <tbody>
-              <tr>
-                <th>Nome</th>
-                <th>Veículo</th>
-                <th>Status</th>
-              </tr>
-              <tr>
-                <td className="td-name">Lucas Mendes</td>
-                <td>Moto</td>
-                <td>
-                  <span className="status-pill s-live">
-                    <Icon name="moto" /> Em rota
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <td className="td-name">Rafael Sousa</td>
-                <td>Moto</td>
-                <td>
-                  <span className="status-pill s-ok">
-                    <Icon name="checkThin" /> Verificado
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <td className="td-name">Bruno Lima</td>
-                <td>Carro</td>
-                <td>
-                  <span className="status-pill s-ok">
-                    <Icon name="checkThin" /> Verificado
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <td className="td-name">Diego Alves</td>
-                <td>Moto</td>
-                <td>
-                  <span className="status-pill s-pend">
-                    <Icon name="spinner" /> Antecedentes
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </div>
 
         <div className="card">
           <div className="card-h">
             <Icon name="shield" />
             <h3>Fila de aprovação</h3>
+            <span className="right">{pendentes.length} pendente(s)</span>
           </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "9px 0",
-              borderBottom: "1px solid var(--line)",
-            }}
-          >
-            <div>
-              <div className="td-name" style={{ fontSize: 13.5 }}>
-                Diego Alves
-              </div>
-              <div style={{ color: "var(--muted)", fontSize: 11.5, marginTop: 2 }}>
-                CNH OK · CRLV OK · antecedentes em análise
-              </div>
+          {!hasSupabase() && (
+            <div style={{ fontSize: 12.5, color: "var(--faint)" }}>Backend não configurado.</div>
+          )}
+          {hasSupabase() && pendentes.length === 0 && (
+            <div style={{ fontSize: 13, color: "var(--muted)", textAlign: "center", padding: "12px 0" }}>
+              Nenhum entregador na fila.
             </div>
-            <span className="status-pill s-pend">
-              <Icon name="clock" /> Pendente
-            </span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 0 2px" }}>
-            <div>
-              <div className="td-name" style={{ fontSize: 13.5 }}>
-                Marina Reis
+          )}
+          {pendentes.map((e) => (
+            <div key={e.id} style={{ padding: "11px 0", borderBottom: "1px solid var(--line)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div className="td-name" style={{ fontSize: 13.5 }}>{e.nome}</div>
+                  <div style={{ color: "var(--muted)", fontSize: 11.5, marginTop: 2 }}>
+                    {e.vehicle_type} · {PILL[e.status]?.txt ?? e.status}
+                  </div>
+                </div>
+                {aprovando === e.id ? null : (
+                  <button className="btn btn-go" style={{ width: "auto", padding: "8px 15px", fontSize: 12.5 }} onClick={() => { setAprovando(e.id); setPin(""); setMsg(null); }}>
+                    <Icon name="checkThin" /> Aprovar
+                  </button>
+                )}
               </div>
-              <div style={{ color: "var(--go-dark)", fontSize: 11.5, marginTop: 2 }}>
-                Antecedentes OK · CNH OK · pronta
-              </div>
+              {aprovando === e.id && (
+                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                  <input className="input" type="password" placeholder="PIN do supervisor" value={pin} onChange={(ev) => setPin(ev.target.value)} />
+                  <button className="btn btn-go" style={{ width: "auto", padding: "0 14px" }} onClick={() => confirmarAprovacao(e.id)}>
+                    <Icon name="checkThin" />
+                  </button>
+                  <button className="btn btn-ghost" style={{ width: "auto", padding: "0 12px" }} onClick={() => { setAprovando(null); setMsg(null); }}>
+                    <Icon name="stop" />
+                  </button>
+                </div>
+              )}
             </div>
-            <button className="btn btn-go" style={{ width: "auto", padding: "8px 15px", fontSize: 12.5 }}>
-              <Icon name="checkThin" /> Aprovar
-            </button>
-          </div>
+          ))}
+          {msg && <div style={{ color: "var(--warn)", fontSize: 12.5, marginTop: 8, fontWeight: 600 }}>{msg}</div>}
         </div>
 
         <div className="card">
           <div className="card-h">
-            <Icon name="bolt" />
-            <h3>Diferencial</h3>
+            <Icon name="moto" />
+            <h3>Entregadores</h3>
           </div>
+          <table>
+            <tbody>
+              <tr><th>Nome</th><th>Veículo</th><th>Status</th></tr>
+              {ents.map((e) => (
+                <tr key={e.id}>
+                  <td className="td-name">{e.nome}</td>
+                  <td>{e.vehicle_type}</td>
+                  <td>
+                    <span className={`status-pill ${PILL[e.status]?.cls ?? "s-pend"}`}>
+                      <Icon name={e.status === "aprovado" ? "checkThin" : "clock"} /> {PILL[e.status]?.txt ?? e.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {ents.length === 0 && (
+                <tr><td colSpan={3} style={{ color: "var(--faint)", fontSize: 12.5 }}>Nenhum entregador ainda.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="card">
+          <div className="card-h"><Icon name="bolt" /><h3>Diferencial</h3></div>
           <div className="trust-banner">
             <Icon name="shield" />
             <div>
