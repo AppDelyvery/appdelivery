@@ -18,3 +18,8 @@ export const hasFlagCheck = () => FLAGCHECK_API_KEY.length > 0;
 // Infosimples (CNH/CRLV via Senatran) — SÓ server-side.
 export const INFOSIMPLES_TOKEN = process.env.INFOSIMPLES_TOKEN ?? "";
 export const hasInfosimples = () => INFOSIMPLES_TOKEN.length > 0;
+
+// idwall (biometria facial: face match + liveness + OCR) — SÓ server-side. Dado sensível LGPD.
+// Alternativas plugáveis aqui: Unico/CAF (biometria) ou Serpro Datavalid (match oficial gov).
+export const IDWALL_API_KEY = process.env.IDWALL_API_KEY ?? "";
+export const hasIdwall = () => IDWALL_API_KEY.length > 0;
