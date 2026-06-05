@@ -52,11 +52,12 @@ export default function AddressAutocomplete({
     setBuscando(true);
     tRef.current = setTimeout(async () => {
       // ARSE/ARSO → numérico (Mapbox só entende o numérico); Taquaralto/ruas = cru.
-      // bbox cobre Palmas + Taquaralto/Aurenys (sul); sem ele o Mapbox traz outro estado.
+      // bbox cobre a região: Palmas + Taquaralto/Aurenys + Luzimangues + Porto Nacional.
+      // Gurupi (230 km) e além ficam por conta do "marcar no mapa" (pino).
       const alvo = queryGeocoder(q);
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(alvo)}.json` +
         `?access_token=${MAPBOX_TOKEN}&country=br&language=pt&limit=6&autocomplete=true` +
-        `&proximity=-48.3336,-10.1844&bbox=-48.55,-10.55,-48.15,-9.85`;
+        `&proximity=-48.3336,-10.1844&bbox=-48.75,-10.85,-48.10,-9.80`;
       try {
         const d = await (await fetch(url)).json();
         const sug: Lugar[] = (d.features || []).map((f: { place_name: string; center: [number, number] }) => ({
