@@ -14,6 +14,9 @@ export default function IntegracaoNegocio() {
   const [nome, setNome] = useState("");
   const [busy, setBusy] = useState(false);
   const [origin, setOrigin] = useState("");
+  const [webhook, setWebhook] = useState("");
+  const [webhookSecret, setWebhookSecret] = useState<string | null>(null);
+  const [salvandoWh, setSalvandoWh] = useState(false);
 
   useEffect(() => { setOrigin(window.location.origin); }, []);
 
@@ -22,9 +25,20 @@ export default function IntegracaoNegocio() {
     if (!sb) return;
     const { data } = await sb.from("chaves_api").select("id,prefixo,nome,ativa,created_at,last_used_at").order("created_at", { ascending: false });
     if (data) setChaves(data as Chave[]);
+    const { data: est } = await sb.from("estabelecimentos").select("webhook_url").limit(1).maybeSingle();
+    if (est) setWebhook((est as { webhook_url?: string | null }).webhook_url ?? "");
   }, []);
 
   useEffect(() => { carregar(); }, [carregar]);
+
+  const salvarWebhook = async () => {
+    const sb = getBrowserSupabase();
+    if (!sb) return;
+    setSalvandoWh(true);
+    const { data } = await sb.rpc("salvar_webhook", { p_url: webhook });
+    setSalvandoWh(false);
+    if (data) setWebhookSecret(data as string); // só vem na 1ª vez
+  };
 
   const gerar = async () => {
     const sb = getBrowserSupabase();
@@ -110,7 +124,27 @@ export default function IntegracaoNegocio() {
           Faça um <b>POST</b> pra <code>{origin}/api/v1/pedidos</code> com a chave no header. A resposta traz o <b>link de rastreio</b> e o preço.
         </div>
         <pre style={{ background: "var(--ink)", color: "#e8ecf5", borderRadius: 11, padding: 14, fontSize: 11.5, overflowX: "auto", lineHeight: 1.5 }}>{curl}</pre>
-        <p className="hint">Consulta de status: <code>GET /api/v1/pedidos/{"{id}"}</code> com a mesma chave. Webhook de status (push automático) entra na próxima fase.</p>
+        <p className="hint">Consulta de status: <code>GET /api/v1/pedidos/{"{id}"}</code> com a mesma chave.</p>
+      </div>
+
+      <div className="card">
+        <div className="card-h"><Icon name="send" /><h3>Webhook de status</h3></div>
+        <div style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6, marginBottom: 10 }}>
+          A gente avisa seu sistema <b>na hora</b> que o pedido muda (aceito, coletado, saiu pra entrega, entregue) — você não precisa ficar perguntando. Informe a URL que recebe os avisos:
+        </div>
+        <div className="field">
+          <label>URL do seu webhook</label>
+          <input className="input" placeholder="https://seusistema.com/webhooks/appdelyvery" value={webhook} onChange={(e) => setWebhook(e.target.value)} />
+        </div>
+        <button className="btn btn-primary" disabled={salvandoWh} onClick={salvarWebhook}>{salvandoWh ? "Salvando…" : "Salvar webhook"}</button>
+        {webhookSecret && (
+          <div style={{ marginTop: 12, background: "var(--go-bg)", border: "1px solid #aee4c8", borderRadius: 10, padding: 12 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--go-dark)", marginBottom: 6 }}>Secret de assinatura (guarde — aparece 1 vez):</div>
+            <code style={{ display: "block", background: "#fff", borderRadius: 8, padding: "9px 10px", fontSize: 12, wordBreak: "break-all" }}>{webhookSecret}</code>
+            <div style={{ fontSize: 11.5, color: "var(--go-dark)", marginTop: 6 }}>Cada aviso vem com o header <code>X-Appdly-Signature</code> = HMAC-SHA256 de <code>pedido_id:status:occurred_at</code> com esse secret. Confira pra garantir que o aviso é nosso.</div>
+          </div>
+        )}
+        <p className="hint">Enviamos um POST com {"{ event, pedido_id, status, tracking_token, occurred_at }"} a cada mudança.</p>
       </div>
     </NegocioShell>
   );
