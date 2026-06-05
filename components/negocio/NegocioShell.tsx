@@ -20,6 +20,7 @@ export default function NegocioShell({ title, children }: { title: string; child
       ],
     },
     { group: "Avisos", items: [it("send", "Comunicados", "/negocio/comunicados")] },
+    { group: "Desenvolvedor", items: [it("bolt", "Integração / API", "/negocio/integracao")] },
     {
       group: "Conta",
       items: [
