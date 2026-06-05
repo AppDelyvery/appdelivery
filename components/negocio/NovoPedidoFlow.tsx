@@ -5,6 +5,7 @@ import AppShell, { type ShellNavGroup } from "../AppShell";
 import BotaoSuporte from "../BotaoSuporte";
 import SlideConfirm from "../SlideConfirm";
 import CancelarCorrida from "../CancelarCorrida";
+import AddressAutocomplete, { type Lugar } from "../AddressAutocomplete";
 import ChatBox from "../Chat";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { useTetoProtecao } from "@/lib/protecao";
@@ -17,6 +18,7 @@ import { abrirDisputa } from "@/actions/disputas";
 import { hasSupabase } from "@/lib/integracoes";
 import { money, PRICE, priceCalc, faixaDoVeiculo, VEICULOS } from "@/lib/precos";
 import { DESTINO, ORIGEM, STEPS } from "@/lib/rota";
+import { fetchDirections } from "@/lib/mapbox";
 import { useEntrega, type NegocioView } from "./EntregaContext";
 
 const MOTIVO: Record<string, string> = {
@@ -75,36 +77,59 @@ export default function NovoPedidoFlow() {
 
 function FormScreen() {
   const { veh, setVeh, distKm, durMin, setView, setPedido } = useEntrega();
-  const pc = priceCalc(veh, distKm);
   const teto = useTetoProtecao();
-  const [conteudo, setConteudo] = useState("Documentos + 1 par de óculos");
-  const [valor, setValor] = useState("R$ 350,00");
+  const [coleta, setColeta] = useState<Lugar | null>(null);
+  const [entrega, setEntrega] = useState<Lugar | null>(null);
+  const [rota, setRota] = useState<{ distKm: number; durMin: number } | null>(null);
+  const [conteudo, setConteudo] = useState("");
+  const [valor, setValor] = useState("");
   const [retornar, setRetornar] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
+  // distância/preço a partir dos endereços REAIS escolhidos (fallback = simulação demo)
+  useEffect(() => {
+    if (!coleta || !entrega) { setRota(null); return; }
+    let vivo = true;
+    (async () => {
+      const r = await fetchDirections([coleta.lng, coleta.lat], [entrega.lng, entrega.lat]);
+      if (vivo && r) setRota({ distKm: r.distKm, durMin: r.durMin });
+    })();
+    return () => { vivo = false; };
+  }, [coleta, entrega]);
+
+  const distReal = rota?.distKm ?? distKm;
+  const durReal = rota?.durMin ?? durMin;
+  const pc = priceCalc(veh, distReal);
+  const prontoBackend = hasSupabase();
+  const podeEnviar = !prontoBackend || (!!coleta && !!entrega);
+
   async function solicitar() {
     setErro(null);
     // Sem backend configurado → mantém a simulação (demo).
-    if (!hasSupabase()) {
+    if (!prontoBackend) {
       setView("matching");
+      return;
+    }
+    if (!coleta || !entrega) {
+      setErro("Escolha o endereço de coleta e de entrega na lista de sugestões.");
       return;
     }
     setEnviando(true);
     try {
       const valorNum = Number(valor.replace(/[^\d,]/g, "").replace(",", ".")) || undefined;
       const r = await criarPedido({
-        coletaEndereco: `${ORIGEM.nome} — ${ORIGEM.end}`,
-        coletaLat: ORIGEM.lat,
-        coletaLng: ORIGEM.lng,
-        entregaEndereco: `${DESTINO.nome} — ${DESTINO.end}`,
-        entregaLat: DESTINO.lat,
-        entregaLng: DESTINO.lng,
+        coletaEndereco: coleta.endereco,
+        coletaLat: coleta.lat,
+        coletaLng: coleta.lng,
+        entregaEndereco: entrega.endereco,
+        entregaLat: entrega.lat,
+        entregaLng: entrega.lng,
         veiculo: veh,
-        conteudo,
+        conteudo: conteudo || undefined,
         valorDeclarado: valorNum,
-        distanciaKm: distKm,
-        duracaoMin: durMin,
+        distanciaKm: distReal,
+        duracaoMin: durReal,
         retornar,
       });
       if (!r.ok) {
@@ -127,29 +152,17 @@ function FormScreen() {
           <Icon name="send" />
           <h3>Solicitar entrega</h3>
         </div>
-        <div className="field">
-          <label>Local de coleta</label>
-          <div className="with-icon">
-            <Icon name="pin" />
-            <input className="input" defaultValue="Ótica Visão Center — Q.104 Norte" />
-          </div>
-        </div>
-        <div className="field">
-          <label>Local de entrega</label>
-          <div className="with-icon">
-            <Icon name="pin" />
-            <input className="input" defaultValue="Andrade Contabilidade — Q.304 Sul" />
-          </div>
-        </div>
+        <AddressAutocomplete label="Local de coleta" valor={coleta} onSelecionar={setColeta} placeholder="Ex.: Ótica Visão Center, Q.104 Norte" />
+        <AddressAutocomplete label="Local de entrega" valor={entrega} onSelecionar={setEntrega} placeholder="Ex.: Arse 122, Plano Diretor Sul" />
         <div className="field">
           <label>O que será enviado</label>
-          <input className="input" value={conteudo} onChange={(e) => setConteudo(e.target.value)} />
+          <input className="input" value={conteudo} placeholder="Ex.: Documentos, 1 par de óculos" onChange={(e) => setConteudo(e.target.value)} />
         </div>
         <div className="field">
           <label>Valor declarado da encomenda</label>
           <div className="with-icon">
             <Icon name="money" />
-            <input className="input" value={valor} onChange={(e) => setValor(e.target.value)} />
+            <input className="input" value={valor} placeholder="R$ 0,00" onChange={(e) => setValor(e.target.value)} />
           </div>
         </div>
         <button type="button" className="opt-row" onClick={() => setRetornar((r) => !r)}>
@@ -165,10 +178,10 @@ function FormScreen() {
         <div className="card-h">
           <Icon name="moto" />
           <h3>Escolha o veículo</h3>
-          <span className="right">{km1(distKm)} km</span>
+          <span className="right">{km1(distReal)} km</span>
         </div>
         {VEICULOS.map((v) => {
-          const p = priceCalc(v.id, distKm);
+          const p = priceCalc(v.id, distReal);
           return (
             <button key={v.id} type="button" className={`veh-card${veh === v.id ? " sel" : ""}`} onClick={() => setVeh(v.id)}>
               <span className="veh-ic"><Icon name={v.id === "carro" ? "car" : v.id === "van" ? "van" : "moto"} /></span>
@@ -192,7 +205,7 @@ function FormScreen() {
           <span>{money(faixaDoVeiculo(veh).base)}</span>
         </div>
         <div className="price-line">
-          <span>Distância · {km1(distKm)} km × {money(faixaDoVeiculo(veh).perKm)}</span>
+          <span>Distância · {km1(distReal)} km × {money(faixaDoVeiculo(veh).perKm)}</span>
           <span>{money(pc.dist)}</span>
         </div>
         {pc.aplicouMin && (
@@ -206,7 +219,7 @@ function FormScreen() {
           <span>{money(pc.total)}</span>
         </div>
         <div className="price-sub">
-          ~{durMin} min · rota real Mapbox · entregador recebe {money(pc.driver)} ({PRICE.driverPct * 100}%)
+          ~{durReal} min · rota real Mapbox · entregador recebe {money(pc.driver)} ({PRICE.driverPct * 100}%)
         </div>
       </div>
 
@@ -220,7 +233,7 @@ function FormScreen() {
         <Icon name="shield" />
         <div>Esta entrega tem <b>proteção de carga inclusa</b> (até {money(teto)}) e entregador com <b>antecedentes verificados</b>.</div>
       </div>
-      <SlideConfirm label="Solicitar entrega" icon="send" color="brand" busy={enviando} onConfirm={solicitar} />
+      <SlideConfirm label="Solicitar entrega" icon="send" color="brand" busy={enviando} disabled={!podeEnviar} onConfirm={solicitar} />
       <p className="hint">
         O preço é calculado pela fórmula km + coleta + paradas,
         <br />
