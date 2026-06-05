@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icons";
 import { MAPBOX_TOKEN, hasMapbox } from "@/lib/mapbox";
+import { queryGeocoder } from "@/lib/enderecoPalmas";
 
 export type Lugar = { endereco: string; lat: number; lng: number };
 
@@ -40,11 +41,12 @@ export default function AddressAutocomplete({
     if (!hasMapbox() || q.trim().length < 3) { setSugestoes([]); setAberto(false); return; }
     setBuscando(true);
     tRef.current = setTimeout(async () => {
-      // bbox trava os resultados na região de Palmas-TO (sem ele o Mapbox devolve
-      // endereços de outros estados). proximity ordena pelo mais perto do centro.
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json` +
+      // ARSE/ARSO → numérico (Mapbox só entende o numérico); Taquaralto/ruas = cru.
+      // bbox cobre Palmas + Taquaralto/Aurenys (sul); sem ele o Mapbox traz outro estado.
+      const alvo = queryGeocoder(q);
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(alvo)}.json` +
         `?access_token=${MAPBOX_TOKEN}&country=br&language=pt&limit=6&autocomplete=true` +
-        `&proximity=-48.3336,-10.1844&bbox=-48.50,-10.50,-48.20,-9.90`;
+        `&proximity=-48.3336,-10.1844&bbox=-48.55,-10.55,-48.15,-9.85`;
       try {
         const d = await (await fetch(url)).json();
         const sug: Lugar[] = (d.features || []).map((f: { place_name: string; center: [number, number] }) => ({
