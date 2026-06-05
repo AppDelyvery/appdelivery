@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // A página principal (/) serve a vitrine premium estática (public/site).
+  // As rotas do app (/login, /cadastro, /negocio, /entregador, /admin) seguem normais.
+  async rewrites() {
+    return {
+      beforeFiles: [{ source: "/", destination: "/site/index.html" }],
+    };
+  },
 };
 
 export default nextConfig;
