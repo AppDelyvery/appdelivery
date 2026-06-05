@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icons";
 import { MAPBOX_TOKEN, hasMapbox } from "@/lib/mapbox";
 import { queryGeocoder } from "@/lib/enderecoPalmas";
+import MapaPinPicker, { type PontoMapa } from "./MapaPinPicker";
 
 export type Lugar = { endereco: string; lat: number; lng: number };
 
@@ -24,8 +25,17 @@ export default function AddressAutocomplete({
   const [sugestoes, setSugestoes] = useState<Lugar[]>([]);
   const [aberto, setAberto] = useState(false);
   const [buscando, setBuscando] = useState(false);
+  const [picker, setPicker] = useState(false);
   const tRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
+
+  const confirmarPino = (p: PontoMapa) => {
+    setTexto(p.endereco);
+    onSelecionar({ endereco: p.endereco, lat: p.lat, lng: p.lng });
+    setSugestoes([]);
+    setAberto(false);
+    setPicker(false);
+  };
 
   // fecha ao clicar fora
   useEffect(() => {
@@ -93,11 +103,21 @@ export default function AddressAutocomplete({
           ))}
         </div>
       )}
-      {valor ? (
-        <div className="ac-ok"><Icon name="checkThin" /> Endereço localizado</div>
-      ) : texto.trim().length >= 3 ? (
-        <div className="ac-hint">{buscando ? "Buscando…" : "Selecione um endereço da lista pra confirmar o local."}</div>
-      ) : null}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 5, gap: 8 }}>
+        {valor ? (
+          <div className="ac-ok"><Icon name="checkThin" /> Endereço localizado</div>
+        ) : texto.trim().length >= 3 ? (
+          <div className="ac-hint">{buscando ? "Buscando…" : "Selecione na lista, ou marque no mapa."}</div>
+        ) : <span />}
+        <button type="button" className="ac-pin-btn" onClick={() => setPicker(true)}><Icon name="pin" /> Marcar no mapa</button>
+      </div>
+      {picker && (
+        <MapaPinPicker
+          inicial={valor ? { lat: valor.lat, lng: valor.lng } : null}
+          onConfirmar={confirmarPino}
+          onFechar={() => setPicker(false)}
+        />
+      )}
     </div>
   );
 }

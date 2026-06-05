@@ -128,6 +128,8 @@ body {
 .ac-ok { font-size: 11.5px; color: var(--go-dark); font-weight: 600; margin-top: 5px; display: inline-flex; align-items: center; gap: 5px; }
 .ac-ok svg { width: 13px; height: 13px; }
 .ac-hint { font-size: 11.5px; color: var(--faint); margin-top: 5px; }
+.ac-pin-btn { display: inline-flex; align-items: center; gap: 5px; background: none; border: none; color: var(--brand); font-size: 11.5px; font-weight: 700; cursor: pointer; font-family: inherit; flex-shrink: 0; white-space: nowrap; }
+.ac-pin-btn svg { width: 13px; height: 13px; }
 
 /* Linha de opção com switch (ex.: retorno) */
 .opt-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; background: #fbfcfe; border: 1.5px solid var(--line-2); border-radius: 11px; padding: 11px 13px; cursor: pointer; font-family: inherit; text-align: left; }
