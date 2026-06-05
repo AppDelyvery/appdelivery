@@ -124,7 +124,10 @@ export default function IntegracaoNegocio() {
           Faça um <b>POST</b> pra <code>{origin}/api/v1/pedidos</code> com a chave no header. A resposta traz o <b>link de rastreio</b> e o preço.
         </div>
         <pre style={{ background: "var(--ink)", color: "#e8ecf5", borderRadius: 11, padding: 14, fontSize: 11.5, overflowX: "auto", lineHeight: 1.5 }}>{curl}</pre>
-        <p className="hint">Consulta de status: <code>GET /api/v1/pedidos/{"{id}"}</code> com a mesma chave.</p>
+        <p className="hint" style={{ textAlign: "left" }}>
+          <b>Cotação</b> (preço antes de criar): <code>POST /api/v1/cotacao</code> com {"{ coleta_lat, coleta_lng, entrega_lat, entrega_lng }"} → devolve o preço das 3 categorias.<br />
+          <b>Status</b>: <code>GET /api/v1/pedidos/{"{id}"}</code> com a mesma chave.
+        </p>
       </div>
 
       <div className="card">
