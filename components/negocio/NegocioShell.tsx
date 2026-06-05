@@ -17,6 +17,7 @@ export default function NegocioShell({ title, children }: { title: string; child
       items: [
         it("send", "Nova entrega", "/negocio/novo-pedido"),
         it("list", "Histórico", "/negocio/historico"),
+        it("chart", "Relatórios", "/negocio/relatorios"),
       ],
     },
     { group: "Avisos", items: [it("send", "Comunicados", "/negocio/comunicados")] },
