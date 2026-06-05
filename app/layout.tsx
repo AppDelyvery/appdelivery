@@ -36,9 +36,14 @@ export const metadata: Metadata = {
       "A empresa pede, o sistema aciona um entregador de ficha checada, com rastreio ao vivo e comprovante. Palmas e região.",
   },
   robots: { index: true, follow: true },
+  appleWebApp: { capable: true, title: "APPDELYVERY", statusBarStyle: "default" },
   verification: process.env.NEXT_PUBLIC_GSC_VERIFICATION
     ? { google: process.env.NEXT_PUBLIC_GSC_VERIFICATION }
     : undefined,
+};
+
+export const viewport = {
+  themeColor: "#4f46e5",
 };
 
 export default function RootLayout({
