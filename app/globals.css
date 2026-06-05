@@ -267,6 +267,15 @@ tr:last-child td { border-bottom: none; }
 .emap-offers { overflow-y: auto; }
 .emap-vazio { text-align: center; font-size: 13px; color: var(--faint); padding: 20px 0; }
 .emap-erro { font-size: 12.5px; color: var(--warn); font-weight: 600; margin-bottom: 10px; }
+.emap-procurando { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); padding: 14px 2px; line-height: 1.5; }
+.emap-radar-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--brand); flex-shrink: 0; box-shadow: 0 0 0 0 var(--brand-glow); animation: pulse 1.6s infinite; }
+
+/* Oferta dirigida: cabeçalho + barra de timer (modelo B) */
+.oferta-timer-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+.oferta-titulo { font-size: 15px; font-weight: 800; color: var(--ink); }
+.oferta-seg { font-size: 15px; font-weight: 800; color: var(--brand); font-variant-numeric: tabular-nums; }
+.oferta-timer { height: 6px; border-radius: 4px; background: var(--line); overflow: hidden; margin-bottom: 12px; }
+.oferta-timer-fill { height: 100%; background: var(--go); border-radius: 4px; transition: width .5s linear; }
 
 /* Menu do entregador: perfil + taxas (padrão 99 T04) */
 .menu-perfil { display: flex; flex-direction: column; align-items: center; padding: 18px 10px 14px; border-bottom: 1px solid var(--line); }

@@ -8,7 +8,7 @@ import { money } from "@/lib/precos";
 import { geoDist } from "@/lib/rota";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { useGeolocation } from "@/lib/useGeolocation";
-import { useCorridasDisponiveis } from "@/lib/corridas";
+import { useMinhaOferta } from "@/lib/oferta";
 import { useDisponibilidade, useAtualizarPosicao } from "@/lib/disponibilidade";
 import { useEntregador } from "./EntregadorContext";
 
@@ -25,7 +25,7 @@ export default function EntregadorHome() {
   const { pos: gps } = useGeolocation(true);
   const { online, busy, erro, alternar } = useDisponibilidade();
   useAtualizarPosicao(online, gps);
-  const { corridas, aceitar } = useCorridasDisponiveis();
+  const { oferta, aceitar, recusar } = useMinhaOferta(online);
 
   const [tema, setTema] = useState<TemaMapa>("auto");
   const [menu, setMenu] = useState(false);
@@ -58,19 +58,31 @@ export default function EntregadorHome() {
     })();
   }, []);
 
-  const ateColeta = (c: { coleta_lat: number | null; coleta_lng: number | null }) => {
-    if (!gps || c.coleta_lat == null || c.coleta_lng == null) return null;
-    return geoDist(gps, [c.coleta_lng, c.coleta_lat]) / 1000;
+  const ateColeta = (lat: number | null, lng: number | null) => {
+    if (!gps || lat == null || lng == null) return null;
+    return geoDist(gps, [lng, lat]) / 1000;
   };
 
-  const onAceitar = async (id: string) => {
+  // contador regressivo cosmético (servidor é a fonte da verdade via expira_at)
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!oferta) return;
+    const t = setInterval(() => setTick((x) => x + 1), 500);
+    return () => clearInterval(t);
+  }, [oferta]);
+  const segRestantes = oferta ? Math.max(0, Math.round((new Date(oferta.expira_at).getTime() - Date.now()) / 1000)) : 0;
+  void tick;
+
+  const onAceitar = async () => {
+    if (!oferta) return;
     setMsg(null);
-    const r = await aceitar(id);
+    const r = await aceitar(oferta.oferta_id);
     if (r === "ok") {
-      setPedidoId(id);
+      setPedidoId(oferta.pedido_id);
       setView("coleta");
-    } else if (r === "nao-aprovado") setMsg("Seu cadastro ainda não foi aprovado.");
+    } else if (r === "expirada") setMsg("Essa oferta expirou.");
     else if (r === "indisponivel") setMsg("Outro entregador pegou primeiro.");
+    else if (r === "nao-aprovado") setMsg("Seu cadastro ainda não foi aprovado.");
     else setMsg("Não foi possível aceitar agora.");
   };
 
@@ -118,34 +130,46 @@ export default function EntregadorHome() {
               {busy ? "…" : "Conectar"}
             </button>
           </>
+        ) : oferta ? (
+          (() => {
+            const dc = ateColeta(oferta.coleta_lat, oferta.coleta_lng);
+            const frac = Math.max(0, Math.min(1, segRestantes / 30));
+            return (
+              <>
+                <div className="oferta-timer-row">
+                  <div className="oferta-titulo">Nova entrega pra você</div>
+                  <div className="oferta-seg">{segRestantes}s</div>
+                </div>
+                <div className="oferta-timer"><div className="oferta-timer-fill" style={{ width: `${frac * 100}%` }} /></div>
+                {msg && <div className="emap-erro">{msg}</div>}
+                <div className="offer-card" style={{ marginTop: 4 }}>
+                  <div className="offer-top">
+                    <div>
+                      <div className="offer-amount-xl">{money(oferta.preco_entregador ?? 0)}</div>
+                      <div className="offer-amount-sub">você recebe 80%</div>
+                    </div>
+                    <span className="veh-badge"><Icon name={oferta.vehicle_type === "carro" ? "car" : oferta.vehicle_type === "van" ? "van" : "moto"} /> {VEIC[oferta.vehicle_type] ?? oferta.vehicle_type}</span>
+                  </div>
+                  <div className="route-pts" style={{ margin: "10px 0" }}>
+                    <div className="rpt"><div className="pin o" /><div className="txt"><div className="a">{oferta.coleta_endereco}</div><div className="b">{dc != null ? `${km1(dc)} km até a coleta` : "coleta"}</div></div></div>
+                    <div className="rpt"><div className="pin d" /><div className="txt"><div className="a">{oferta.entrega_endereco}</div><div className="b">{oferta.distancia_km ? `${km1(oferta.distancia_km)} km de entrega` : "entrega"}</div></div></div>
+                  </div>
+                  <button className="btn btn-go" onClick={onAceitar}><Icon name="checkThin" /> Aceitar entrega</button>
+                  <button className="btn btn-ghost" style={{ marginTop: 8 }} onClick={() => { setMsg(null); recusar(oferta.oferta_id); }}>Recusar</button>
+                </div>
+              </>
+            );
+          })()
         ) : (
           <>
             <div className="emap-online-row">
-              <div className="emap-status on"><span className="dot" /> Online · {corridas.length} entrega(s)</div>
+              <div className="emap-status on"><span className="dot" /> Online · procurando entregas</div>
               <button className="btn btn-ghost" style={{ width: "auto", padding: "8px 14px", fontSize: 12.5 }} disabled={busy} onClick={() => alternar(false, gps)}>Desconectar</button>
             </div>
             {msg && <div className="emap-erro">{msg}</div>}
-            <div className="emap-offers">
-              {corridas.length === 0 && <div className="emap-vazio">Nenhuma entrega agora. Fique por perto.</div>}
-              {corridas.map((c) => {
-                const dc = ateColeta(c);
-                return (
-                  <div key={c.id} className="offer-card" style={{ marginBottom: 10 }}>
-                    <div className="offer-top">
-                      <div>
-                        <div className="offer-amount-xl">{money(c.preco_entregador ?? 0)}</div>
-                        <div className="offer-amount-sub">você recebe 80%</div>
-                      </div>
-                      <span className="veh-badge"><Icon name={c.vehicle_type === "carro" ? "car" : c.vehicle_type === "van" ? "van" : "moto"} /> {VEIC[c.vehicle_type] ?? c.vehicle_type}</span>
-                    </div>
-                    <div className="route-pts" style={{ margin: "10px 0" }}>
-                      <div className="rpt"><div className="pin o" /><div className="txt"><div className="a">{c.coleta_endereco}</div><div className="b">{dc != null ? `${km1(dc)} km até a coleta` : "coleta"}</div></div></div>
-                      <div className="rpt"><div className="pin d" /><div className="txt"><div className="a">{c.entrega_endereco}</div><div className="b">{c.distancia_km ? `${km1(c.distancia_km)} km de entrega` : "entrega"}</div></div></div>
-                    </div>
-                    <button className="btn btn-go" onClick={() => onAceitar(c.id)}><Icon name="checkThin" /> Aceitar</button>
-                  </div>
-                );
-              })}
+            <div className="emap-procurando">
+              <span className="emap-radar-dot" />
+              Esperando a próxima entrega da sua região aparecer. Fique por perto.
             </div>
           </>
         )}
