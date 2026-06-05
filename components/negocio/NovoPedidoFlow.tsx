@@ -7,6 +7,7 @@ import SlideConfirm from "../SlideConfirm";
 import CancelarCorrida from "../CancelarCorrida";
 import ChatBox from "../Chat";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
+import { useTetoProtecao } from "@/lib/protecao";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
 import { useChatAuth } from "@/lib/chat";
@@ -75,6 +76,7 @@ export default function NovoPedidoFlow() {
 function FormScreen() {
   const { veh, setVeh, distKm, durMin, setView, setPedido } = useEntrega();
   const pc = priceCalc(veh, distKm);
+  const teto = useTetoProtecao();
   const [conteudo, setConteudo] = useState("Documentos + 1 par de óculos");
   const [valor, setValor] = useState("R$ 350,00");
   const [retornar, setRetornar] = useState(false);
@@ -214,6 +216,10 @@ function FormScreen() {
           <div>{erro}</div>
         </div>
       )}
+      <div className="trust-banner" style={{ marginBottom: 12 }}>
+        <Icon name="shield" />
+        <div>Esta entrega tem <b>proteção de carga inclusa</b> (até {money(teto)}) e entregador com <b>antecedentes verificados</b>.</div>
+      </div>
       <SlideConfirm label="Solicitar entrega" icon="send" color="brand" busy={enviando} onConfirm={solicitar} />
       <p className="hint">
         O preço é calculado pela fórmula km + coleta + paradas,

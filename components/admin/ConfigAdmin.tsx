@@ -12,6 +12,7 @@ type Row = {
   base_van: number; per_km_van: number; min_van: number;
   take_rate: number;
   raio_m: number;
+  protecao_teto: number;
   pin_supervisor: string | null;
 };
 
@@ -103,6 +104,11 @@ export default function ConfigAdmin() {
         <div className="field">
           <label>Raio de matching (metros)</label>
           <input className="input" type="number" value={row.raio_m} onChange={num("raio_m")} />
+        </div>
+        <div className="field">
+          <label>Proteção de carga — teto de ressarcimento (R$)</label>
+          <input className="input" type="number" step="1" value={row.protecao_teto} onChange={num("protecao_teto")} />
+          <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 4 }}>Cobertura por pedido = menor entre o teto e o valor declarado.</div>
         </div>
         <div className="field">
           <label>PIN do supervisor (aprovações)</label>

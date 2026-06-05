@@ -5,6 +5,7 @@ import type { TabelaPreco } from "./precos";
 export type Config = TabelaPreco & {
   raioM: number;
   pin: string | null;
+  protecaoTeto: number;
 };
 
 export const CONFIG_DEFAULT: Config = {
@@ -14,6 +15,7 @@ export const CONFIG_DEFAULT: Config = {
   driverPct: 0.8,
   raioM: 5000,
   pin: null,
+  protecaoTeto: 300,
 };
 
 function num(v: unknown, fallback: number): number {
@@ -36,6 +38,7 @@ function mapRow(r: Record<string, unknown> | null): Config {
     driverPct: 1 - num(r.take_rate, 0.2),
     raioM: num(r.raio_m, CONFIG_DEFAULT.raioM),
     pin: (r.pin_supervisor as string | null) ?? null,
+    protecaoTeto: num(r.protecao_teto, CONFIG_DEFAULT.protecaoTeto),
   };
 }
 

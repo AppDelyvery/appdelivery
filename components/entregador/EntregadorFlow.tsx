@@ -13,6 +13,7 @@ import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
 import { hasSupabase } from "@/lib/integracoes";
 import { usePedido } from "@/lib/pedido";
+import { useTetoProtecao, cobertura } from "@/lib/protecao";
 import EntregadorHome from "./EntregadorHome";
 import { registrarColeta, registrarEntrega } from "@/lib/entrega";
 import { abrirDisputa } from "@/actions/disputas";
@@ -298,6 +299,7 @@ function Coleta() {
   const [erro, setErro] = useState<string | null>(null);
   const { pos: gps } = useGeolocation(true);
   const pedido = usePedido(pedidoId);
+  const teto = useTetoProtecao();
   const [aviso, setAviso] = useState<number | null>(null); // distância em metros se longe
 
   const colLat = pedido?.coleta_lat ?? null;
@@ -357,6 +359,7 @@ function Coleta() {
         {pedido?.valor_declarado ? <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 3 }}>Valor declarado: {money(pedido.valor_declarado)}</div> : null}
         {pedido?.cliente_final_nome ? <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 3 }}>Entrega para: {pedido.cliente_final_nome}</div> : null}
         {pedido?.retornar ? <div className="vbadge" style={{ marginTop: 8 }}><Icon name="refresh" /> Retorna à loja se o cliente não receber</div> : null}
+        <div className="vbadge" style={{ marginTop: 8 }}><Icon name="shield" /> Carga protegida (até {money(cobertura(pedido?.valor_declarado, teto))})</div>
       </div>
       {coletaFoto ? (
         <>
