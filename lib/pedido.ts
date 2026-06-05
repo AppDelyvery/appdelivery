@@ -22,10 +22,11 @@ export type PedidoAtivo = {
   cliente_final_nome: string | null;
   cliente_final_telefone: string | null;
   vehicle_type: string;
+  retornar: boolean;
 };
 
 const COLS =
-  "id,coleta_endereco,coleta_lat,coleta_lng,entrega_endereco,entrega_lat,entrega_lng,preco_entregador,distancia_km,duracao_min,descricao,valor_declarado,cliente_final_nome,cliente_final_telefone,vehicle_type";
+  "id,coleta_endereco,coleta_lat,coleta_lng,entrega_endereco,entrega_lat,entrega_lng,preco_entregador,distancia_km,duracao_min,descricao,valor_declarado,cliente_final_nome,cliente_final_telefone,vehicle_type,retornar";
 
 export function usePedido(pedidoId: string | null) {
   const [pedido, setPedido] = useState<PedidoAtivo | null>(null);

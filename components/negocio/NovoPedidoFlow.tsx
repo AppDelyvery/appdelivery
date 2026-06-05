@@ -77,6 +77,7 @@ function FormScreen() {
   const pc = priceCalc(veh, distKm);
   const [conteudo, setConteudo] = useState("Documentos + 1 par de óculos");
   const [valor, setValor] = useState("R$ 350,00");
+  const [retornar, setRetornar] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -102,6 +103,7 @@ function FormScreen() {
         valorDeclarado: valorNum,
         distanciaKm: distKm,
         duracaoMin: durMin,
+        retornar,
       });
       if (!r.ok) {
         setErro(traduzMotivo(r.motivo));
@@ -148,6 +150,13 @@ function FormScreen() {
             <input className="input" value={valor} onChange={(e) => setValor(e.target.value)} />
           </div>
         </div>
+        <button type="button" className="opt-row" onClick={() => setRetornar((r) => !r)}>
+          <div className="opt-txt">
+            <div className="opt-t">Entregador retorna à loja</div>
+            <div className="opt-s">Se o cliente não receber, a encomenda volta pra você</div>
+          </div>
+          <span className={`opt-switch${retornar ? " on" : ""}`}><span className="opt-knob" /></span>
+        </button>
       </div>
 
       <div className="card">

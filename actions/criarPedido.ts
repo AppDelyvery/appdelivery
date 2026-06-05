@@ -18,6 +18,7 @@ export type NovoPedidoInput = {
   duracaoMin: number;
   clienteFinalNome?: string;
   clienteFinalTelefone?: string;
+  retornar?: boolean;
 };
 
 export type CriarPedidoResult =
@@ -66,6 +67,7 @@ export async function criarPedido(input: NovoPedidoInput): Promise<CriarPedidoRe
       preco_total: pc.total,
       preco_entregador: pc.driver,
       preco_plataforma: pc.taxa,
+      retornar: input.retornar ?? false,
       status: "buscando",
     })
     .select("id, tracking_token")

@@ -63,6 +63,7 @@ export async function POST(req: Request) {
     valor_declarado: body.valor_declarado ?? null,
     cliente_final_nome: body.cliente_final_nome ?? null,
     cliente_final_telefone: body.cliente_final_telefone ?? null,
+    retornar: body.retornar === true,
     distancia_km, duracao_min,
   };
 

@@ -356,6 +356,7 @@ function Coleta() {
         <div style={{ fontSize: 13.5, color: "var(--ink)", fontWeight: 600 }}>{pedido?.descricao || "Encomenda"}</div>
         {pedido?.valor_declarado ? <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 3 }}>Valor declarado: {money(pedido.valor_declarado)}</div> : null}
         {pedido?.cliente_final_nome ? <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 3 }}>Entrega para: {pedido.cliente_final_nome}</div> : null}
+        {pedido?.retornar ? <div className="vbadge" style={{ marginTop: 8 }}><Icon name="refresh" /> Retorna à loja se o cliente não receber</div> : null}
       </div>
       {coletaFoto ? (
         <>
