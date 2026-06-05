@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
+
+// Manda cada papel pro seu painel.
+function rotaPorPapel(role?: string) {
+  if (role === "entregador") return "/entregador";
+  if (role === "admin" || role === "operador") return "/admin";
+  return "/negocio/novo-pedido";
+}
 
 export default function Login() {
   const router = useRouter();
@@ -12,6 +19,34 @@ export default function Login() {
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
+  const [checando, setChecando] = useState(true);
+
+  // O PWA abre aqui (start_url). Se já há sessão, vai direto pro painel do papel —
+  // não fica preso no login nem cai na vitrine.
+  useEffect(() => {
+    const sb = getBrowserSupabase();
+    if (!sb) {
+      setChecando(false);
+      return;
+    }
+    let ativo = true;
+    (async () => {
+      const {
+        data: { session },
+      } = await sb.auth.getSession();
+      if (!ativo) return;
+      if (session?.user) {
+        const { data: perfil } = await sb.from("profiles").select("role").eq("id", session.user.id).single();
+        if (!ativo) return;
+        router.replace(rotaPorPapel((perfil as { role?: string } | null)?.role));
+        return;
+      }
+      setChecando(false);
+    })();
+    return () => {
+      ativo = false;
+    };
+  }, [router]);
 
   async function entrar(e: React.FormEvent) {
     e.preventDefault();
@@ -28,13 +63,22 @@ export default function Login() {
 
       // Roteia pelo papel (lido do profile)
       const { data: perfil } = await sb.from("profiles").select("role").eq("id", data.user.id).single();
-      const role = (perfil as { role?: string } | null)?.role;
-      router.push(role === "entregador" ? "/entregador" : role === "admin" || role === "operador" ? "/admin" : "/negocio/novo-pedido");
+      router.push(rotaPorPapel((perfil as { role?: string } | null)?.role));
     } catch (err) {
       setErro(err instanceof Error ? err.message : "E-mail ou senha inválidos.");
     } finally {
       setCarregando(false);
     }
+  }
+
+  if (checando) {
+    return (
+      <div className="login-screen">
+        <div className="login-card" style={{ textAlign: "center", color: "var(--muted)" }}>
+          <Icon name="spinner" /> Carregando…
+        </div>
+      </div>
+    );
   }
 
   return (
