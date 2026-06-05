@@ -254,10 +254,44 @@ function MatchingScreen() {
   );
 }
 
+type StatusNeg = {
+  status: string;
+  entregador: { nome: string; vehicle_type: string; placa: string | null; rating: number | null } | null;
+};
+const STATUS_TXT: Record<string, string> = {
+  buscando: "Procurando entregador verificado",
+  aceito: "Entregador a caminho da coleta",
+  a_caminho_coleta: "Entregador a caminho da coleta",
+  coletado: "Encomenda coletada",
+  a_caminho_entrega: "A caminho da entrega",
+  entregue: "Entrega concluída",
+  cancelado: "Pedido cancelado",
+};
+const inic = (n: string) => n.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
+const VEH_TXT: Record<string, string> = { moto: "Moto", carro: "Carro", van: "Van", bike: "Bike" };
+
 function TrackingScreen() {
   const { step, done, running, eta, start, reset, setView, pedido, setPedido } = useEntrega();
   const chat = useChatAuth(pedido?.id ?? null, "estabelecimento");
   const [cancelar, setCancelar] = useState(false);
+  const [real, setReal] = useState<StatusNeg | null>(null);
+
+  // acompanha o status REAL do pedido (sai da simulação Lucas Mendes)
+  useEffect(() => {
+    if (!pedido?.id) return;
+    let vivo = true;
+    const puxar = async () => {
+      const sb = getBrowserSupabase();
+      if (!sb) return;
+      const { data } = await sb.rpc("status_pedido_negocio", { p_pedido_id: pedido.id });
+      if (vivo && data) setReal(data as StatusNeg);
+    };
+    puxar();
+    const t = setInterval(puxar, 4000);
+    return () => { vivo = false; clearInterval(t); };
+  }, [pedido?.id]);
+
+  const ent = real?.entregador ?? null;
 
   const cancelarPedido = async (motivo: string) => {
     const sb = getBrowserSupabase();
@@ -273,32 +307,54 @@ function TrackingScreen() {
       <div className="card">
         <div className="card-h">
           <Icon name="moto" />
-          <h3>Entrega {done ? "concluída" : "em andamento"}</h3>
+          <h3>{real ? STATUS_TXT[real.status] ?? "Em andamento" : done ? "Entrega concluída" : "Entrega em andamento"}</h3>
           <span className="right">#{pedido ? pedido.id.slice(0, 8) : "4821"}</span>
         </div>
-        <div className="driver">
-          <div className="avatar">LM</div>
-          <div className="driver-info">
-            <div className="name">Lucas Mendes</div>
-            <div className="meta">
-              Honda CG 160 · ABC-1D23{" "}
-              <span className="rating">
-                <Icon name="star" /> 4,9
-              </span>
+        {pedido && !ent ? (
+          // pedido real ainda SEM entregador designado → procurando
+          <div className="driver" style={{ alignItems: "center" }}>
+            <div className="avatar" style={{ background: "var(--bg)", color: "var(--brand)" }}><Icon name="spinner" /></div>
+            <div className="driver-info">
+              <div className="name">Procurando entregador</div>
+              <div className="meta">Ofertando pro entregador verificado mais próximo…</div>
             </div>
           </div>
-        </div>
-        <div className="verified-badges">
-          <span className="vbadge">
-            <Icon name="shield" /> Antecedentes OK
-          </span>
-          <span className="vbadge">
-            <Icon name="checkThin" /> CNH válida (A)
-          </span>
-          <span className="vbadge">
-            <Icon name="checkThin" /> Identidade
-          </span>
-        </div>
+        ) : ent ? (
+          // entregador REAL designado
+          <>
+            <div className="driver">
+              <div className="avatar">{inic(ent.nome)}</div>
+              <div className="driver-info">
+                <div className="name">{ent.nome}</div>
+                <div className="meta">
+                  {VEH_TXT[ent.vehicle_type] ?? ent.vehicle_type}{ent.placa ? ` · ${ent.placa}` : ""}{" "}
+                  <span className="rating"><Icon name="star" /> {ent.rating ?? "—"}</span>
+                </div>
+              </div>
+            </div>
+            <div className="verified-badges">
+              <span className="vbadge"><Icon name="shield" /> Antecedentes OK</span>
+              <span className="vbadge"><Icon name="checkThin" /> CNH válida</span>
+              <span className="vbadge"><Icon name="checkThin" /> Identidade</span>
+            </div>
+          </>
+        ) : (
+          // sem backend (demo/simulação) → mantém o exemplo
+          <>
+            <div className="driver">
+              <div className="avatar">LM</div>
+              <div className="driver-info">
+                <div className="name">Lucas Mendes</div>
+                <div className="meta">Honda CG 160 · ABC-1D23 <span className="rating"><Icon name="star" /> 4,9</span></div>
+              </div>
+            </div>
+            <div className="verified-badges">
+              <span className="vbadge"><Icon name="shield" /> Antecedentes OK</span>
+              <span className="vbadge"><Icon name="checkThin" /> CNH válida (A)</span>
+              <span className="vbadge"><Icon name="checkThin" /> Identidade</span>
+            </div>
+          </>
+        )}
         <div className="trust-banner">
           <Icon name="shield" />
           <div>
