@@ -56,8 +56,8 @@ export default function Landing() {
         <div className="trust-banner" style={{ marginTop: 0, fontSize: 14, padding: "18px 20px" }}>
           <Icon name="shield" />
           <div>
-            <b>Nenhum app de entrega em Palmas confere os antecedentes de quem carrega a sua encomenda.</b> A
-            APPDELYVERY confere — é o que torna seguro mandar encomenda de empresa com um entregador que você não conhece.
+            <b>Verificação de antecedentes é regra pra todo entregador — feita de forma ativa e mostrada pra você.</b> Antes de
+            cada entrega, você vê o selo de quem está com a ficha checada. Mais segurança pra mandar encomenda de valor.
           </div>
         </div>
       </section>
@@ -79,6 +79,35 @@ export default function Landing() {
               <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 5, lineHeight: 1.5 }}>{p.s}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* PARA ENTREGADORES */}
+      <section style={{ ...sec, padding: "20px 24px 16px" }}>
+        <div className="card" style={{ margin: 0, background: "var(--ink)", border: "none", color: "#fff", display: "grid", gridTemplateColumns: "1fr", gap: 18 }}>
+          <div>
+            <div className="vbadge" style={{ background: "rgba(255,255,255,.12)", color: "#fff", width: "max-content", marginBottom: 12 }}>
+              <Icon name="moto" /> PARA ENTREGADORES
+            </div>
+            <h2 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-.5px", color: "#fff", lineHeight: 1.15 }}>
+              Rode com um app moderno e ganhe entregando.
+            </h2>
+            <ul style={{ margin: "14px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 9 }}>
+              {[
+                "Ofertas no mapa, do jeito que você já conhece dos apps de corrida",
+                "Você fica com 80% do frete de cada entrega",
+                "Sua ficha checada vale mais — empresa confia em quem é verificado",
+                "Conecta e desconecta quando quiser, sem meta",
+              ].map((t) => (
+                <li key={t} style={{ display: "flex", gap: 9, alignItems: "flex-start", fontSize: 14, opacity: 0.92 }}>
+                  <Icon name="checkThin" style={{ width: 16, height: 16, color: "var(--go)", flexShrink: 0, marginTop: 2 }} /> {t}
+                </li>
+              ))}
+            </ul>
+            <Link href="/cadastro/entregador" className="btn btn-go" style={{ width: "max-content", padding: "13px 24px", marginTop: 18, textDecoration: "none" }}>
+              <Icon name="moto" /> Quero ser entregador
+            </Link>
+          </div>
         </div>
       </section>
 
