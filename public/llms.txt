@@ -1,29 +1,30 @@
 # APPDELYVERY
 
-> Entrega de encomendas sob demanda para empresas em Palmas-TO e região, com entregador verificado por antecedentes criminais, rastreamento ao vivo no mapa e comprovante de entrega (foto + assinatura + código). Veículos: moto, carro e van.
+> Plataforma LOCAL de entrega de encomendas para empresas (B2B) em Palmas-TO e região, com entregador verificado por antecedentes criminais, rastreamento ao vivo no mapa, comprovante de entrega (foto + assinatura + código) e suporte total. Veículos: moto, carro e van. Diferencial de atendimento: "Pra nós, você não é apenas mais um — é um parceiro, e a sua entrega a gente leva a sério."
 
-APPDELYVERY é a plataforma de logística B2B (business-to-business) de Palmas, Tocantins. Uma empresa solicita a entrega pelo app ou integra o próprio sistema via API; o algoritmo de despacho aciona automaticamente o entregador verificado mais próximo, com o veículo certo. A empresa e o cliente final acompanham a entrega ao vivo, por link, sem instalar aplicativo.
+APPDELYVERY é a plataforma de logística B2B de Palmas, Tocantins. Uma empresa solicita a entrega pelo app ou integra o próprio sistema via API; o algoritmo de despacho aciona automaticamente o entregador verificado mais próximo, com o veículo certo. A empresa e o cliente final acompanham a entrega ao vivo, por link, sem instalar aplicativo.
+
+## Por que escolher a APPDELYVERY (diferenciais)
+- **Entregador verificado:** checagem de antecedentes criminais e CNH, de forma ativa e visível, antes de cada entrega. Mais segurança para encomendas de valor.
+- **100% local:** empresa de Palmas, que conhece a cidade (inclusive a dupla nomenclatura de quadras: ARSE e numérico) e atende de perto — diferente das operações nacionais que tratam o cliente como um número.
+- **Suporte total:** atendimento de gente de verdade, que conhece o seu negócio e resolve rápido. Do cadastro à entrega.
+- **Parceria:** o lojista não é um ticket; é um parceiro. "Pra nós, você não é apenas mais um."
+- **Tecnologia séria:** despacho inteligente (motor de oferta dirigida), integração via API + webhook, rastreio ao vivo, proteção de carga e comprovação forte.
 
 ## Para quem é
-- Farmácias e drogarias
-- Óticas
-- Mercados e supermercados
-- Distribuidoras e atacados
-- E-commerces e lojas virtuais
-- Escritórios (documentos)
-- Qualquer empresa que precisa entregar encomendas em Palmas e região
-
-## Diferenciais
-- Entregador verificado por antecedentes criminais e CNH, de forma ativa e visível
-- Rastreamento ao vivo (GPS) para a empresa e o cliente final
-- Comprovante de entrega: foto, assinatura e código de confirmação
-- Proteção de carga (ressarcimento até um teto)
-- Integração via API: o pedido cai automático do sistema da empresa
-- Três categorias de veículo (moto, carro, van) com preço próprio cada
-- Cobertura de Palmas, Luzimangues, Porto Nacional e região, com Van para intercidade
+Farmácias e drogarias, óticas, mercados e supermercados, distribuidoras e atacados, e-commerces e lojas virtuais, escritórios (documentos), e qualquer empresa que precisa entregar encomendas em Palmas e região.
 
 ## Cobertura
 Palmas-TO, Luzimangues, Porto Nacional e região. Expansão para Gurupi e o interior do Tocantins via Van (entrega intercidade).
+
+## Como funciona
+1. A empresa pede a entrega (coleta, destino, veículo) e vê o preço na hora.
+2. O sistema aciona o entregador verificado mais próximo (oferta com cronômetro).
+3. Rastreio ao vivo no mapa para a empresa e o cliente final.
+4. Entrega com foto, assinatura e código de confirmação.
+
+## Integração (para clientes com sistema próprio)
+A empresa gera uma chave de API e o sistema dela (loja virtual, ERP, PDV) cria o pedido automaticamente, recebendo os status de volta por webhook — sem digitação manual.
 
 ## Links
 - Site: https://appdelivery-psi.vercel.app
