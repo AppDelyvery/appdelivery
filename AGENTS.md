@@ -36,37 +36,26 @@ SVG inline em `components/Icons.tsx` (`<Icon name="..." />`). Classes visuais em
 - **Não gravar cada ping de GPS**: posição ao vivo via Realtime Broadcast; só amostra em `rastreios`.
 - **Mobile e desktop**: mesmo componente, responsivo; nunca arquivo separado.
 
-## Estado do build (atualizado nesta sessão)
-Scaffold + design system + estrutura do blueprint. **Personas portadas (UI, demo/simulada):**
-- `negocio/novo-pedido` — form → matching → tracking → done (Mapbox + sim GPS).
-- `entregador` — cadastro → verificação → oferta → coleta → rota → finalizar → concluído (mapa em coleta/rota).
-- `admin` — KPIs + entregadores + fila de aprovação + diferencial.
-- `rastreio/[token]` — tela pública do cliente final (read-only, mapa ao vivo + status).
+## Estado do build (atualizado 08/06/2026)
+> Fonte detalhada e marcável: **`CHECKLIST-PROGRESSO.md`** (raiz). Este é o resumo.
+> O `MORNING-REPORT.md` é snapshot histórico de 02/06 — **NÃO** usar como estado atual.
 
-Arquitetura: `useSim` (motor de simulação), `MapaAoVivo` e `AppShell` são orientados a props/
-reutilizados pelas 3 personas; cada persona tem seu Context. `(auth)/login|cadastro` ainda são
-placeholders (`EmBreve`) — auth real é a próxima fatia.
+**★ CONTRATADO (08/06):** cliente fechou o app por **R$ 15.000 (setup, valor cheio)**; entrada **R$ 5k** + parcelas; mensalidade a acertar; doc de vendas no **CNPJ da Impulso** a assinar. Saiu de pitch → entrega.
 
-**Supabase CONECTADO (02/06):** projeto `cqmxjzrukbagvkznrunt` (https://cqmxjzrukbagvkznrunt.supabase.co),
-migrations `0001`/`0002` aplicadas, RLS ativo, função pública `get_rastreio_publico` respondendo —
-verificado por REST/RPC com a publishable key (`sb_publishable_...`, formato novo, faz papel de anon).
-`.env.local` (gitignored) tem `NEXT_PUBLIC_MAPBOX_TOKEN` + `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-MCP do Supabase configurado em `.mcp.json` mas ficou com setup issue (OAuth) — opcional, não bloqueia.
-Config Auth: **Email provider ON + Confirm email OFF** (necessário pro signup devolver sessão).
+**NO AR e provado:** deploy contínuo Vercel (push `main`) → **appdelivery-psi.vercel.app**. Auth real (cadastro/login) + **redirect por papel** + PWA (`start_url:/login`, fix commit `508d62b`). Supabase `cqmxjzrukbagvkznrunt`, **27 migrations aplicadas (0001–0027)**, RLS + guards (anti self-promote, status só com evidência, entregador não se auto-aprova), ~18 tabelas, ~30 RPCs, PostGIS. `.env.local` tem Mapbox + Supabase URL/anon; **`SUPABASE_SERVICE_ROLE_KEY` está VAZIA**.
 
-**PROVADO na fonte (02/06):** cadastro lojista (`auth.users`+`profiles`+`estabelecimentos`) e
-`criarPedido` (grava `pedidos` status 'buscando' + tracking_token) e **rastreio público** (anon acha
-o pedido por token via `get_rastreio_publico`) — tudo verificado por `scripts/verify-auth.mjs` e
-`scripts/verify-fluxo.mjs` no banco real, RLS ativo. `/cadastro` e `/login` reais; `actions/criarPedido.ts` real.
+**3 personas COMPLETAS no ar (não são mais placeholders/simulação):**
+- **Negócio** (8 telas): novo-pedido+mapa, histórico, carteira, perfil, comunicados, relatórios/CSV, integração API.
+- **Entregador** (5 telas): cadastro→verificação→oferta→coleta→rota→entrega, ganhos, perfil, comunicados.
+- **Admin** (12 telas): dashboard, despacho ao vivo, corridas+comprovante, entregadores+aprovação(PIN), negócios, financeiro, rankings, avaliações, mensagens, disputas, comunicados, config.
+- **Cliente final**: `/rastreio/[token]` (sem login) + GPS ao vivo + chat. `(auth)/login` e `/cadastro` são REAIS.
 
-**FEITO + PROVADO (02/06, cont.):** (1) `/negocio` auth-gated; form chama `criarPedido` real (grava pedido +
-mostra link `/rastreio/{token}`), fallback simulação. (2) Cadastro de entregador gravando (`/cadastro/entregador`
-→ profiles+entregadores); `/entregador` gated. (3) **Furo de auto-aprovação encontrado, provado e FECHADO** —
-migration `0003_entregador_status_guard.sql` (trigger SECURITY DEFINER: não-admin não muda status/rating; só
-`cadastro→em_verificacao`); re-ataque pelo `scripts/verify-entregador.mjs` confirma travado. **Migrations aplicadas: 0001,0002,0003.**
+**Motor e recursos provados:** oferta dirigida (ranking distância×nota, timer 30s, cascata, aceite atômico) + cron; **API de integração** (criar pedido + cotação + webhook HMAC, provada no ar); GPS ao vivo (Realtime); preço por veículo + match exato; comprovação foto+assinatura+código + geofence; cancelamentos, chat 3-pontas, proteção de carga.
 
-**Próxima fatia:** (1) verificação real do entregador (FlagCheck antecedentes + Infosimples CNH) **server-side com
-service role** + função `solicitar_verificacao` SECURITY DEFINER + upload de docs no Storage; (2) wire do
-`lib/realtime.ts` com dado real (entregador transmite GPS → lojista/cliente veem ao vivo); (3) aprovação no admin (PIN);
-(4) SMS (Zenvia, CNPJ do dono) + push. Pendência: proxy.ts (refresh de sessão); limpar registros de teste; deploy Vercel.
-Hardening futuro: guard de transição em `pedidos.status` (status só avança com evidência), igual fizemos no entregador.
+**Contas demo (senha `Demo1234`):** `demo.admin@gmail.com` (admin), `demo.negocio@gmail.com`, `demo.entregador@gmail.com` — redirect por papel testado em produção (Playwright).
+
+**FALTA pra "operar de verdade" (detalhe no CHECKLIST):**
+1. **Verificação** (FlagCheck/Infosimples/idwall) — código pronto (no-op sem chave); falta as **chaves no CNPJ do dono** + preencher `SUPABASE_SERVICE_ROLE_KEY`.
+2. **Asaas (pagamento)** — a peça mais incompleta: hoje só o webhook esqueleto (501). Falta construir carteira/recarga Pix + split 80/20 + repasse D+1 + webhook real.
+3. **SMS/WhatsApp + push** — ausentes (definir provedor).
+4. **Jurídico:** termos/privacidade são rascunho (advogado, LGPD); domínio próprio.
