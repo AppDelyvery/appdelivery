@@ -21,12 +21,21 @@ export const DESTINO: Ponto = {
 };
 
 export const STEPS = [
-  { t: "Pedido aceito", s: "Lucas confirmou a corrida" },
-  { t: "A caminho da coleta", s: "Indo até a Ótica Visão Center" },
+  { t: "Pedido aceito", s: "Entregador confirmou a corrida" },
+  { t: "A caminho da coleta", s: "Indo buscar a encomenda" },
   { t: "Encomenda coletada", s: "Foto registrada na coleta" },
   { t: "A caminho da entrega", s: "Levando até o destino" },
   { t: "Entregue", s: "Foto + assinatura do destinatário" },
 ];
+
+// pedido_status -> índice em STEPS (timeline montada com o status REAL)
+export const STATUS_STEP: Record<string, number> = {
+  aceito: 0,
+  a_caminho_coleta: 1,
+  coletado: 2,
+  a_caminho_entrega: 3,
+  entregue: 4,
+};
 
 // Rota aproximada (fallback) caso a Directions falhe.
 export function buildRoute(o: Ponto, d: Ponto): LngLat[] {

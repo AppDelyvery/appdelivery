@@ -8,16 +8,32 @@ import MapaAoVivo from "../MapaAoVivo";
 import { useChatPublico } from "@/lib/chat";
 import { usePosicaoAoVivo } from "@/lib/realtime";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
-import { STEPS } from "@/lib/rota";
+import { STEPS, STATUS_STEP } from "@/lib/rota";
 import { useSim } from "../useSim";
 
+type Info = {
+  status: string;
+  entregador_nome: string | null;
+  entregador_veiculo: string | null;
+  entregador_placa: string | null;
+  entregador_rating: number | null;
+  codigo_entrega: string | null;
+};
+
+const VEIC: Record<string, string> = { moto: "Moto", carro: "Carro", van: "Van" };
+function iniciais(nome: string) {
+  const p = nome.trim().split(/\s+/).filter(Boolean);
+  return ((p[0]?.[0] ?? "") + (p.length > 1 ? p[p.length - 1][0] : "")).toUpperCase() || "?";
+}
+
 // Cliente final acompanha a entrega pelo link — sem login, só leitura.
-// Hoje a posição roda em simulação; no real virá do Supabase Realtime via getRastreioPublico(token).
+// Status e entregador vêm do banco real (get_rastreio_publico, poll 6s); a posição
+// no mapa vem do GPS ao vivo (Realtime) com fallback de simulação visual.
 export default function RastreioPublico({ token }: { token: string }) {
-  const { frac, step, running, done, eta, start, setRouteMeta } = useSim();
+  const { frac, running, eta, start, setRouteMeta } = useSim();
   const chat = useChatPublico(token);
   const posReal = usePosicaoAoVivo(token);
-  const [codigo, setCodigo] = useState<string | null>(null);
+  const [info, setInfo] = useState<Info | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => start(), 900);
@@ -25,14 +41,34 @@ export default function RastreioPublico({ token }: { token: string }) {
   }, [start]);
 
   useEffect(() => {
-    (async () => {
-      const sb = getBrowserSupabase();
-      if (!sb) return;
+    let ativo = true;
+    const sb = getBrowserSupabase();
+    if (!sb) return;
+    const buscar = async () => {
       const { data } = await sb.rpc("get_rastreio_publico", { p_token: token });
-      const row = (data as { codigo_entrega?: string }[] | null)?.[0];
-      if (row?.codigo_entrega) setCodigo(row.codigo_entrega);
-    })();
+      const row = (data as Info[] | null)?.[0];
+      if (ativo && row) setInfo(row);
+    };
+    buscar();
+    const id = setInterval(buscar, 6000);
+    return () => {
+      ativo = false;
+      clearInterval(id);
+    };
   }, [token]);
+
+  const temEntregador = !!info?.entregador_nome;
+  const done = info?.status === "entregue";
+  const cancelado = info?.status === "cancelado";
+  const stepIdx = done ? 4 : info ? STATUS_STEP[info.status] ?? -1 : -1;
+  const codigo = info?.codigo_entrega ?? null;
+  const titulo = cancelado
+    ? "Entrega cancelada"
+    : done
+    ? "Sua encomenda foi entregue"
+    : temEntregador
+    ? "Sua encomenda está a caminho"
+    : "Procurando um entregador";
 
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
@@ -61,38 +97,58 @@ export default function RastreioPublico({ token }: { token: string }) {
           <div className="card">
             <div className="card-h">
               <Icon name="moto" />
-              <h3>{done ? "Sua encomenda foi entregue" : "Sua encomenda está a caminho"}</h3>
+              <h3>{titulo}</h3>
             </div>
-            <div className="driver">
-              <div className="avatar">LM</div>
-              <div className="driver-info">
-                <div className="name">Lucas Mendes</div>
-                <div className="meta">
-                  Honda CG 160 · ABC-1D23{" "}
-                  <span className="rating">
-                    <Icon name="star" /> 4,9
+
+            {temEntregador ? (
+              <>
+                <div className="driver">
+                  <div className="avatar">{iniciais(info!.entregador_nome!)}</div>
+                  <div className="driver-info">
+                    <div className="name">{info!.entregador_nome}</div>
+                    <div className="meta">
+                      {VEIC[info!.entregador_veiculo ?? ""] ?? "Veículo"}
+                      {info!.entregador_placa ? ` · ${info!.entregador_placa}` : ""}
+                      {info!.entregador_rating != null && (
+                        <span className="rating">
+                          <Icon name="star" /> {Number(info!.entregador_rating).toFixed(1).replace(".", ",")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="verified-badges">
+                  <span className="vbadge">
+                    <Icon name="shield" /> Antecedentes OK
+                  </span>
+                  <span className="vbadge">
+                    <Icon name="checkThin" /> CNH válida
                   </span>
                 </div>
+                <div className="trust-banner">
+                  <Icon name="shield" />
+                  <div>
+                    Entregador <b>verificado pela APPDELYVERY</b> — antecedentes e habilitação checados. Você acompanha em
+                    tempo real.
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="driver">
+                <div className="avatar">
+                  <Icon name={cancelado ? "stop" : "refresh"} />
+                </div>
+                <div className="driver-info">
+                  <div className="name">{cancelado ? "Entrega cancelada" : "Procurando entregador…"}</div>
+                  <div className="meta">
+                    {cancelado ? "Este pedido foi cancelado." : "Assim que um entregador verificado aceitar, ele aparece aqui."}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="verified-badges">
-              <span className="vbadge">
-                <Icon name="shield" /> Antecedentes OK
-              </span>
-              <span className="vbadge">
-                <Icon name="checkThin" /> CNH válida (A)
-              </span>
-            </div>
-            <div className="trust-banner">
-              <Icon name="shield" />
-              <div>
-                Entregador <b>verificado pela APPDELYVERY</b> — antecedentes e habilitação checados. Você acompanha em
-                tempo real.
-              </div>
-            </div>
+            )}
           </div>
 
-          {codigo && !done && (
+          {codigo && temEntregador && !done && (
             <div className="card" style={{ textAlign: "center", background: "linear-gradient(160deg,#fff,var(--brand-light))", border: "1px solid #dfe3ff" }}>
               <div style={{ fontSize: 11.5, fontWeight: 800, color: "var(--brand)", textTransform: "uppercase", letterSpacing: ".6px" }}>
                 Código de entrega
@@ -102,22 +158,25 @@ export default function RastreioPublico({ token }: { token: string }) {
             </div>
           )}
 
-          <div className="card">
-            <div className="card-h">
-              <Icon name="clock" />
-              <h3>Chega em</h3>
-            </div>
-            <div className="eta-row">
-              <div className="eta-box">
-                <div className="big">{done ? 0 : eta.min}</div>
-                <div className="lbl">minutos</div>
+          {temEntregador && !done && (
+            <div className="card">
+              <div className="card-h">
+                <Icon name="clock" />
+                <h3>Chega em</h3>
               </div>
-              <div className="eta-box">
-                <div className="big">{done ? "0,0" : eta.km.replace(".", ",")}</div>
-                <div className="lbl">km restantes</div>
+              <div className="eta-row">
+                <div className="eta-box">
+                  <div className="big">{eta.min}</div>
+                  <div className="lbl">minutos</div>
+                </div>
+                <div className="eta-box">
+                  <div className="big">{eta.km.replace(".", ",")}</div>
+                  <div className="lbl">km restantes</div>
+                </div>
               </div>
+              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6 }}>Estimativa pela rota.</div>
             </div>
-          </div>
+          )}
 
           <div className="card">
             <div className="card-h">
@@ -126,7 +185,7 @@ export default function RastreioPublico({ token }: { token: string }) {
             </div>
             <div className="timeline">
               {STEPS.map((st, i) => {
-                const cls = i < step ? "done" : i === step ? (done ? "done" : "active") : "pending";
+                const cls = i < stepIdx ? "done" : i === stepIdx ? (done ? "done" : "active") : "pending";
                 return (
                   <div className={`step ${cls}`} key={st.t}>
                     <div className="dot">
@@ -159,7 +218,15 @@ export default function RastreioPublico({ token }: { token: string }) {
           </p>
         </div>
 
-        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} idleLabel="Localizando entregador…" posicaoReal={posReal} />
+        <MapaAoVivo
+          frac={frac}
+          running={running && temEntregador}
+          done={done}
+          eta={eta}
+          onRouteMeta={setRouteMeta}
+          idleLabel={temEntregador ? "Localizando entregador…" : "Aguardando um entregador aceitar…"}
+          posicaoReal={posReal}
+        />
       </div>
     </div>
   );
