@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
+import { validarCnpjOuCpf, mascaraCnpjOuCpf, mascaraTelefone } from "@/lib/validacao";
 
 export default function CadastroNegocio() {
   const router = useRouter();
@@ -29,6 +30,10 @@ export default function CadastroNegocio() {
     const sb = getBrowserSupabase();
     if (!sb) {
       setErro("Supabase não configurado (.env.local).");
+      return;
+    }
+    if (form.cnpj && !validarCnpjOuCpf(form.cnpj)) {
+      setErro("CNPJ/CPF inválido. Confira os números (ou deixe em branco).");
       return;
     }
     setCarregando(true);
@@ -102,7 +107,7 @@ export default function CadastroNegocio() {
         </div>
         <div className="field">
           <label>WhatsApp</label>
-          <input className="input" value={form.telefone} onChange={set("telefone")} />
+          <input className="input" value={form.telefone} onChange={(e) => setForm((f) => ({ ...f, telefone: mascaraTelefone(e.target.value) }))} inputMode="numeric" placeholder="(63) 90000-0000" />
         </div>
         <div className="field">
           <label>Nome do negócio</label>
@@ -110,7 +115,7 @@ export default function CadastroNegocio() {
         </div>
         <div className="field">
           <label>CNPJ ou CPF (MEI)</label>
-          <input className="input" value={form.cnpj} onChange={set("cnpj")} />
+          <input className="input" value={form.cnpj} onChange={(e) => setForm((f) => ({ ...f, cnpj: mascaraCnpjOuCpf(e.target.value) }))} inputMode="numeric" placeholder="00.000.000/0000-00" />
         </div>
         <div className="field">
           <label>Endereço de coleta</label>

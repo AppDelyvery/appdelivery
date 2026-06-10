@@ -112,11 +112,11 @@ function Cadastro() {
         </div>
         <div className="field">
           <label>Nome completo</label>
-          <input className="input" defaultValue="Diego Alves de Souza" />
+          <input className="input" placeholder="Seu nome completo" />
         </div>
         <div className="field">
           <label>CPF</label>
-          <input className="input" defaultValue="047.***.***-12" />
+          <input className="input" inputMode="numeric" placeholder="000.000.000-00" />
         </div>
         <div className="field">
           <label>Veículo</label>
@@ -514,9 +514,11 @@ function Finalizar() {
       setErro(
         r === "codigo-invalido"
           ? "Código do cliente incorreto — confira com quem recebeu."
-          : r === "status-invalido"
-            ? "Essa corrida não está na etapa de entrega."
-            : "Falha ao registrar a entrega.",
+          : r === "bloqueado-tentativas"
+            ? "Muitas tentativas de código. Peça o código certo a quem recebeu ou acione o suporte."
+            : r === "status-invalido"
+              ? "Essa corrida não está na etapa de entrega."
+              : "Falha ao registrar a entrega.",
       );
   };
 

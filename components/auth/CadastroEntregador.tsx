@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import type { Veiculo } from "@/lib/precos";
+import { validarCPF, mascaraCPF, mascaraTelefone } from "@/lib/validacao";
 
 export default function CadastroEntregador() {
   const router = useRouter();
@@ -23,6 +24,10 @@ export default function CadastroEntregador() {
     const sb = getBrowserSupabase();
     if (!sb) {
       setErro("Supabase não configurado (.env.local).");
+      return;
+    }
+    if (!validarCPF(form.cpf)) {
+      setErro("CPF inválido. Confira os números.");
       return;
     }
     setCarregando(true);
@@ -93,11 +98,11 @@ export default function CadastroEntregador() {
         </div>
         <div className="field">
           <label>WhatsApp</label>
-          <input className="input" value={form.telefone} onChange={set("telefone")} />
+          <input className="input" value={form.telefone} onChange={(e) => setForm((f) => ({ ...f, telefone: mascaraTelefone(e.target.value) }))} inputMode="numeric" placeholder="(63) 90000-0000" />
         </div>
         <div className="field">
           <label>CPF</label>
-          <input className="input" value={form.cpf} onChange={set("cpf")} required />
+          <input className="input" value={form.cpf} onChange={(e) => setForm((f) => ({ ...f, cpf: mascaraCPF(e.target.value) }))} inputMode="numeric" placeholder="000.000.000-00" required />
         </div>
         <div className="field">
           <label>Veículo</label>
