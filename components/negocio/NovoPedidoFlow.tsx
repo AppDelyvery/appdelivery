@@ -26,6 +26,8 @@ const MOTIVO: Record<string, string> = {
   "nao-autenticado": "Faça login para criar pedidos.",
   "estabelecimento-nao-encontrado": "Conta sem estabelecimento. Refaça o cadastro.",
   "nao-confirmado-na-fonte": "O pedido não confirmou no banco. Tente de novo.",
+  "saldo-insuficiente": "Saldo insuficiente na carteira. Recarregue para criar a entrega.",
+  "negocio-suspenso": "Sua conta está suspensa. Fale com o suporte.",
 };
 const traduzMotivo = (m: string) => MOTIVO[m] ?? `Falha ao criar o pedido (${m}).`;
 

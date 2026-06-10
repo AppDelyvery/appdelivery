@@ -72,7 +72,10 @@ export async function criarPedido(input: NovoPedidoInput): Promise<CriarPedidoRe
     })
     .select("id, tracking_token")
     .single();
-  if (eIns || !novo) return { ok: false, motivo: eIns?.message ?? "falha-ao-criar" };
+  if (eIns || !novo) {
+    const m = eIns?.message ?? "";
+    return { ok: false, motivo: m.includes("saldo-insuficiente") ? "saldo-insuficiente" : m || "falha-ao-criar" };
+  }
 
   // read-after-write: confirma que a row existe antes de declarar sucesso
   const row = novo as { id: string; tracking_token: string };
