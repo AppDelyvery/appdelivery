@@ -60,6 +60,7 @@ export default function NovoPedidoFlow() {
       group: "Conta",
       items: [
         { ic: "money", label: "Carteira", href: "/negocio/carteira" },
+        { ic: "star", label: "Avaliações", href: "/negocio/avaliacoes" },
         { ic: "building", label: "Meu negócio", href: "/negocio/perfil" },
       ],
     },

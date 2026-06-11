@@ -26,6 +26,7 @@ export default function NegocioShell({ title, children }: { title: string; child
       group: "Conta",
       items: [
         it("money", "Carteira", "/negocio/carteira"),
+        it("star", "Avaliações", "/negocio/avaliacoes"),
         it("building", "Meu negócio", "/negocio/perfil"),
       ],
     },
