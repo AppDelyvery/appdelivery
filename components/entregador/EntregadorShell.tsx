@@ -24,6 +24,7 @@ export default function EntregadorShell({ title, children }: { title: string; ch
       group: "Conta",
       items: [
         it("user", "Meu perfil", "/entregador/perfil"),
+        it("star", "Avaliações", "/entregador/avaliacoes"),
         it("send", "Comunicados", "/entregador/comunicados"),
         it("help", "Central de ajuda", "/entregador/ajuda"),
         it("settings", "Configurações", "/entregador/configuracoes"),
