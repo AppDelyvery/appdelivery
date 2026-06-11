@@ -39,6 +39,7 @@ export default function AvaliacoesEntregador() {
         </div>
         <div style={{ color: "#eab308", fontSize: 18, letterSpacing: 2 }}>{"★★★★★"}</div>
         <div style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 4 }}>{total} avaliação(ões) de clientes</div>
+        <div style={{ fontSize: 11, color: "var(--faint)", marginTop: 4 }}>As novas avaliações só aparecem no dia seguinte.</div>
       </div>
 
       <div className="card">
