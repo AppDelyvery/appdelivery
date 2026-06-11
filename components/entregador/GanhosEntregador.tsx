@@ -75,7 +75,7 @@ export default function GanhosEntregador() {
               <tr><th>Rota</th><th>Você recebeu</th><th>Quando</th></tr>
               {entregues.map((p) => (
                 <tr key={p.id}>
-                  <td className="td-name" style={{ fontSize: 12.5 }}>{p.coleta_endereco} → {p.entrega_endereco}</td>
+                  <td className="td-name" style={{ fontSize: 12.5, maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.coleta_endereco} → {p.entrega_endereco}</td>
                   <td style={{ fontWeight: 700, color: "var(--ok, #059669)" }}>{fmt(p.preco_entregador ?? 0)}</td>
                   <td style={{ color: "var(--muted)", fontSize: 12 }}>{dt(p.entregue_at)}</td>
                 </tr>
