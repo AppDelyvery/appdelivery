@@ -34,6 +34,11 @@ export default function RastreioPublico({ token }: { token: string }) {
   const chat = useChatPublico(token);
   const posReal = usePosicaoAoVivo(token);
   const [info, setInfo] = useState<Info | null>(null);
+  const [nota, setNota] = useState(0);
+  const [hov, setHov] = useState(0);
+  const [comAv, setComAv] = useState("");
+  const [avaliando, setAvaliando] = useState(false);
+  const [avaliado, setAvaliado] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => start(), 900);
@@ -69,6 +74,16 @@ export default function RastreioPublico({ token }: { token: string }) {
     : temEntregador
     ? "Sua encomenda está a caminho"
     : "Procurando um entregador";
+
+  async function avaliar() {
+    setAvaliando(true);
+    const sb = getBrowserSupabase();
+    if (sb) {
+      const { data } = await sb.rpc("avaliar_por_token", { p_token: token, p_nota: nota, p_comentario: comAv });
+      if (String(data) === "ok") setAvaliado(true);
+    }
+    setAvaliando(false);
+  }
 
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
@@ -147,6 +162,30 @@ export default function RastreioPublico({ token }: { token: string }) {
               </div>
             )}
           </div>
+
+          {done && temEntregador && (
+            <div className="card">
+              {avaliado ? (
+                <div style={{ textAlign: "center", padding: "6px 0" }}>
+                  <Icon name="checkThin" />
+                  <p style={{ fontWeight: 700, color: "var(--brand)", margin: "8px 0 0" }}>Obrigado por avaliar!</p>
+                </div>
+              ) : (
+                <>
+                  <div className="card-h"><Icon name="star" /><h3>Como foi a entrega?</h3></div>
+                  <div style={{ display: "flex", gap: 6, justifyContent: "center", margin: "8px 0 12px" }}>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <button key={n} type="button" onClick={() => setNota(n)} onMouseEnter={() => setHov(n)} onMouseLeave={() => setHov(0)} aria-label={`${n} estrela(s)`} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 34, lineHeight: 1, padding: 0, color: (hov || nota) >= n ? "#eab308" : "var(--line)" }}>★</button>
+                    ))}
+                  </div>
+                  <textarea className="input" rows={2} value={comAv} onChange={(e) => setComAv(e.target.value)} placeholder="Comentário (opcional)" />
+                  <button className="btn btn-primary" style={{ marginTop: 10 }} disabled={avaliando || nota < 1} onClick={avaliar}>
+                    <Icon name={avaliando ? "spinner" : "star"} /> {avaliando ? "Enviando…" : "Avaliar entregador"}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
           {codigo && temEntregador && !done && (
             <div className="card" style={{ textAlign: "center", background: "linear-gradient(160deg,#fff,var(--brand-light))", border: "1px solid #dfe3ff" }}>
