@@ -5,6 +5,7 @@ import AppShell, { type ShellNavGroup } from "../AppShell";
 import BotaoSuporte from "../BotaoSuporte";
 import SlideConfirm from "../SlideConfirm";
 import CancelarCorrida from "../CancelarCorrida";
+import AvaliarEntrega from "../AvaliarEntrega";
 import AddressAutocomplete, { type Lugar } from "../AddressAutocomplete";
 import ChatBox from "../Chat";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
@@ -495,7 +496,7 @@ function TrackingScreen() {
 }
 
 function DoneScreen() {
-  const { veh, distKm, reset, setView, setPedido } = useEntrega();
+  const { veh, distKm, reset, setView, setPedido, pedido } = useEntrega();
   const pc = priceCalc(veh, distKm);
   return (
     <>
@@ -505,7 +506,7 @@ function DoneScreen() {
             <Icon name="check" />
           </div>
           <div className="t">Entrega concluída</div>
-          <div className="s">#4821 · entregue por Lucas Mendes · 22 min</div>
+          <div className="s">Comprovante registrado e enviado</div>
         </div>
       </div>
 
@@ -537,6 +538,7 @@ function DoneScreen() {
         </div>
       </div>
 
+      {pedido?.id && <AvaliarEntrega pedidoId={pedido.id} dePapel="estabelecimento" alvo="o entregador" />}
       <button
         className="btn btn-primary"
         onClick={() => {

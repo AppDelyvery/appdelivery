@@ -8,6 +8,7 @@ import SlideConfirm from "../SlideConfirm";
 import AvisoForaDoLocal from "../AvisoForaDoLocal";
 import CancelarCorrida from "../CancelarCorrida";
 import NavExterna from "../NavExterna";
+import AvaliarEntrega from "../AvaliarEntrega";
 import { distanciaAte, estaLonge } from "@/lib/geofence";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
@@ -591,7 +592,7 @@ function Finalizar() {
 }
 
 function Concluido() {
-  const { distKm, setView, setColetaFoto, setSigData, reset } = useEntregador();
+  const { distKm, setView, setColetaFoto, setSigData, reset, pedidoId } = useEntregador();
   const pc = priceCalc("moto", distKm);
   return (
     <>
@@ -614,6 +615,7 @@ function Concluido() {
           creditado na sua conta · repasse automático
         </div>
       </div>
+      {pedidoId && <AvaliarEntrega pedidoId={pedidoId} dePapel="entregador" alvo="o cliente" />}
       <button
         className="btn btn-go"
         onClick={() => {
