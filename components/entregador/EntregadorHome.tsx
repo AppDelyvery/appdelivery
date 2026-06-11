@@ -208,12 +208,24 @@ function MenuDrawer({ perfil, onFechar }: { perfil: PerfilMenu | null; onFechar:
         <div className="sb-group">
           <div className="gh">Corridas</div>
           {item("bolt", "Início", "/entregador")}
+        </div>
+        <div className="sb-group">
+          <div className="gh">Financeiro</div>
           {item("money", "Ganhos", "/entregador/ganhos")}
+          {item("card", "Carteira", "/entregador/carteira")}
         </div>
         <div className="sb-group">
           <div className="gh">Conta</div>
+          {item("user", "Meu perfil", "/entregador/perfil")}
+          {item("star", "Avaliações", "/entregador/avaliacoes")}
           {item("send", "Comunicados", "/entregador/comunicados")}
-          {item("shield", "Verificação", "/entregador/perfil")}
+          {item("help", "Central de ajuda", "/entregador/ajuda")}
+          {item("settings", "Configurações", "/entregador/configuracoes")}
+        </div>
+        <div className="sb-group">
+          <div className="gh">Sobre</div>
+          {item("report", "Termos de uso", "/termos")}
+          {item("shield", "Privacidade", "/privacidade")}
         </div>
         <div className="sb-bottom">
           <button className="sb-item" onClick={sair}><Icon name="stop" /><span>Sair</span></button>
