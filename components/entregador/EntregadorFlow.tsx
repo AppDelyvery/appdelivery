@@ -66,15 +66,27 @@ export default function EntregadorFlow() {
       items: [
         { ic: "bolt", label: "Disponíveis", active: view === "disponivel", onClick: () => setView("disponivel") },
         { ic: "moto", label: "Minha corrida", active: emCorrida, onClick: () => setView("rota"), disabled: !emCorrida },
-        { ic: "money", label: "Ganhos", href: "/entregador/ganhos" },
       ],
     },
-    { group: "Avisos", items: [{ ic: "send", label: "Comunicados", href: "/entregador/comunicados" }] },
+    {
+      group: "Financeiro",
+      items: [
+        { ic: "money", label: "Ganhos", href: "/entregador/ganhos" },
+        { ic: "card", label: "Carteira", href: "/entregador/carteira" },
+      ],
+    },
     {
       group: "Conta",
       items: [
-        { ic: "shield", label: "Verificação", href: "/entregador/perfil" },
-        { ic: "user", label: "Cadastro", onClick: () => setView("cadastro") },
+        { ic: "user", label: "Meu perfil", href: "/entregador/perfil" },
+        { ic: "send", label: "Comunicados", href: "/entregador/comunicados" },
+      ],
+    },
+    {
+      group: "Sobre",
+      items: [
+        { ic: "report", label: "Termos de uso", href: "/termos" },
+        { ic: "shield", label: "Privacidade", href: "/privacidade" },
       ],
     },
   ];

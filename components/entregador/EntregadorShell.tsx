@@ -9,18 +9,31 @@ import type { IconName } from "../Icons";
 // com mapa (EntregadorFlow); as telas estáticas usam este.
 export default function EntregadorShell({ title, children }: { title: string; children: React.ReactNode }) {
   const p = usePathname();
-  const it = (ic: IconName, label: string, href: string) => ({ ic, label, href, active: p.startsWith(href) });
+  const it = (ic: IconName, label: string, href: string) => ({ ic, label, href, active: href === "/entregador" ? p === href : p.startsWith(href) });
 
   const nav: ShellNavGroup[] = [
+    { group: "Corridas", items: [it("bolt", "Disponíveis", "/entregador")] },
     {
-      group: "Corridas",
+      group: "Financeiro",
       items: [
-        it("bolt", "Disponíveis", "/entregador"),
         it("money", "Ganhos", "/entregador/ganhos"),
+        it("card", "Carteira", "/entregador/carteira"),
       ],
     },
-    { group: "Avisos", items: [it("send", "Comunicados", "/entregador/comunicados")] },
-    { group: "Conta", items: [it("shield", "Verificação", "/entregador/perfil")] },
+    {
+      group: "Conta",
+      items: [
+        it("user", "Meu perfil", "/entregador/perfil"),
+        it("send", "Comunicados", "/entregador/comunicados"),
+      ],
+    },
+    {
+      group: "Sobre",
+      items: [
+        it("report", "Termos de uso", "/termos"),
+        it("shield", "Privacidade", "/privacidade"),
+      ],
+    },
   ];
 
   return (
