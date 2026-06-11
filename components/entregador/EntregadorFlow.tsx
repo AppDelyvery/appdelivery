@@ -81,6 +81,7 @@ export default function EntregadorFlow() {
         { ic: "user", label: "Meu perfil", href: "/entregador/perfil" },
         { ic: "send", label: "Comunicados", href: "/entregador/comunicados" },
         { ic: "help", label: "Central de ajuda", href: "/entregador/ajuda" },
+        { ic: "settings", label: "Configurações", href: "/entregador/configuracoes" },
       ],
     },
     {
