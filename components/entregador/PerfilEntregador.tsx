@@ -68,7 +68,7 @@ export default function PerfilEntregador() {
             <div className="card-h"><Icon name="user" /><h3>Meus dados</h3></div>
             {linha("Nome", e.nome)}
             {linha("CPF", e.cpf)}
-            {linha("Veículo", e.vehicle_type + (e.placa ? ` · ${e.placa}` : ""))}
+            {linha("Veículo", (({ moto: "Moto", carro: "Carro", van: "Van" } as Record<string, string>)[e.vehicle_type] ?? e.vehicle_type) + (e.placa ? ` · ${e.placa}` : ""))}
             {linha("Avaliação", e.rating != null ? `${e.rating} ★` : "—")}
             {linha("Entregas concluídas", String(e.total_entregas ?? 0))}
           </div>
