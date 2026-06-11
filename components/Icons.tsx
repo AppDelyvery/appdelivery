@@ -6,7 +6,8 @@ export type IconName =
   | "building" | "moto" | "chart" | "shield" | "check" | "checkThin"
   | "clock" | "pin" | "camera" | "pen" | "play" | "stop" | "refresh"
   | "pkg" | "star" | "upload" | "download" | "card" | "car" | "user" | "spinner"
-  | "arrow" | "send" | "money" | "list" | "bolt" | "van" | "menu" | "layers" | "report" | "target";
+  | "arrow" | "send" | "money" | "list" | "bolt" | "van" | "menu" | "layers" | "report" | "target"
+  | "help" | "alert" | "settings";
 
 const stroke = {
   fill: "none" as const,
@@ -17,6 +18,25 @@ const stroke = {
 };
 
 const ICONS: Record<IconName, (p: SVGProps<SVGSVGElement>) => React.ReactElement> = {
+  help: (p) => (
+    <svg viewBox="0 0 24 24" {...stroke} {...p}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.1 9a3 3 0 0 1 5.6 1c0 2-3 2.5-3 4" />
+      <path d="M12 17h.01" />
+    </svg>
+  ),
+  alert: (p) => (
+    <svg viewBox="0 0 24 24" {...stroke} {...p}>
+      <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+      <path d="M12 9v4M12 17h.01" />
+    </svg>
+  ),
+  settings: (p) => (
+    <svg viewBox="0 0 24 24" {...stroke} {...p}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H2a2 2 0 0 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H8a1.6 1.6 0 0 0 1-1.5V2a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H22a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z" />
+    </svg>
+  ),
   building: (p) => (
     <svg viewBox="0 0 24 24" {...stroke} {...p}>
       <rect x="4" y="2" width="16" height="20" rx="2" />
