@@ -29,7 +29,7 @@ export default function UserMenu() {
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <span style={{ fontSize: 11.5, color: "var(--muted)", fontWeight: 600, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{email}</span>
+      <span className="topbar-email" style={{ fontSize: 11.5, color: "var(--muted)", fontWeight: 600, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{email}</span>
       <button className="btn btn-ghost" style={{ width: "auto", padding: "6px 12px", fontSize: 12 }} onClick={sair}>
         <Icon name="arrow" /> Sair
       </button>

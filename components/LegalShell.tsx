@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Icon } from "./Icons";
 
@@ -20,9 +22,12 @@ export default function LegalShell({
           <b>APP</b>
           <span>DELYVERY</span>
         </div>
-        <Link href="/" style={{ marginLeft: "auto", fontSize: 13, fontWeight: 600 }}>
-          Início
-        </Link>
+        <button
+          onClick={() => { if (typeof history !== "undefined" && history.length > 1) history.back(); else window.location.href = "/"; }}
+          style={{ marginLeft: "auto", fontSize: 13, fontWeight: 600, background: "none", border: "none", color: "var(--brand)", cursor: "pointer" }}
+        >
+          ← Voltar
+        </button>
       </div>
 
       <div className="legal-aviso" style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>

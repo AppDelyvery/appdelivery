@@ -431,7 +431,9 @@ tr:last-child td { border-bottom: none; }
   /* Topbar mais enxuta */
   .topbar { padding: 0 14px; height: 58px; }
   .topbar .ts { display: none; }
-  .topbar .tt { font-size: 15.5px; }
+  .topbar .tt { font-size: 15.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topbar-l { flex: 1; min-width: 0; }
+  .topbar-email { display: none; }
 
   /* Telas SEM mapa (listas/painéis): empilha simples, painel ocupa tudo */
   .content { flex-direction: column; overflow-y: auto; }
