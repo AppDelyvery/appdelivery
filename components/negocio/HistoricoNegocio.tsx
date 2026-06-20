@@ -84,8 +84,8 @@ export default function HistoricoNegocio() {
                   <td><span className={`status-pill ${ST[p.status]?.cls ?? "s-pend"}`}>{ST[p.status]?.txt ?? p.status}</span></td>
                   <td>
                     {p.tracking_token && (
-                      <Link href={`/rastreio/${p.tracking_token}`} style={{ color: "var(--brand)", fontSize: 12, fontWeight: 600 }}>
-                        Rastrear →
+                      <Link href={`/rastreio/${p.tracking_token}`} aria-label="Rastrear entrega" title="Rastrear" style={{ color: "var(--brand)", display: "inline-flex" }}>
+                        <Icon name="pin" />
                       </Link>
                     )}
                   </td>
