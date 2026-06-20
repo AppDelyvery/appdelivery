@@ -8,9 +8,12 @@ import { money } from "@/lib/precos";
 import { criarRecarga, type RecargaResult } from "@/actions/recarga";
 
 type Estab = { razao_social: string; saldo_carteira: number | null };
+type Mov = { tipo: string; valor: number; created_at: string };
+const dtMov = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
 export default function CarteiraNegocio() {
   const [estab, setEstab] = useState<Estab | null>(null);
+  const [movs, setMovs] = useState<Mov[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   const [modal, setModal] = useState(false);
@@ -23,8 +26,12 @@ export default function CarteiraNegocio() {
     (async () => {
       const sb = getBrowserSupabase();
       if (!sb) return;
-      const { data } = await sb.from("estabelecimentos").select("razao_social,saldo_carteira").limit(1).maybeSingle();
-      if (data) setEstab(data as Estab);
+      const [eR, mR] = await Promise.all([
+        sb.from("estabelecimentos").select("razao_social,saldo_carteira").limit(1).maybeSingle(),
+        sb.rpc("minhas_transacoes_carteira"),
+      ]);
+      if (eR.data) setEstab(eR.data as Estab);
+      if (mR.data) setMovs(mR.data as Mov[]);
       setCarregando(false);
     })();
   }, []);
@@ -64,6 +71,29 @@ export default function CarteiraNegocio() {
           <Icon name="upload" /> Adicionar saldo
         </button>
         <p className="hint">Recarga por Pix, mínimo R$ 50. O saldo entra assim que o pagamento for confirmado.</p>
+      </div>
+
+      <div className="card">
+        <div className="card-h"><Icon name="list" /><h3>Movimentação</h3><span className="right">{movs.length}</span></div>
+        {carregando ? (
+          <div style={{ fontSize: 12.5, color: "var(--faint)" }}>Carregando…</div>
+        ) : movs.length === 0 ? (
+          <div style={{ fontSize: 12.5, color: "var(--faint)" }}>Sem movimentação ainda. Suas recargas e o débito das entregas aparecem aqui.</div>
+        ) : (
+          movs.map((m, i) => {
+            const cred = m.tipo === "credito";
+            return (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: "1px solid var(--line)" }}>
+                <div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600 }}>{cred ? "Recarga" : "Frete de entrega"}</div>
+                  <div style={{ fontSize: 11.5, color: "var(--muted)" }}>{dtMov(m.created_at)}</div>
+                </div>
+                <div style={{ fontWeight: 700, color: cred ? "var(--ok,#059669)" : "var(--ink-2)" }}>{cred ? "+" : "−"} {money(m.valor)}</div>
+              </div>
+            );
+          })
+        )}
+        <p className="hint">Comprovante de cada recarga liga junto com o Asaas (CNPJ do dono).</p>
       </div>
 
       {modal && (
