@@ -459,9 +459,10 @@ tr:last-child td { border-bottom: none; }
   /* KPIs: 2 colunas no compacto */
   .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
 
-  /* Tabelas largas rolam na horizontal dentro do card */
+  /* Tabelas: a coluna de rota (longa) trunca pra a tabela caber sem cortar status/valor */
   .card { overflow-x: auto; }
-  table { min-width: 460px; }
+  table { min-width: 0; }
+  .td-name { max-width: 132px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   /* Botões/inputs com toque confortável */
   .btn { padding: 13px; }
