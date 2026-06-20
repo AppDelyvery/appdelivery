@@ -15,19 +15,33 @@ export default function NegocioShell({ title, children }: { title: string; child
     {
       group: "Operação",
       items: [
-        it("send", "Nova entrega", "/negocio/novo-pedido"),
+        it("pkg", "Nova entrega", "/negocio/novo-pedido"),
         it("list", "Histórico", "/negocio/historico"),
         it("chart", "Relatórios", "/negocio/relatorios"),
       ],
     },
-    { group: "Avisos", items: [it("send", "Comunicados", "/negocio/comunicados")] },
-    { group: "Desenvolvedor", items: [it("bolt", "Integração / API", "/negocio/integracao")] },
+    { group: "Financeiro", items: [it("money", "Carteira", "/negocio/carteira")] },
+    {
+      group: "Gestão",
+      items: [
+        it("star", "Avaliações", "/negocio/avaliacoes"),
+        it("bolt", "Integração / API", "/negocio/integracao"),
+      ],
+    },
     {
       group: "Conta",
       items: [
-        it("money", "Carteira", "/negocio/carteira"),
-        it("star", "Avaliações", "/negocio/avaliacoes"),
         it("building", "Meu negócio", "/negocio/perfil"),
+        it("send", "Comunicados", "/negocio/comunicados"),
+        it("help", "Central de ajuda", "/negocio/ajuda"),
+        it("settings", "Configurações", "/negocio/configuracoes"),
+      ],
+    },
+    {
+      group: "Sobre",
+      items: [
+        it("report", "Termos de uso", "/termos"),
+        it("shield", "Privacidade", "/privacidade"),
       ],
     },
   ];

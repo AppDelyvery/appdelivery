@@ -50,18 +50,34 @@ export default function NovoPedidoFlow() {
     {
       group: "Operação",
       items: [
-        { ic: "send", label: "Nova entrega", active: view === "form", onClick: () => setView("form") },
+        { ic: "pkg", label: "Nova entrega", active: view === "form", onClick: () => setView("form") },
         { ic: "moto", label: "Em andamento", active: emAndamento, onClick: () => setView("tracking"), disabled: !emAndamento },
         { ic: "list", label: "Histórico", href: "/negocio/historico" },
+        { ic: "chart", label: "Relatórios", href: "/negocio/relatorios" },
       ],
     },
-    { group: "Avisos", items: [{ ic: "send", label: "Comunicados", href: "/negocio/comunicados" }] },
+    { group: "Financeiro", items: [{ ic: "money", label: "Carteira", href: "/negocio/carteira" }] },
+    {
+      group: "Gestão",
+      items: [
+        { ic: "star", label: "Avaliações", href: "/negocio/avaliacoes" },
+        { ic: "bolt", label: "Integração / API", href: "/negocio/integracao" },
+      ],
+    },
     {
       group: "Conta",
       items: [
-        { ic: "money", label: "Carteira", href: "/negocio/carteira" },
-        { ic: "star", label: "Avaliações", href: "/negocio/avaliacoes" },
         { ic: "building", label: "Meu negócio", href: "/negocio/perfil" },
+        { ic: "send", label: "Comunicados", href: "/negocio/comunicados" },
+        { ic: "help", label: "Central de ajuda", href: "/negocio/ajuda" },
+        { ic: "settings", label: "Configurações", href: "/negocio/configuracoes" },
+      ],
+    },
+    {
+      group: "Sobre",
+      items: [
+        { ic: "report", label: "Termos de uso", href: "/termos" },
+        { ic: "shield", label: "Privacidade", href: "/privacidade" },
       ],
     },
   ];
