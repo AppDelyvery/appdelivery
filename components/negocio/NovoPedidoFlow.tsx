@@ -18,7 +18,7 @@ import { criarPedido } from "@/actions/criarPedido";
 import { abrirDisputa } from "@/actions/disputas";
 import { hasSupabase } from "@/lib/integracoes";
 import { money, PRICE, priceCalc, faixaDoVeiculo, VEICULOS } from "@/lib/precos";
-import { DESTINO, ORIGEM, STEPS } from "@/lib/rota";
+import { STEPS } from "@/lib/rota";
 import { fetchDirections } from "@/lib/mapbox";
 import { useEntrega, type NegocioView } from "./EntregaContext";
 
@@ -324,7 +324,7 @@ function TrackingScreen() {
   const [cancelar, setCancelar] = useState(false);
   const [real, setReal] = useState<StatusNeg | null>(null);
 
-  // acompanha o status REAL do pedido (sai da simulação Lucas Mendes)
+  // acompanha o status REAL do pedido (entregador designado, via poll)
   useEffect(() => {
     if (!pedido?.id) return;
     let vivo = true;
@@ -358,16 +358,7 @@ function TrackingScreen() {
           <h3>{real ? STATUS_TXT[real.status] ?? "Em andamento" : done ? "Entrega concluída" : "Entrega em andamento"}</h3>
           <span className="right">#{pedido ? pedido.id.slice(0, 8) : "4821"}</span>
         </div>
-        {pedido && !ent ? (
-          // pedido real ainda SEM entregador designado → procurando
-          <div className="driver" style={{ alignItems: "center" }}>
-            <div className="avatar" style={{ background: "var(--bg)", color: "var(--brand)" }}><Icon name="spinner" /></div>
-            <div className="driver-info">
-              <div className="name">Procurando entregador</div>
-              <div className="meta">Ofertando pro entregador verificado mais próximo…</div>
-            </div>
-          </div>
-        ) : ent ? (
+        {ent ? (
           // entregador REAL designado
           <>
             <div className="driver">
@@ -387,21 +378,14 @@ function TrackingScreen() {
             </div>
           </>
         ) : (
-          // sem backend (demo/simulação) → mantém o exemplo
-          <>
-            <div className="driver">
-              <div className="avatar">LM</div>
-              <div className="driver-info">
-                <div className="name">Lucas Mendes</div>
-                <div className="meta">Honda CG 160 · ABC-1D23 <span className="rating"><Icon name="star" /> 4,9</span></div>
-              </div>
+          // ainda sem entregador designado → procurando
+          <div className="driver" style={{ alignItems: "center" }}>
+            <div className="avatar" style={{ background: "var(--bg)", color: "var(--brand)" }}><Icon name="spinner" /></div>
+            <div className="driver-info">
+              <div className="name">Procurando entregador</div>
+              <div className="meta">Ofertando pro entregador verificado mais próximo…</div>
             </div>
-            <div className="verified-badges">
-              <span className="vbadge"><Icon name="shield" /> Antecedentes OK</span>
-              <span className="vbadge"><Icon name="checkThin" /> CNH válida (A)</span>
-              <span className="vbadge"><Icon name="checkThin" /> Identidade</span>
-            </div>
-          </>
+          </div>
         )}
         <div className="trust-banner">
           <Icon name="shield" />
@@ -535,7 +519,7 @@ function DoneScreen() {
         <div className="photo">
           <Icon name="pkg" className="pkg" />
           <div className="geo">
-            <Icon name="pin" /> {DESTINO.end} · {DESTINO.lat}, {DESTINO.lng} · 23:58
+            <Icon name="pin" /> Entrega registrada com GPS e horário
           </div>
         </div>
         <div style={{ marginTop: 12, fontSize: 11.5, fontWeight: 700, color: "var(--ink-2)" }}>
