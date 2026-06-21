@@ -17,7 +17,11 @@ type Info = {
   entregador_veiculo: string | null;
   entregador_placa: string | null;
   entregador_rating: number | null;
+  entregador_verificado: boolean | null;
   codigo_entrega: string | null;
+  entregue_at: string | null;
+  comprovante_foto: string | null;
+  comprovante_assinatura: string | null;
 };
 
 const VEIC: Record<string, string> = { moto: "Moto", carro: "Carro", van: "Van" };
@@ -132,21 +136,25 @@ export default function RastreioPublico({ token }: { token: string }) {
                     </div>
                   </div>
                 </div>
-                <div className="verified-badges">
-                  <span className="vbadge">
-                    <Icon name="shield" /> Antecedentes OK
-                  </span>
-                  <span className="vbadge">
-                    <Icon name="checkThin" /> CNH válida
-                  </span>
-                </div>
-                <div className="trust-banner">
-                  <Icon name="shield" />
-                  <div>
-                    Entregador <b>verificado pela APPDELYVERY</b> — antecedentes e habilitação checados. Você acompanha em
-                    tempo real.
-                  </div>
-                </div>
+                {info!.entregador_verificado !== false && (
+                  <>
+                    <div className="verified-badges">
+                      <span className="vbadge">
+                        <Icon name="shield" /> Antecedentes OK
+                      </span>
+                      <span className="vbadge">
+                        <Icon name="checkThin" /> CNH válida
+                      </span>
+                    </div>
+                    <div className="trust-banner">
+                      <Icon name="shield" />
+                      <div>
+                        Entregador <b>verificado pela APPDELYVERY</b> — antecedentes e habilitação checados. Você acompanha em
+                        tempo real.
+                      </div>
+                    </div>
+                  </>
+                )}
               </>
             ) : (
               <div className="driver">
@@ -184,6 +192,27 @@ export default function RastreioPublico({ token }: { token: string }) {
                   </button>
                 </>
               )}
+            </div>
+          )}
+
+          {done && info?.comprovante_foto && (
+            <div className="card">
+              <div className="card-h"><Icon name="camera" /><h3>Comprovante de entrega</h3></div>
+              <img
+                src={info.comprovante_foto}
+                alt="Foto da entrega"
+                style={{ width: "100%", borderRadius: 12, display: "block" }}
+              />
+              {info.comprovante_assinatura && (
+                <img
+                  src={info.comprovante_assinatura}
+                  alt="Assinatura do recebedor"
+                  style={{ width: "100%", borderRadius: 12, marginTop: 8, background: "#fff", display: "block" }}
+                />
+              )}
+              <p className="hint">
+                Foto registrada na entrega{info.entregue_at ? ` em ${new Date(info.entregue_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : ""}.
+              </p>
             </div>
           )}
 
