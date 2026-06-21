@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Icon } from "../Icons";
 import MapaBase, { type TemaMapa } from "./MapaBase";
 import { money } from "@/lib/precos";
+import { registerPush } from "@/lib/push";
 import { geoDist } from "@/lib/rota";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { useGeolocation } from "@/lib/useGeolocation";
@@ -126,7 +127,7 @@ export default function EntregadorHome() {
             <div className="emap-status off"><span className="dot" /> Você está offline</div>
             <p className="emap-sub">Conecte pra receber entregas da sua região.</p>
             {erro && <div className="emap-erro">{erro}</div>}
-            <button className="btn" style={{ background: "var(--go)", color: "#fff" }} disabled={busy} onClick={() => alternar(true, gps)}>
+            <button className="btn" style={{ background: "var(--go)", color: "#fff" }} disabled={busy} onClick={() => { registerPush(); alternar(true, gps); }}>
               {busy ? "…" : "Conectar"}
             </button>
           </>

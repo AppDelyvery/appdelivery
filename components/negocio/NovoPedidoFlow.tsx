@@ -16,6 +16,7 @@ import { useChatAuth } from "@/lib/chat";
 import { usePosicaoAoVivo } from "@/lib/realtime";
 import { criarPedido } from "@/actions/criarPedido";
 import { abrirDisputa } from "@/actions/disputas";
+import { registerPush } from "@/lib/push";
 import { hasSupabase } from "@/lib/integracoes";
 import { money, PRICE, priceCalc, faixaDoVeiculo, VEICULOS } from "@/lib/precos";
 import { STEPS } from "@/lib/rota";
@@ -128,6 +129,7 @@ function FormScreen() {
 
   async function solicitar() {
     setErro(null);
+    registerPush(); // gesto do usuário: autoriza push pra receber updates da entrega
     // Sem backend configurado → mantém a simulação (demo).
     if (!prontoBackend) {
       setView("matching");
