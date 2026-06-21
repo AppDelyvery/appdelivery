@@ -27,10 +27,12 @@ export default function CarteiraEntregador() {
     const sb = getBrowserSupabase();
     if (!sb) return;
     const [entR, sqR] = await Promise.all([
-      sb.from("entregadores").select("saldo").limit(1).maybeSingle(),
+      sb.from("entregadores").select("saldo,chave_pix").limit(1).maybeSingle(),
       sb.from("saques").select("id,valor,status,chave_pix,created_at").order("created_at", { ascending: false }),
     ]);
-    setSaldo((entR.data as { saldo?: number } | null)?.saldo ?? 0);
+    const ent = entR.data as { saldo?: number; chave_pix?: string | null } | null;
+    setSaldo(ent?.saldo ?? 0);
+    if (ent?.chave_pix) setChave(ent.chave_pix); // prefill: chave salva no perfil (0041)
     if (sqR.data) setSaques(sqR.data as Saque[]);
     setCarregando(false);
   }
