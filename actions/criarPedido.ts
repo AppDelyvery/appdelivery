@@ -19,6 +19,8 @@ export type NovoPedidoInput = {
   clienteFinalNome?: string;
   clienteFinalTelefone?: string;
   retornar?: boolean;
+  paradasExtras?: number;
+  minutosEspera?: number;
 };
 
 export type CriarPedidoResult =
@@ -35,22 +37,22 @@ export async function criarPedido(input: NovoPedidoInput): Promise<CriarPedidoRe
   const user = auth.user;
   if (!user) return { ok: false, motivo: "nao-autenticado" };
 
-  // estabelecimento do usuário logado
-  const { data: est, error: eEst } = await sb
-    .from("estabelecimentos")
-    .select("id, ativo")
-    .eq("profile_id", user.id)
-    .single();
-  if (eEst || !est) return { ok: false, motivo: "estabelecimento-nao-encontrado" };
-  if ((est as { ativo?: boolean }).ativo === false) return { ok: false, motivo: "negocio-suspenso" };
+  // estabelecimento do usuário (dono OU membro: gerente/operador) — resolve pelo banco
+  const { data: estId } = await sb.rpc("estab_do_usuario");
+  if (!estId) return { ok: false, motivo: "estabelecimento-nao-encontrado" };
+  const { data: est } = await sb.from("estabelecimentos").select("ativo").eq("id", estId).maybeSingle();
+  if ((est as { ativo?: boolean } | null)?.ativo === false) return { ok: false, motivo: "negocio-suspenso" };
 
   const cfg = await getConfig(sb);
-  const pc = priceCalc(input.veiculo, input.distanciaKm, cfg);
+  const pc = priceCalc(input.veiculo, input.distanciaKm, cfg, {
+    paradasExtras: input.paradasExtras,
+    minutosEspera: input.minutosEspera,
+  });
 
   const { data: novo, error: eIns } = await sb
     .from("pedidos")
     .insert({
-      estabelecimento_id: (est as { id: string }).id,
+      estabelecimento_id: estId as string,
       coleta_endereco: input.coletaEndereco,
       coleta_lat: input.coletaLat,
       coleta_lng: input.coletaLng,
@@ -64,6 +66,8 @@ export async function criarPedido(input: NovoPedidoInput): Promise<CriarPedidoRe
       vehicle_type: input.veiculo,
       distancia_km: input.distanciaKm,
       duracao_min: input.duracaoMin,
+      paradas_extras: Math.max(0, Math.floor(input.paradasExtras ?? 0)),
+      minutos_espera: Math.max(0, Math.floor(input.minutosEspera ?? 0)),
       preco_total: pc.total,
       preco_entregador: pc.driver,
       preco_plataforma: pc.taxa,

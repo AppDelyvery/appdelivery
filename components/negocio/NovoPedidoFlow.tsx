@@ -104,6 +104,8 @@ function FormScreen() {
   const [conteudo, setConteudo] = useState("");
   const [valor, setValor] = useState("");
   const [retornar, setRetornar] = useState(false);
+  const [paradasExtras, setParadasExtras] = useState(0);
+  const [minutosEspera, setMinutosEspera] = useState(0);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -120,7 +122,7 @@ function FormScreen() {
 
   const distReal = rota?.distKm ?? distKm;
   const durReal = rota?.durMin ?? durMin;
-  const pc = priceCalc(veh, distReal);
+  const pc = priceCalc(veh, distReal, PRICE, { paradasExtras, minutosEspera });
   const prontoBackend = hasSupabase();
   const podeEnviar = !prontoBackend || (!!coleta && !!entrega);
 
@@ -151,6 +153,8 @@ function FormScreen() {
         distanciaKm: distReal,
         duracaoMin: durReal,
         retornar,
+        paradasExtras,
+        minutosEspera,
       });
       if (!r.ok) {
         setErro(traduzMotivo(r.motivo));
@@ -192,6 +196,24 @@ function FormScreen() {
           </div>
           <span className={`opt-switch${retornar ? " on" : ""}`}><span className="opt-knob" /></span>
         </button>
+
+        <div className="field">
+          <label>Paradas extras (além da entrega) · {money(PRICE.valorParadaExtra)} cada</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button type="button" className="btn" style={{ width: "auto", padding: "6px 14px", fontSize: 16 }} onClick={() => setParadasExtras((n) => Math.max(0, n - 1))} aria-label="Menos paradas">−</button>
+            <span style={{ fontWeight: 700, minWidth: 24, textAlign: "center" }}>{paradasExtras}</span>
+            <button type="button" className="btn" style={{ width: "auto", padding: "6px 14px", fontSize: 16 }} onClick={() => setParadasExtras((n) => n + 1)} aria-label="Mais paradas">+</button>
+          </div>
+        </div>
+
+        <div className="field">
+          <label>Espera prevista na coleta · {money(PRICE.valorEsperaBloco)} a cada {PRICE.esperaBlocoMin} min</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button type="button" className="btn" style={{ width: "auto", padding: "6px 14px", fontSize: 16 }} onClick={() => setMinutosEspera((n) => Math.max(0, n - PRICE.esperaBlocoMin))} aria-label="Menos espera">−</button>
+            <span style={{ fontWeight: 700, minWidth: 56, textAlign: "center" }}>{minutosEspera} min</span>
+            <button type="button" className="btn" style={{ width: "auto", padding: "6px 14px", fontSize: 16 }} onClick={() => setMinutosEspera((n) => n + PRICE.esperaBlocoMin)} aria-label="Mais espera">+</button>
+          </div>
+        </div>
       </div>
 
       <div className="card">
@@ -232,6 +254,12 @@ function FormScreen() {
           <div className="price-line">
             <span>Valor mínimo ({VEICULOS.find((v) => v.id === veh)?.nome})</span>
             <span>{money(faixaDoVeiculo(veh).min)}</span>
+          </div>
+        )}
+        {pc.extras > 0 && (
+          <div className="price-line">
+            <span>Espera + paradas extras</span>
+            <span>{money(pc.extras)}</span>
           </div>
         )}
         <div className="price-line total">
