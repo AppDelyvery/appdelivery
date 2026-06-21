@@ -19,8 +19,8 @@ export async function criarRecarga(valor: number): Promise<RecargaResult> {
   const user = auth?.user;
   if (!user) return { erro: "Faça login para recarregar." };
 
-  const { data: est } = await sb.from("estabelecimentos").select("id").eq("profile_id", user.id).maybeSingle();
-  const estId = (est as { id: string } | null)?.id;
+  // resolve o negócio pelo papel (dono ou gerente) — operador não passa na RLS de recarga
+  const { data: estId } = await sb.rpc("estab_do_usuario");
   if (!estId) return { erro: "Estabelecimento não encontrado." };
 
   const cob = await criarCobrancaPix({ valor, descricao: "Recarga de carteira APPDELYVERY", externalRef: estId });
