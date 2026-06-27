@@ -44,7 +44,8 @@ A auditoria sugeriu vários itens que o AppDelyvery **já implementou**. Ficam f
 **Atenção:** **separar bem os 2 fluxos de dinheiro** — `subscriptions` (mensalidade SaaS, dinheiro pra Impulso) ≠ `carteira/recargas` (lojista paga entregas, dinheiro circula pra entregador). Não misturar tabelas.
 **Esforço:** alto (1–2 dias). **Maior valor estratégico do playbook.**
 
-### D. Anti-bot no cadastro (Turnstile + captcha nativo do Supabase Auth)  ✅ CÓDIGO FEITO (27/06) · falta ATIVAR
+### D. Anti-bot no cadastro (Turnstile + captcha nativo do Supabase Auth)  ✅ ATIVO E PROVADO (27/06)
+> Provado na fonte: signup sem token → Supabase recusa (`captcha protection: request disallowed`); site key embutida no bundle de prod → widget renderiza (usuário real cadastra normal). Cloudflare Turnstile + captcha ligado no Supabase Auth + env no Vercel.
 **Gap:** o AgendaPRO foi **botado (5 contas em 6s)** e teve que desligar signup público. AppDelyvery cadastra **dois** tipos de usuário (estabelecimento E entregador) via `auth.signUp` **no client** (signup público ligado), sem proteção.
 **Diagnóstico (nível certo):** captcha só no formulário é teatro — o bot chama o endpoint do Supabase direto, fora do form. O fix robusto é o **captcha nativo do Supabase Auth** (valida o token server-side no próprio signup) + widget Turnstile passando `captchaToken`. NÃO precisa de service-role nem de tabela `signup_attempts` (o Supabase Auth já tem rate-limit por IP embutido).
 **Feito:** `components/auth/Turnstile.tsx` (degrada gracioso: sem `NEXT_PUBLIC_TURNSTILE_SITE_KEY` não renderiza, cadastro segue como hoje) + cabeado em `CadastroNegocio` e `CadastroEntregador` (`captchaToken` no `signUp`). Build verde, non-breaking.
