@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
+import Turnstile, { TURNSTILE_ENABLED } from "./Turnstile";
 
 // Manda cada papel pro seu painel.
 function rotaPorPapel(role?: string) {
@@ -20,6 +21,7 @@ export default function Login() {
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [checando, setChecando] = useState(true);
+  const [captcha, setCaptcha] = useState<string | null>(null);
 
   // O PWA abre aqui (start_url). Se já há sessão, vai direto pro painel do papel —
   // não fica preso no login nem cai na vitrine.
@@ -56,9 +58,17 @@ export default function Login() {
       setErro("Supabase não configurado (.env.local).");
       return;
     }
+    if (TURNSTILE_ENABLED && !captcha) {
+      setErro("Confirme o desafio anti-robô antes de continuar.");
+      return;
+    }
     setCarregando(true);
     try {
-      const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
+      const { data, error } = await sb.auth.signInWithPassword({
+        email,
+        password: senha,
+        options: { captchaToken: captcha ?? undefined },
+      });
       if (error) throw error;
 
       // Roteia pelo papel (lido do profile)
@@ -103,6 +113,8 @@ export default function Login() {
           <label>Senha</label>
           <input className="input" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required />
         </div>
+
+        <Turnstile onToken={setCaptcha} />
 
         {erro && (
           <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)" }}>
