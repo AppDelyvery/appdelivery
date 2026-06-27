@@ -171,7 +171,7 @@ export default function CarteiraEntregador() {
                 ) : (
                   <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)" }}>
                     <Icon name="shield" />
-                    <div>Saque no <b>CPF</b>: taxa de <b>{money(taxa)}</b>. 💡 Vire <b>MEI</b> e saque <b>sem taxa</b>.</div>
+                    <div>Saque no <b>CPF</b>: taxa de <b>{money(taxa)}</b>. Vire <b>MEI</b> e saque <b>sem taxa</b>.</div>
                   </div>
                 )}
 
