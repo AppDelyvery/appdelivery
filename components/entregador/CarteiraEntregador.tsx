@@ -8,14 +8,19 @@ import { money } from "@/lib/precos";
 import { solicitarSaque, type SaqueResult } from "@/actions/saque";
 
 type Saque = { id: string; valor: number; status: string; chave_pix: string; created_at: string };
+type Cfg = { saque_minimo: number; saque_taxa_cpf: number; saque_mei_gratis: boolean };
 
 const dt = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 const ROTULO: Record<string, string> = { processando: "Processando", pago: "Pago", falhou: "Falhou" };
+
+const DEFAULT_CFG: Cfg = { saque_minimo: 35, saque_taxa_cpf: 3.5, saque_mei_gratis: true };
 
 export default function CarteiraEntregador() {
   const [saldo, setSaldo] = useState(0);
   const [saques, setSaques] = useState<Saque[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [temSubconta, setTemSubconta] = useState(false); // MEI = tem subconta Asaas
+  const [cfg, setCfg] = useState<Cfg>(DEFAULT_CFG);
 
   const [modal, setModal] = useState(false);
   const [valor, setValor] = useState("");
@@ -23,17 +28,25 @@ export default function CarteiraEntregador() {
   const [enviando, setEnviando] = useState(false);
   const [res, setRes] = useState<SaqueResult | null>(null);
 
+  // taxa que se aplica a ESTE entregador (MEI grátis; CPF paga)
+  const taxa = temSubconta && cfg.saque_mei_gratis ? 0 : Number(cfg.saque_taxa_cpf);
+  const valorNum = Number((valor || "0").replace(",", "."));
+  const liquido = Math.max(0, Math.round((valorNum - taxa) * 100) / 100);
+
   async function carregar() {
     const sb = getBrowserSupabase();
     if (!sb) return;
-    const [entR, sqR] = await Promise.all([
-      sb.from("entregadores").select("saldo,chave_pix").limit(1).maybeSingle(),
+    const [entR, sqR, cfgR] = await Promise.all([
+      sb.from("entregadores").select("saldo,chave_pix,asaas_subconta_id").limit(1).maybeSingle(),
       sb.from("saques").select("id,valor,status,chave_pix,created_at").order("created_at", { ascending: false }),
+      sb.from("config").select("saque_minimo,saque_taxa_cpf,saque_mei_gratis").eq("id", 1).maybeSingle(),
     ]);
-    const ent = entR.data as { saldo?: number; chave_pix?: string | null } | null;
+    const ent = entR.data as { saldo?: number; chave_pix?: string | null; asaas_subconta_id?: string | null } | null;
     setSaldo(ent?.saldo ?? 0);
+    setTemSubconta(!!ent?.asaas_subconta_id);
     if (ent?.chave_pix) setChave(ent.chave_pix); // prefill: chave salva no perfil (0041)
     if (sqR.data) setSaques(sqR.data as Saque[]);
+    if (cfgR.data) setCfg({ ...DEFAULT_CFG, ...(cfgR.data as Partial<Cfg>) });
     setCarregando(false);
   }
 
@@ -44,7 +57,7 @@ export default function CarteiraEntregador() {
   async function sacar() {
     setEnviando(true);
     setRes(null);
-    const r = await solicitarSaque(Number((valor || "0").replace(",", ".")), chave);
+    const r = await solicitarSaque(valorNum, chave);
     setRes(r);
     setEnviando(false);
     if ("ok" in r) await carregar();
@@ -56,6 +69,8 @@ export default function CarteiraEntregador() {
     setValor("");
   }
 
+  const minimo = Number(cfg.saque_minimo);
+
   return (
     <EntregadorShell title="Carteira">
       <div className="card" style={{ background: "linear-gradient(135deg,var(--brand),#3730a3)", color: "#fff", border: "none" }}>
@@ -64,12 +79,14 @@ export default function CarteiraEntregador() {
         <button
           className="btn"
           style={{ marginTop: 12, width: "auto", padding: "9px 18px", background: "#fff", color: "var(--brand)", fontWeight: 700 }}
-          disabled={saldo < 20}
+          disabled={saldo < minimo}
           onClick={() => { setValor(String(Math.floor(saldo))); setModal(true); }}
         >
           <Icon name="download" /> Sacar por Pix
         </button>
-        <div style={{ fontSize: 11.5, opacity: 0.85, marginTop: 8 }}>Saque mínimo de R$ 20. Cai na sua chave Pix em até 1 dia útil.</div>
+        <div style={{ fontSize: 11.5, opacity: 0.85, marginTop: 8 }}>
+          Saque mínimo de {money(minimo)}. {temSubconta ? "Você é MEI: saque sem taxa." : `Taxa de ${money(taxa)} por saque no CPF.`} Cai na sua chave Pix em até 1 dia útil.
+        </div>
       </div>
 
       <div className="card">
@@ -105,10 +122,32 @@ export default function CarteiraEntregador() {
 
             {!(res && "ok" in res) && (
               <>
+                {/* a escolha: MEI grátis × CPF com taxa */}
+                {temSubconta ? (
+                  <div className="trust-banner" style={{ background: "rgba(5,150,105,.08)", borderColor: "#a7d8c4", color: "var(--ok,#059669)" }}>
+                    <Icon name="checkThin" />
+                    <div><b>MEI</b> — você saca <b>sem taxa</b>.</div>
+                  </div>
+                ) : (
+                  <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)" }}>
+                    <Icon name="shield" />
+                    <div>Saque no <b>CPF</b>: taxa de <b>{money(taxa)}</b>. 💡 Vire <b>MEI</b> e saque <b>sem taxa</b>.</div>
+                  </div>
+                )}
+
                 <div className="field">
-                  <label>Valor (mín. R$ 20 · disponível {money(saldo)})</label>
-                  <input className="input" inputMode="numeric" value={valor} onChange={(e) => setValor(e.target.value.replace(/[^\d,]/g, ""))} placeholder="20" />
+                  <label>Valor (mín. {money(minimo)} · disponível {money(saldo)})</label>
+                  <input className="input" inputMode="numeric" value={valor} onChange={(e) => setValor(e.target.value.replace(/[^\d,]/g, ""))} placeholder={String(Math.floor(minimo))} />
                 </div>
+
+                {/* preview do líquido quando há taxa */}
+                {taxa > 0 && valorNum > 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--muted)", margin: "2px 2px 8px" }}>
+                    <span>Você recebe (após taxa de {money(taxa)})</span>
+                    <b style={{ color: "var(--brand)" }}>{money(liquido)}</b>
+                  </div>
+                )}
+
                 <div className="field">
                   <label>Sua chave Pix</label>
                   <input className="input" value={chave} onChange={(e) => setChave(e.target.value)} placeholder="CPF, telefone, e-mail ou aleatória" />
@@ -135,7 +174,7 @@ export default function CarteiraEntregador() {
               <div style={{ textAlign: "center", padding: "8px 0" }}>
                 <Icon name="checkThin" />
                 <p style={{ fontWeight: 700, color: "var(--brand)", margin: "8px 0 2px" }}>Saque enviado!</p>
-                <p className="hint">O valor cai na sua chave Pix em até 1 dia útil.</p>
+                <p className="hint">{res.taxa > 0 ? `Você recebe ${money(res.liquido)} (taxa de ${money(res.taxa)}) ` : "Sem taxa (MEI). "}na sua chave Pix em até 1 dia útil.</p>
               </div>
             )}
           </div>
