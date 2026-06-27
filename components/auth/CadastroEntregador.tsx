@@ -7,6 +7,7 @@ import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import type { Veiculo } from "@/lib/precos";
 import { validarCPF, mascaraCPF, mascaraTelefone } from "@/lib/validacao";
+import Turnstile, { TURNSTILE_ENABLED } from "./Turnstile";
 
 export default function CadastroEntregador() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function CadastroEntregador() {
   const [veh, setVeh] = useState<Veiculo>("moto");
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
+  const [captcha, setCaptcha] = useState<string | null>(null);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -30,12 +32,16 @@ export default function CadastroEntregador() {
       setErro("CPF inválido. Confira os números.");
       return;
     }
+    if (TURNSTILE_ENABLED && !captcha) {
+      setErro("Confirme o desafio anti-robô antes de continuar.");
+      return;
+    }
     setCarregando(true);
     try {
       const { data: signup, error: e1 } = await sb.auth.signUp({
         email: form.email,
         password: form.senha,
-        options: { data: { role: "entregador", nome: form.nome } },
+        options: { data: { role: "entregador", nome: form.nome }, captchaToken: captcha ?? undefined },
       });
       if (e1) throw e1;
       const user = signup.user;
@@ -121,6 +127,8 @@ export default function CadastroEntregador() {
             </div>
           </div>
         </div>
+
+        <Turnstile onToken={setCaptcha} />
 
         {erro && (
           <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)" }}>

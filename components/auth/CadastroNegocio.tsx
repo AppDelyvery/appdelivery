@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { validarCnpjOuCpf, mascaraCnpjOuCpf, mascaraTelefone } from "@/lib/validacao";
+import Turnstile, { TURNSTILE_ENABLED } from "./Turnstile";
 
 export default function CadastroNegocio() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function CadastroNegocio() {
   });
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
+  const [captcha, setCaptcha] = useState<string | null>(null);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -36,13 +38,17 @@ export default function CadastroNegocio() {
       setErro("CNPJ/CPF inválido. Confira os números (ou deixe em branco).");
       return;
     }
+    if (TURNSTILE_ENABLED && !captcha) {
+      setErro("Confirme o desafio anti-robô antes de continuar.");
+      return;
+    }
     setCarregando(true);
     try {
       // 1) cria a conta (auth.users) com metadados do papel
       const { data: signup, error: e1 } = await sb.auth.signUp({
         email: form.email,
         password: form.senha,
-        options: { data: { role: "estabelecimento", nome: form.nome } },
+        options: { data: { role: "estabelecimento", nome: form.nome }, captchaToken: captcha ?? undefined },
       });
       if (e1) throw e1;
       const user = signup.user;
@@ -121,6 +127,8 @@ export default function CadastroNegocio() {
           <label>Endereço de coleta</label>
           <input className="input" value={form.endereco} onChange={set("endereco")} />
         </div>
+
+        <Turnstile onToken={setCaptcha} />
 
         {erro && (
           <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)" }}>

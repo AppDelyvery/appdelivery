@@ -44,11 +44,12 @@ A auditoria sugeriu vários itens que o AppDelyvery **já implementou**. Ficam f
 **Atenção:** **separar bem os 2 fluxos de dinheiro** — `subscriptions` (mensalidade SaaS, dinheiro pra Impulso) ≠ `carteira/recargas` (lojista paga entregas, dinheiro circula pra entregador). Não misturar tabelas.
 **Esforço:** alto (1–2 dias). **Maior valor estratégico do playbook.**
 
-### D. Rate-limit de cadastro via tabela Postgres + Turnstile
-**Gap:** o AgendaPRO foi **botado (5 contas em 6s)** e teve que desligar signup público. AppDelyvery cadastra **dois** tipos de usuário (estabelecimento E entregador) — superfície dobrada, e o rate-limit hoje é fraco/ausente.
-**O quê:** tabela `signup_attempts(ip, created_at)` persistente + helper `checkRateLimit` (429) + CAPTCHA Turnstile no cadastro. Rate-limit in-memory **não funciona em serverless** (reseta em cold start).
-**Fonte:** `agendapro` v86 (`signup_attempts`), `src/lib/rate-limit.ts`, `api/cadastro` · `palace-system/src/lib/rate-limit-api.ts`.
-**Esforço:** ~meio dia.
+### D. Anti-bot no cadastro (Turnstile + captcha nativo do Supabase Auth)  ✅ CÓDIGO FEITO (27/06) · falta ATIVAR
+**Gap:** o AgendaPRO foi **botado (5 contas em 6s)** e teve que desligar signup público. AppDelyvery cadastra **dois** tipos de usuário (estabelecimento E entregador) via `auth.signUp` **no client** (signup público ligado), sem proteção.
+**Diagnóstico (nível certo):** captcha só no formulário é teatro — o bot chama o endpoint do Supabase direto, fora do form. O fix robusto é o **captcha nativo do Supabase Auth** (valida o token server-side no próprio signup) + widget Turnstile passando `captchaToken`. NÃO precisa de service-role nem de tabela `signup_attempts` (o Supabase Auth já tem rate-limit por IP embutido).
+**Feito:** `components/auth/Turnstile.tsx` (degrada gracioso: sem `NEXT_PUBLIC_TURNSTILE_SITE_KEY` não renderiza, cadastro segue como hoje) + cabeado em `CadastroNegocio` e `CadastroEntregador` (`captchaToken` no `signUp`). Build verde, non-breaking.
+**Falta ATIVAR (Eduardo, ~5 min):** (1) criar widget Cloudflare Turnstile grátis → pega site key + secret; (2) `NEXT_PUBLIC_TURNSTILE_SITE_KEY` no `.env.local` E no Vercel; (3) Supabase → Authentication → Settings → Bot Protection → Enable Captcha (Turnstile) + colar o secret.
+**Fonte da lição:** `agendapro` v86.
 
 ---
 
