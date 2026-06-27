@@ -2,7 +2,7 @@
 
 import { getServerSupabase } from "@/lib/supabase/server";
 import { hasAsaas } from "@/lib/integracoes";
-import { transferirPix } from "@/lib/asaas";
+import { transferirPix, transferirParaWallet } from "@/lib/asaas";
 
 export type SaqueResult =
   | { ok: true; taxa: number; liquido: number }
@@ -34,7 +34,8 @@ export async function solicitarSaque(valor: number, chavePix: string): Promise<S
   if (valor < minimo) return { erro: `Saque mínimo de R$ ${minimo.toFixed(2)}.` };
 
   const { data: ent } = await sb.from("entregadores").select("asaas_subconta_id").maybeSingle();
-  const temSubconta = !!ent?.asaas_subconta_id;
+  const walletId = ent?.asaas_subconta_id ?? null;
+  const temSubconta = !!walletId;
   const meiGratis = cfg?.saque_mei_gratis ?? true;
   const taxa = temSubconta && meiGratis ? 0 : Number(cfg?.saque_taxa_cpf ?? 0);
   const liquido = Math.round((valor - taxa) * 100) / 100;
@@ -50,8 +51,10 @@ export async function solicitarSaque(valor: number, chavePix: string): Promise<S
   if (ERR[ridStr]) return { erro: ERR[ridStr] };
   if (!ridStr) return { erro: "Não consegui iniciar o saque." };
 
-  // transfere o LÍQUIDO (valor - taxa); a taxa fica na conta da plataforma p/ cobrir o Asaas
-  const tr = await transferirPix({ chavePix: chave, valor: liquido, descricao: "Saque APPDELYVERY" });
+  // transfere o LÍQUIDO (valor - taxa). MEI (com subconta) → transferência interna grátis; CPF → Pix externo.
+  const tr = walletId
+    ? await transferirParaWallet({ walletId, valor: liquido, descricao: "Saque APPDELYVERY" })
+    : await transferirPix({ chavePix: chave, valor: liquido, descricao: "Saque APPDELYVERY" });
   if (tr.id) {
     await sb.rpc("finalizar_saque", { p_saque_id: ridStr, p_status: "pago", p_transfer_id: tr.id });
     return { ok: true, taxa, liquido };
