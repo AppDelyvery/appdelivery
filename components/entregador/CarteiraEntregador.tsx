@@ -6,6 +6,8 @@ import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { money } from "@/lib/precos";
 import { solicitarSaque, type SaqueResult } from "@/actions/saque";
+import { criarSubcontaEntregador, type SubcontaActionResult } from "@/actions/criarSubcontaEntregador";
+import { mascaraCnpjOuCpf } from "@/lib/validacao";
 
 type Saque = { id: string; valor: number; status: string; chave_pix: string; created_at: string };
 type Cfg = { saque_minimo: number; saque_taxa_cpf: number; saque_mei_gratis: boolean };
@@ -28,6 +30,12 @@ export default function CarteiraEntregador() {
   const [enviando, setEnviando] = useState(false);
   const [res, setRes] = useState<SaqueResult | null>(null);
 
+  // formalização MEI (criar subconta)
+  const [meiModal, setMeiModal] = useState(false);
+  const [mei, setMei] = useState({ cnpj: "", email: "", telefone: "", endereco: "" });
+  const [meiEnviando, setMeiEnviando] = useState(false);
+  const [meiRes, setMeiRes] = useState<SubcontaActionResult | null>(null);
+
   // taxa que se aplica a ESTE entregador (MEI grátis; CPF paga)
   const taxa = temSubconta && cfg.saque_mei_gratis ? 0 : Number(cfg.saque_taxa_cpf);
   const valorNum = Number((valor || "0").replace(",", "."));
@@ -36,17 +44,20 @@ export default function CarteiraEntregador() {
   async function carregar() {
     const sb = getBrowserSupabase();
     if (!sb) return;
-    const [entR, sqR, cfgR] = await Promise.all([
-      sb.from("entregadores").select("saldo,chave_pix,asaas_subconta_id").limit(1).maybeSingle(),
+    const [entR, sqR, cfgR, userR] = await Promise.all([
+      sb.from("entregadores").select("saldo,chave_pix,asaas_subconta_id,telefone").limit(1).maybeSingle(),
       sb.from("saques").select("id,valor,status,chave_pix,created_at").order("created_at", { ascending: false }),
       sb.from("config").select("saque_minimo,saque_taxa_cpf,saque_mei_gratis").eq("id", 1).maybeSingle(),
+      sb.auth.getUser(),
     ]);
-    const ent = entR.data as { saldo?: number; chave_pix?: string | null; asaas_subconta_id?: string | null } | null;
+    const ent = entR.data as { saldo?: number; chave_pix?: string | null; asaas_subconta_id?: string | null; telefone?: string | null } | null;
     setSaldo(ent?.saldo ?? 0);
     setTemSubconta(!!ent?.asaas_subconta_id);
     if (ent?.chave_pix) setChave(ent.chave_pix); // prefill: chave salva no perfil (0041)
     if (sqR.data) setSaques(sqR.data as Saque[]);
     if (cfgR.data) setCfg({ ...DEFAULT_CFG, ...(cfgR.data as Partial<Cfg>) });
+    // prefill do formulário MEI com o que já temos
+    setMei((m) => ({ ...m, email: m.email || userR.data.user?.email || "", telefone: m.telefone || ent?.telefone || "" }));
     setCarregando(false);
   }
 
@@ -69,6 +80,15 @@ export default function CarteiraEntregador() {
     setValor("");
   }
 
+  async function virarMei() {
+    setMeiEnviando(true);
+    setMeiRes(null);
+    const r = await criarSubcontaEntregador(mei);
+    setMeiRes(r);
+    setMeiEnviando(false);
+    if ("ok" in r) await carregar(); // agora temSubconta = true → saque sem taxa
+  }
+
   const minimo = Number(cfg.saque_minimo);
 
   return (
@@ -87,6 +107,26 @@ export default function CarteiraEntregador() {
         <div style={{ fontSize: 11.5, opacity: 0.85, marginTop: 8 }}>
           Saque mínimo de {money(minimo)}. {temSubconta ? "Você é MEI: saque sem taxa." : `Taxa de ${money(taxa)} por saque no CPF.`} Cai na sua chave Pix em até 1 dia útil.
         </div>
+      </div>
+
+      {/* Formalização MEI — vira a chave do saque sem taxa */}
+      <div className="card">
+        <div className="card-h"><Icon name="shield" /><h3>Formalização</h3></div>
+        {temSubconta ? (
+          <div className="trust-banner" style={{ background: "rgba(5,150,105,.08)", borderColor: "#a7d8c4", color: "var(--ok,#059669)" }}>
+            <Icon name="checkThin" />
+            <div>Você é <b>MEI</b> — seus saques são <b>sem taxa</b>, direto na sua conta.</div>
+          </div>
+        ) : (
+          <>
+            <p style={{ fontSize: 13, color: "var(--muted)", margin: "2px 2px 10px" }}>
+              No <b>CPF</b>, cada saque tem taxa de <b>{money(taxa)}</b>. Vire <b>MEI</b> e passe a sacar <b>sem taxa</b> — o dinheiro fica na sua própria conta.
+            </p>
+            <button className="btn btn-primary" style={{ width: "auto", padding: "9px 18px" }} onClick={() => { setMeiRes(null); setMeiModal(true); }}>
+              <Icon name="shield" /> Virar MEI e saque sem taxa
+            </button>
+          </>
+        )}
       </div>
 
       <div className="card">
@@ -175,6 +215,64 @@ export default function CarteiraEntregador() {
                 <Icon name="checkThin" />
                 <p style={{ fontWeight: 700, color: "var(--brand)", margin: "8px 0 2px" }}>Saque enviado!</p>
                 <p className="hint">{res.taxa > 0 ? `Você recebe ${money(res.liquido)} (taxa de ${money(res.taxa)}) ` : "Sem taxa (MEI). "}na sua chave Pix em até 1 dia útil.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {meiModal && (
+        <div onClick={() => setMeiModal(false)} style={{ position: "fixed", inset: 0, background: "rgba(20,20,45,.45)", display: "grid", placeItems: "center", zIndex: 300, padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ maxWidth: 400, width: "100%", margin: 0 }}>
+            <div className="card-h" style={{ justifyContent: "space-between" }}>
+              <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}><Icon name="shield" /><h3 style={{ margin: 0 }}>Virar MEI</h3></span>
+              <span onClick={() => setMeiModal(false)} style={{ cursor: "pointer", color: "var(--muted)", fontSize: 18 }}>×</span>
+            </div>
+
+            {!(meiRes && "ok" in meiRes) ? (
+              <>
+                <p style={{ fontSize: 12.5, color: "var(--muted)", margin: "0 2px 10px" }}>
+                  Já tem MEI? Informe seu <b>CNPJ</b> e criamos sua conta de recebimento — aí seus saques ficam <b>sem taxa</b>.
+                </p>
+                <div className="field">
+                  <label>CNPJ do MEI</label>
+                  <input className="input" inputMode="numeric" value={mei.cnpj} onChange={(e) => setMei((m) => ({ ...m, cnpj: mascaraCnpjOuCpf(e.target.value) }))} placeholder="00.000.000/0000-00" />
+                </div>
+                <div className="field">
+                  <label>E-mail</label>
+                  <input className="input" type="email" value={mei.email} onChange={(e) => setMei((m) => ({ ...m, email: e.target.value }))} />
+                </div>
+                <div className="field">
+                  <label>Telefone</label>
+                  <input className="input" inputMode="numeric" value={mei.telefone} onChange={(e) => setMei((m) => ({ ...m, telefone: e.target.value }))} placeholder="(63) 90000-0000" />
+                </div>
+                <div className="field">
+                  <label>Endereço</label>
+                  <input className="input" value={mei.endereco} onChange={(e) => setMei((m) => ({ ...m, endereco: e.target.value }))} placeholder="Rua, número, bairro" />
+                </div>
+                {meiRes && "naoConfigurado" in meiRes && (
+                  <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)" }}>
+                    <Icon name="shield" />
+                    <div>A criação da conta MEI ativa assim que o <b>Asaas</b> for ligado. A estrutura já está pronta.</div>
+                  </div>
+                )}
+                {meiRes && "erro" in meiRes && (
+                  <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)" }}>
+                    <Icon name="shield" />
+                    <div>{meiRes.erro}</div>
+                  </div>
+                )}
+                <button className="btn btn-primary" style={{ marginTop: 6 }} disabled={meiEnviando} onClick={virarMei}>
+                  <Icon name={meiEnviando ? "spinner" : "shield"} /> {meiEnviando ? "Criando conta…" : "Criar minha conta MEI"}
+                </button>
+                <p className="hint">Só CNPJ (MEI) tem conta própria de recebimento — por isso a vantagem do saque sem taxa.</p>
+              </>
+            ) : (
+              <div style={{ textAlign: "center", padding: "8px 0" }}>
+                <Icon name="checkThin" />
+                <p style={{ fontWeight: 700, color: "var(--ok,#059669)", margin: "8px 0 2px" }}>Agora você é MEI!</p>
+                <p className="hint">Seus próximos saques são sem taxa.</p>
+                <button className="btn btn-primary" style={{ marginTop: 10 }} onClick={() => setMeiModal(false)}>Fechar</button>
               </div>
             )}
           </div>
