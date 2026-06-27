@@ -32,17 +32,10 @@ A auditoria sugeriu vários itens que o AppDelyvery **já implementou**. Ficam f
 **Fonte:** `agendapro` v90 (`idx_appointments_business_date`, `idx_appointments_business_status`) · `palace-system` (`idx_appointments_business_paid_at`).
 **Esforço:** ~1h. **Dependência:** nenhuma. Fazer **antes** de escalar usuários.
 
-### C. Máquina de MENSALIDADE (subscription + gate + cron)  ⭐⭐ maior gap estratégico
-**Gap (o mais importante do playbook):** o modelo de venda do AppDelyvery é **R$15k setup + mensalidade**. Mas o código **não tem NENHUM enforcement de mensalidade**. A integração Asaas que temos é da **carteira pré-paga** (lojista paga as entregas) — é um fluxo de dinheiro **diferente** da assinatura SaaS. Sem isso, o lojista usa de graça pra sempre depois do setup.
-**O quê (portar a máquina inteira do AgendaPRO):**
-1. Tabela `subscriptions` (1:1 com `estabelecimentos`): `pago_ate` (fonte da verdade), `status` (trial|active|past_due|cancelled|pending_payment), `plan`, `plan_modalidade`, `asaas_subscription_id`, `grace_ends_at`, `permanent_courtesy`, `setup_paid_at`, `refund_deadline_at` (setup+7d, CDC art.49).
-2. **Gate por status** (nunca olhar `pago_ate` direto): `admin_blocked = cancelled OR (past_due AND grace_ends_at < now())`.
-3. **Checkout PIX inline** (sem redirect): `createPayment` + `getPixQrCode` → `{qr_image, qr_payload}` renderizado dentro do app.
-4. **Cron diário** de expiração: PIX D-3 cobra, D+0/D+3 overdue; trial/cortesia D+0 → `status=pending_payment` (paywall). `permanent_courtesy=true` isenta (o AgendaPRO teve bug de "trial vitalício" até a v85 — já vem corrigido).
-5. **Webhook sempre 200** + `PAYMENT_CONFIRMED` → estende `pago_ate`.
-**Fonte:** `agendapro/src/lib/asaas.ts`, `api/billing/checkout-asaas`, `api/billing/status`, `api/webhooks/asaas`, `api/cron/billing-check`, `src/config/pricing.ts`.
-**Atenção:** **separar bem os 2 fluxos de dinheiro** — `subscriptions` (mensalidade SaaS, dinheiro pra Impulso) ≠ `carteira/recargas` (lojista paga entregas, dinheiro circula pra entregador). Não misturar tabelas.
-**Esforço:** alto (1–2 dias). **Maior valor estratégico do playbook.**
+### C. ~~Máquina de mensalidade~~ — DESCARTADO · modelo errado ❌
+**Por que saiu (corrigido 27/06):** foi porte indevido do AgendaPRO. O **AppDelyvery é transacional** — a plataforma (do **Tulio**, o dono; a Impulso só CONSTRÓI) fatura em **cada entrega** via `take_rate` 20% (split 80/20, **já construído**) + carteira pré-paga. O lojista **NÃO paga mensalidade**; cobrar isso em cima do por-entrega seria barreira de adesão e dois pesos no mesmo cliente.
+**A "mensalidade" do contrato é outra coisa:** Impulso ← Tulio (R$15k de build + mensalidade de manutenção a acertar) — cobrança comercial entre Impulso e o dono, **fora do app**, não billing por-lojista. A migration 0047 chegou a ser aplicada e foi **revertida (0048)**.
+**Lição (λ.lógica-primeiro):** não portar padrão maduro de outro produto sem validar que o **modelo de receita** bate. AgendaPRO = receita 100% mensalidade; AppDelyvery = receita 100% comissão por entrega. Padrões diferentes.
 
 ### D. Anti-bot no cadastro (Turnstile + captcha nativo do Supabase Auth)  ✅ ATIVO E PROVADO (27/06)
 > Provado na fonte: signup sem token → Supabase recusa (`captcha protection: request disallowed`); site key embutida no bundle de prod → widget renderiza (usuário real cadastra normal). Cloudflare Turnstile + captcha ligado no Supabase Auth + env no Vercel.
@@ -73,7 +66,7 @@ A auditoria sugeriu vários itens que o AppDelyvery **já implementou**. Ficam f
 
 ### G. E-mails transacionais (Resend)
 **Gap:** AppDelyvery não tem `resend` no `package.json` — zero e-mail transacional. AgendaPRO/Palace mandam em tudo (recarga confirmada, pagamento, aprovação) **fire-and-forget** (`void fn().catch()`) pra não travar o webhook, branded (não expõe CPF do dono no header Asaas).
-**Caso AppDelyvery:** "recarga confirmada", "saque pago", "entregador aprovado", "mensalidade vencendo".
+**Caso AppDelyvery:** "recarga confirmada", "saque pago", "entregador aprovado", "pedido a caminho".
 **Fonte:** `agendapro` Resend + padrão fire-and-forget no webhook.
 **Esforço:** ~meio dia.
 
@@ -96,10 +89,10 @@ Formalizar o design system num `DESIGN.md` machine-readable espelhando `globals.
 ---
 
 ## Ordem recomendada de execução
-1. **A + B** (compressão + índices) — meio dia, ROI imediato, zero dependência.
-2. **D** (rate-limit cadastro) — fecha buraco de segurança antes de divulgar.
-3. **C** (mensalidade) — destrava o modelo de receita recorrente do contrato R$15k+mensal.
-4. **E + F + G** conforme a operação pedir.
+1. ✅ **A + B** (compressão + índices) — feito e provado.
+2. ✅ **D** (anti-bot cadastro) — feito e ativo.
+3. ❌ ~~C (mensalidade)~~ — descartado (modelo errado; ver acima).
+4. **E + F + G** conforme a operação pedir (E/Supervisor V4 é o melhor candidato — aprovar saque remoto).
 5. Tier 3 quando escalar.
 
-> Os 3 fluxos de dinheiro do AppDelyvery, pra não confundir: **(1) mensalidade SaaS** (Tier 1.C — falta) · **(2) carteira pré-paga** lojista→entregas (temos) · **(3) split + saque** entregador (temos).
+> Os fluxos de dinheiro do AppDelyvery, pra não confundir: **(1) carteira pré-paga** lojista→entregas (temos) · **(2) split 80/20 + saque** entregador (temos) · **(3) take 20%** da plataforma por entrega = receita do **Tulio** (dono). A mensalidade Impulso←Tulio é comercial, **fora do app**. Lojista NÃO paga mensalidade.
