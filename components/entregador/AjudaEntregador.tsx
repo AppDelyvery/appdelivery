@@ -146,7 +146,7 @@ export default function AjudaEntregador() {
           <div onClick={(e) => e.stopPropagation()} className="card" style={{ maxWidth: 400, width: "100%", margin: 0 }}>
             <div className="card-h" style={{ justifyContent: "space-between" }}>
               <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}><Icon name="send" /><h3 style={{ margin: 0 }}>Abrir chamado</h3></span>
-              <span onClick={fechar} style={{ cursor: "pointer", color: "var(--muted)", fontSize: 18 }}>×</span>
+              <button onClick={fechar} aria-label="Fechar" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", display: "grid", placeItems: "center", padding: 0 }}><Icon name="stop" /></button>
             </div>
 
             {okMsg ? (

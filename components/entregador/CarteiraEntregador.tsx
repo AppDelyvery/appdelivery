@@ -157,7 +157,7 @@ export default function CarteiraEntregador() {
           <div onClick={(e) => e.stopPropagation()} className="card" style={{ maxWidth: 380, width: "100%", margin: 0 }}>
             <div className="card-h" style={{ justifyContent: "space-between" }}>
               <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}><Icon name="download" /><h3 style={{ margin: 0 }}>Sacar saldo</h3></span>
-              <span onClick={fechar} style={{ cursor: "pointer", color: "var(--muted)", fontSize: 18 }}>×</span>
+              <button onClick={fechar} aria-label="Fechar" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", display: "grid", placeItems: "center", padding: 0 }}><Icon name="stop" /></button>
             </div>
 
             {!(res && "ok" in res) && (
@@ -226,7 +226,7 @@ export default function CarteiraEntregador() {
           <div onClick={(e) => e.stopPropagation()} className="card" style={{ maxWidth: 400, width: "100%", margin: 0 }}>
             <div className="card-h" style={{ justifyContent: "space-between" }}>
               <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}><Icon name="shield" /><h3 style={{ margin: 0 }}>Virar MEI</h3></span>
-              <span onClick={() => setMeiModal(false)} style={{ cursor: "pointer", color: "var(--muted)", fontSize: 18 }}>×</span>
+              <button onClick={() => setMeiModal(false)} aria-label="Fechar" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", display: "grid", placeItems: "center", padding: 0 }}><Icon name="stop" /></button>
             </div>
 
             {!(meiRes && "ok" in meiRes) ? (

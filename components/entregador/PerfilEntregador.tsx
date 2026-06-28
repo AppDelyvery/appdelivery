@@ -132,7 +132,7 @@ export default function PerfilEntregador() {
             ) : (
               linha("Telefone", e.telefone ? mascaraTelefone(e.telefone) : "—")
             )}
-            {linha("Avaliação", e.rating != null ? `${e.rating} ★` : "—")}
+            {linha("Avaliação", e.rating != null ? String(e.rating) : "—")}
             {linha("Entregas concluídas", String(e.total_entregas ?? 0))}
           </div>
 
