@@ -14,7 +14,9 @@ export default function NegociosAdmin() {
   const [negocios, setNegocios] = useState<Negocio[]>([]);
   const [sel, setSel] = useState<Negocio | null>(null);
   const [q, setQ] = useState("");
+  const [mostrar, setMostrar] = useState(30);
   const filtrados = negocios.filter((n) => norm(`${n.razao_social} ${n.cnpj ?? ""}`).includes(norm(q)));
+  const visiveis = filtrados.slice(0, mostrar);
 
   const carregar = useCallback(async () => {
     const sb = getBrowserSupabase();
@@ -32,11 +34,11 @@ export default function NegociosAdmin() {
     <AdminShell title="Negócios">
       <div className="card">
         <div className="card-h"><Icon name="building" /><h3>Negócios cadastrados</h3><span className="right">{negocios.length}</span></div>
-        <Busca value={q} onChange={setQ} placeholder="Buscar por nome ou CNPJ…" />
+        <Busca value={q} onChange={(v) => { setQ(v); setMostrar(30); }} placeholder="Buscar por nome ou CNPJ…" />
         <table>
           <tbody>
             <tr><th>Negócio</th><th>CNPJ/CPF</th><th>Saldo</th></tr>
-            {filtrados.map((n) => (
+            {visiveis.map((n) => (
               <tr key={n.id} style={{ cursor: "pointer" }} onClick={() => setSel(n)}>
                 <td className="td-name">{n.razao_social}{!n.ativo && <span style={{ color: "var(--warn)", fontWeight: 600 }}> · suspenso</span>}</td>
                 <td>{n.cnpj ?? "—"}</td>
@@ -46,6 +48,11 @@ export default function NegociosAdmin() {
             {filtrados.length === 0 && <tr><td colSpan={3} style={{ color: "var(--faint)", fontSize: 12.5 }}>Nenhum negócio encontrado.</td></tr>}
           </tbody>
         </table>
+        {filtrados.length > mostrar && (
+          <button className="btn btn-ghost" style={{ marginTop: 12 }} onClick={() => setMostrar((m) => m + 30)}>
+            Ver mais ({filtrados.length - mostrar} restantes)
+          </button>
+        )}
       </div>
       <p className="hint">Clique num negócio pra ver o perfil (pedidos, gasto, carteira) e suspender/reativar.</p>
 

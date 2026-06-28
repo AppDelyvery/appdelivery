@@ -216,10 +216,8 @@ function Drawer({ c, comp, onClose }: { c: Corrida; comp: Comprovante[]; onClose
             comp.map((m, i) => (
               <div key={i} style={{ marginBottom: 10 }}>
                 <div style={{ fontSize: 11.5, fontWeight: 700, color: "var(--ink-2)", marginBottom: 4 }}>{m.tipo === "coleta" ? "Coleta" : "Entrega"} · {dt(m.created_at)}</div>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {m.foto_url && <img src={m.foto_url} alt="comprovante" style={{ width: "100%", borderRadius: 10, marginBottom: 6 }} />}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {m.assinatura_url && <img src={m.assinatura_url} alt="assinatura" style={{ width: "100%", borderRadius: 10, background: "#fff" }} />}
+                {m.foto_url && <ProvaImg src={m.foto_url} alt="Foto" />}
+                {m.assinatura_url && <ProvaImg src={m.assinatura_url} alt="Assinatura" />}
               </div>
             ))
           )}
@@ -227,4 +225,17 @@ function Drawer({ c, comp, onClose }: { c: Corrida; comp: Comprovante[]; onClose
       </div>
     </>
   );
+}
+
+// Imagem de comprovante com fallback — sem ícone de imagem quebrada se a URL falhar
+function ProvaImg({ src, alt }: { src: string; alt: string }) {
+  const [erro, setErro] = useState(false);
+  if (erro)
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 14px", borderRadius: 10, background: "var(--bg)", border: "1px dashed var(--line-2)", color: "var(--faint)", fontSize: 12, marginBottom: 6 }}>
+        <Icon name="camera" /> {alt} indisponível
+      </div>
+    );
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt={alt} onError={() => setErro(true)} style={{ width: "100%", borderRadius: 10, marginBottom: 6, background: "#fff" }} />;
 }
