@@ -109,6 +109,22 @@ function FormScreen() {
   const [minutosEspera, setMinutosEspera] = useState(0);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [negocioEndereco, setNegocioEndereco] = useState<Lugar | null>(null);
+
+  // coleta semi-automática: começa do endereço cadastrado do negócio (só semeia se ainda não escolheu)
+  useEffect(() => {
+    (async () => {
+      const sb = getBrowserSupabase();
+      if (!sb) return;
+      const { data } = await sb.from("estabelecimentos").select("endereco,lat,lng").limit(1).maybeSingle();
+      const d = data as { endereco: string | null; lat: number | null; lng: number | null } | null;
+      if (d?.endereco && d.lat != null && d.lng != null) {
+        const lugar = { endereco: d.endereco, lat: d.lat, lng: d.lng };
+        setNegocioEndereco(lugar);
+        setColeta((c) => c ?? lugar);
+      }
+    })();
+  }, []);
 
   // distância/preço a partir dos endereços REAIS escolhidos (fallback = simulação demo)
   useEffect(() => {
@@ -179,6 +195,11 @@ function FormScreen() {
           <h3>Solicitar entrega</h3>
         </div>
         <AddressAutocomplete label="Local de coleta" valor={coleta} onSelecionar={setColeta} placeholder="Ex.: Ótica Visão Center, Q.104 Norte" />
+        {coleta && negocioEndereco && coleta.endereco === negocioEndereco.endereco && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: -4, marginBottom: 10, fontSize: 11.5, color: "var(--muted)", fontWeight: 600 }}>
+            <Icon name="building" /> Saindo do endereço do seu negócio · troque acima se for outro ponto
+          </div>
+        )}
         <AddressAutocomplete label="Local de entrega" valor={entrega} onSelecionar={setEntrega} placeholder="Ex.: Arse 122, Plano Diretor Sul" />
         <div className="field">
           <label>O que será enviado</label>

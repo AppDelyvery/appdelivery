@@ -5,11 +5,14 @@ import NegocioShell from "./NegocioShell";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { mascaraTelefone, mascaraCnpjOuCpf } from "@/lib/validacao";
+import AddressAutocomplete, { type Lugar } from "../AddressAutocomplete";
 
 type Estab = {
   razao_social: string;
   cnpj: string | null;
   endereco: string | null;
+  lat: number | null;
+  lng: number | null;
   telefone: string | null;
   plano: string | null;
   ativo: boolean;
@@ -30,7 +33,7 @@ export default function PerfilNegocio() {
 
   const [editando, setEditando] = useState(false);
   const [razao, setRazao] = useState("");
-  const [endereco, setEndereco] = useState("");
+  const [enderecoLugar, setEnderecoLugar] = useState<Lugar | null>(null);
   const [telefone, setTelefone] = useState("");
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -38,7 +41,7 @@ export default function PerfilNegocio() {
   async function carregar() {
     const sb = getBrowserSupabase();
     if (!sb) return;
-    const { data } = await sb.from("estabelecimentos").select("razao_social,cnpj,endereco,telefone,plano,ativo").limit(1).maybeSingle();
+    const { data } = await sb.from("estabelecimentos").select("razao_social,cnpj,endereco,lat,lng,telefone,plano,ativo").limit(1).maybeSingle();
     if (data) setE(data as Estab);
     setCarregando(false);
   }
@@ -50,7 +53,8 @@ export default function PerfilNegocio() {
   function abrirEdicao() {
     if (!e) return;
     setRazao(e.razao_social || "");
-    setEndereco(e.endereco || "");
+    // semeia o endereço com coords se já existirem; senão começa vazio (lojista repica no mapa)
+    setEnderecoLugar(e.endereco && e.lat != null && e.lng != null ? { endereco: e.endereco, lat: e.lat, lng: e.lng } : null);
     setTelefone(e.telefone || "");
     setErro(null);
     setEditando(true);
@@ -67,8 +71,10 @@ export default function PerfilNegocio() {
     if (!sb) return;
     const { error } = await sb.rpc("atualizar_meu_negocio", {
       p_razao_social: razao.trim(),
-      p_endereco: endereco.trim(),
+      p_endereco: (enderecoLugar?.endereco ?? "").trim(),
       p_telefone: telefone.trim(),
+      p_lat: enderecoLugar?.lat ?? null,
+      p_lng: enderecoLugar?.lng ?? null,
     });
     if (error) {
       setErro("Não consegui salvar. Tente de novo.");
@@ -107,10 +113,8 @@ export default function PerfilNegocio() {
               <label>Razão social</label>
               <input className="input" value={razao} onChange={(ev) => setRazao(ev.target.value)} placeholder="Nome da empresa" />
             </div>
-            <div className="field">
-              <label>Endereço (ponto de coleta)</label>
-              <input className="input" value={endereco} onChange={(ev) => setEndereco(ev.target.value)} placeholder="Rua, nº, bairro" />
-            </div>
+            <AddressAutocomplete label="Endereço (ponto de coleta padrão)" valor={enderecoLugar} onSelecionar={setEnderecoLugar} placeholder="Rua, nº, bairro · Palmas-TO" />
+            <p className="hint" style={{ marginTop: -2 }}>É daqui que toda entrega sai por padrão. Selecione na lista ou marque no mapa pra fixar o ponto exato.</p>
             <div className="field">
               <label>Telefone</label>
               <input className="input" inputMode="numeric" value={telefone} onChange={(ev) => setTelefone(mascaraTelefone(ev.target.value))} placeholder="(63) 99999-9999" />

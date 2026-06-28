@@ -7,6 +7,7 @@ import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { validarCnpjOuCpf, mascaraCnpjOuCpf, mascaraTelefone } from "@/lib/validacao";
 import Turnstile, { TURNSTILE_ENABLED } from "./Turnstile";
+import AddressAutocomplete, { type Lugar } from "../AddressAutocomplete";
 
 export default function CadastroNegocio() {
   const router = useRouter();
@@ -17,8 +18,8 @@ export default function CadastroNegocio() {
     telefone: "",
     razao: "",
     cnpj: "",
-    endereco: "",
   });
+  const [enderecoLugar, setEnderecoLugar] = useState<Lugar | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [captcha, setCaptcha] = useState<string | null>(null);
@@ -65,7 +66,9 @@ export default function CadastroNegocio() {
         profile_id: user.id,
         razao_social: form.razao,
         cnpj: form.cnpj || null,
-        endereco: form.endereco || null,
+        endereco: enderecoLugar?.endereco ?? null,
+        lat: enderecoLugar?.lat ?? null,
+        lng: enderecoLugar?.lng ?? null,
       });
       if (e3) throw e3;
 
@@ -123,10 +126,8 @@ export default function CadastroNegocio() {
           <label>CNPJ ou CPF (MEI)</label>
           <input className="input" value={form.cnpj} onChange={(e) => setForm((f) => ({ ...f, cnpj: mascaraCnpjOuCpf(e.target.value) }))} inputMode="numeric" placeholder="00.000.000/0000-00" />
         </div>
-        <div className="field">
-          <label>Endereço de coleta</label>
-          <input className="input" value={form.endereco} onChange={set("endereco")} />
-        </div>
+        <AddressAutocomplete label="Endereço de coleta padrão" valor={enderecoLugar} onSelecionar={setEnderecoLugar} placeholder="Rua, nº, bairro · Palmas-TO" />
+        <p className="hint" style={{ marginTop: -2 }}>É daqui que suas entregas saem por padrão. Dá pra mudar a cada pedido.</p>
 
         <Turnstile onToken={setCaptcha} />
 
