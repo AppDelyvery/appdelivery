@@ -7,7 +7,7 @@ import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { definirStatusEntregador, type StatusEntregador } from "@/actions/moderarEntregador";
 
-type Ent = { id: string; nome: string; cpf: string; vehicle_type: string; placa: string | null; status: string; rating: number | null; total_entregas: number | null };
+type Ent = { id: string; nome: string; cpf: string; vehicle_type: string; placa: string | null; status: string; rating: number | null; total_entregas: number | null; is_online: boolean | null };
 type Verif = { tipo: string; resultado: string; provedor: string | null; criado_at: string };
 type Doc = { tipo: string; url: string };
 
@@ -27,7 +27,7 @@ export default function EntregadoresAdmin() {
   const carregar = useCallback(async () => {
     const sb = getBrowserSupabase();
     if (!sb) return;
-    const { data } = await sb.from("entregadores").select("id,nome,cpf,vehicle_type,placa,status,rating,total_entregas").order("created_at", { ascending: false });
+    const { data } = await sb.from("entregadores").select("id,nome,cpf,vehicle_type,placa,status,rating,total_entregas,is_online").order("created_at", { ascending: false });
     if (data) setEnts(data as Ent[]);
   }, []);
 
@@ -37,12 +37,20 @@ export default function EntregadoresAdmin() {
   }, [carregar]);
 
   const pendentes = ents.filter((e) => e.status === "em_verificacao" || e.status === "cadastro");
+  const online = ents.filter((e) => e.is_online).length;
+  const aprovados = ents.filter((e) => e.status === "aprovado").length;
 
   const linha = (e: Ent) => (
-    <div key={e.id} onClick={() => setSel(e)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 0", borderBottom: "1px solid var(--line)", cursor: "pointer" }}>
-      <div>
-        <div className="td-name" style={{ fontSize: 13.5 }}>{e.nome}</div>
-        <div style={{ color: "var(--muted)", fontSize: 11.5, marginTop: 2 }}>{e.vehicle_type}{e.placa ? ` · ${e.placa}` : ""}</div>
+    <div key={e.id} onClick={() => setSel(e)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid var(--line)", cursor: "pointer" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
+        <span style={{ position: "relative", flexShrink: 0 }}>
+          <span style={{ width: 38, height: 38, borderRadius: 11, background: "linear-gradient(135deg,var(--brand-2),var(--brand-dark))", color: "#fff", display: "grid", placeItems: "center", fontWeight: 800, fontSize: 15 }}>{e.nome.charAt(0).toUpperCase()}</span>
+          {e.is_online && <span style={{ position: "absolute", right: -2, bottom: -2, width: 12, height: 12, borderRadius: "50%", background: "var(--go)", border: "2px solid #fff" }} />}
+        </span>
+        <div style={{ minWidth: 0 }}>
+          <div className="td-name" style={{ fontSize: 13.5 }}>{e.nome}</div>
+          <div style={{ color: "var(--muted)", fontSize: 11.5, marginTop: 2 }}>{e.vehicle_type}{e.placa ? ` · ${e.placa}` : ""} · nota {e.rating ?? "—"} · {e.total_entregas ?? 0} entregas</div>
+        </div>
       </div>
       <span className={`status-pill ${PILL[e.status]?.cls ?? "s-pend"}`}>{PILL[e.status]?.txt ?? e.status}</span>
     </div>
@@ -50,6 +58,12 @@ export default function EntregadoresAdmin() {
 
   return (
     <AdminShell title="Entregadores">
+      <div className="kpis">
+        <div className="kpi"><div className="ic"><Icon name="moto" /></div><div className="v">{ents.length}</div><div className="l">Entregadores</div></div>
+        <div className="kpi"><div className="ic"><Icon name="moto" /></div><div className="v" style={{ color: "var(--go)" }}>{online}</div><div className="l">Online agora</div></div>
+        <div className="kpi"><div className="ic"><Icon name="checkThin" /></div><div className="v">{aprovados}</div><div className="l">Aprovados</div></div>
+        <div className="kpi"><div className="ic"><Icon name="shield" /></div><div className="v">{pendentes.length}</div><div className="l">Na fila</div></div>
+      </div>
       <div className="card">
         <div className="card-h"><Icon name="shield" /><h3>Fila de aprovação</h3><span className="right">{pendentes.length} pendente(s)</span></div>
         {pendentes.length === 0 ? (
