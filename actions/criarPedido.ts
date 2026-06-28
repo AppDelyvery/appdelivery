@@ -3,6 +3,8 @@
 import { getServerSupabase } from "@/lib/supabase/server";
 import { priceCalc, type Veiculo } from "@/lib/precos";
 import { getConfig } from "@/lib/config";
+import { dentroDaArea, haversineKm } from "@/lib/area";
+import { fetchDirections } from "@/lib/mapbox";
 
 export type NovoPedidoInput = {
   coletaEndereco: string;
@@ -43,8 +45,19 @@ export async function criarPedido(input: NovoPedidoInput): Promise<CriarPedidoRe
   const { data: est } = await sb.from("estabelecimentos").select("ativo").eq("id", estId).maybeSingle();
   if ((est as { ativo?: boolean } | null)?.ativo === false) return { ok: false, motivo: "negocio-suspenso" };
 
+  // #2 — área de cobertura: coleta E entrega têm que estar na região atendida (Palmas e arredores)
+  if (!dentroDaArea(input.coletaLat, input.coletaLng) || !dentroDaArea(input.entregaLat, input.entregaLng))
+    return { ok: false, motivo: "fora-da-area" };
+
+  // #1 — distância AUTORITATIVA no server (não confia na do client pra precificar):
+  // recomputa a rota; se o Mapbox falhar, usa o piso físico (linha reta) como teto de desconto.
+  const rota = await fetchDirections([input.coletaLng, input.coletaLat], [input.entregaLng, input.entregaLat]);
+  const piso = haversineKm(input.coletaLat, input.coletaLng, input.entregaLat, input.entregaLng);
+  const distSegura = rota?.distKm ?? Math.max(input.distanciaKm ?? 0, piso);
+  const durSegura = rota?.durMin ?? input.duracaoMin;
+
   const cfg = await getConfig(sb);
-  const pc = priceCalc(input.veiculo, input.distanciaKm, cfg, {
+  const pc = priceCalc(input.veiculo, distSegura, cfg, {
     paradasExtras: input.paradasExtras,
     minutosEspera: input.minutosEspera,
   });
@@ -64,8 +77,8 @@ export async function criarPedido(input: NovoPedidoInput): Promise<CriarPedidoRe
       cliente_final_nome: input.clienteFinalNome ?? null,
       cliente_final_telefone: input.clienteFinalTelefone ?? null,
       vehicle_type: input.veiculo,
-      distancia_km: input.distanciaKm,
-      duracao_min: input.duracaoMin,
+      distancia_km: distSegura,
+      duracao_min: durSegura,
       paradas_extras: Math.max(0, Math.floor(input.paradasExtras ?? 0)),
       minutos_espera: Math.max(0, Math.floor(input.minutosEspera ?? 0)),
       preco_total: pc.total,

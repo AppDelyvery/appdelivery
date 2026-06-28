@@ -30,6 +30,7 @@ const MOTIVO: Record<string, string> = {
   "nao-confirmado-na-fonte": "O pedido não confirmou no banco. Tente de novo.",
   "saldo-insuficiente": "Saldo insuficiente na carteira. Recarregue para criar a entrega.",
   "negocio-suspenso": "Sua conta está suspensa. Fale com o suporte.",
+  "fora-da-area": "Endereço fora da área de cobertura (Palmas e região). Confira a coleta e a entrega.",
 };
 const traduzMotivo = (m: string) => MOTIVO[m] ?? `Falha ao criar o pedido (${m}).`;
 
