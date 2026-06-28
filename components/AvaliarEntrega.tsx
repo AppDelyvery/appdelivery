@@ -45,9 +45,11 @@ export default function AvaliarEntrega({ pedidoId, dePapel, alvo }: { pedidoId: 
             onMouseEnter={() => setHover(n)}
             onMouseLeave={() => setHover(0)}
             aria-label={`${n} estrela(s)`}
-            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 34, lineHeight: 1, padding: 0, color: (hover || nota) >= n ? "#eab308" : "var(--line)" }}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "grid", placeItems: "center" }}
           >
-            ★
+            <svg width={34} height={34} viewBox="0 0 24 24" fill={(hover || nota) >= n ? "#f59e0b" : "var(--line-2)"} aria-hidden>
+              <polygon points="12 2 15 9 22 9.3 16.5 14 18.5 21 12 17 5.5 21 7.5 14 2 9.3 9 9" />
+            </svg>
           </button>
         ))}
       </div>
