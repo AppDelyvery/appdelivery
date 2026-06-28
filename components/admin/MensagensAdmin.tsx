@@ -48,23 +48,39 @@ export default function MensagensAdmin() {
     .sort((a, b) => b.last.created_at.localeCompare(a.last.created_at));
 
   const thread = sel ? threads.get(sel) ?? [] : [];
+  const aguardando = [...threads.values()].filter((ms) => ms[ms.length - 1].autor_papel !== "suporte").length;
 
   return (
     <AdminShell title="Mensagens">
+      <div className="kpis">
+        <div className="kpi"><div className="ic"><Icon name="send" /></div><div className="v">{threads.size}</div><div className="l">Conversas</div></div>
+        <div className="kpi"><div className="ic"><Icon name="send" /></div><div className="v">{msgs.length}</div><div className="l">Mensagens</div></div>
+        <div className="kpi"><div className="ic"><Icon name="alert" /></div><div className="v" style={{ color: aguardando ? "var(--warn)" : undefined }}>{aguardando}</div><div className="l">Aguardando resposta</div></div>
+      </div>
       <div className="card">
         <div className="card-h"><Icon name="send" /><h3>Conversas</h3><span className="right">{lista.length}</span></div>
         <Busca value={q} onChange={setQ} placeholder="Buscar por endereço ou conteúdo…" />
         {lista.length === 0 ? (
           <div style={{ fontSize: 13, color: "var(--muted)", textAlign: "center", padding: "12px 0" }}>Nenhuma conversa ainda.</div>
         ) : (
-          lista.map((t) => (
-            <div key={t.id} onClick={() => setSel(t.id)} style={{ padding: "10px 0", borderBottom: "1px solid var(--line)", cursor: "pointer" }}>
-              <div className="td-name" style={{ fontSize: 12.5 }}>{t.last.pedidos ? `${t.last.pedidos.coleta_endereco} → ${t.last.pedidos.entrega_endereco}` : `#${t.id.slice(0, 8)}`}</div>
-              <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                <b style={{ color: "var(--brand)" }}>{ROTULO[t.last.autor_papel] ?? t.last.autor_papel}:</b> {t.last.texto} <span style={{ color: "var(--faint)" }}>· {t.ms.length} msg</span>
+          lista.map((t) => {
+            const precisa = t.last.autor_papel !== "suporte";
+            return (
+              <div key={t.id} onClick={() => setSel(t.id)} style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 0", borderBottom: "1px solid var(--line)", cursor: "pointer" }}>
+                <span style={{ width: 38, height: 38, borderRadius: 11, background: "var(--brand-light)", display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name="send" /></span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                    <div className="td-name" style={{ fontSize: 12.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.last.pedidos ? `${t.last.pedidos.coleta_endereco} → ${t.last.pedidos.entrega_endereco}` : `#${t.id.slice(0, 8)}`}</div>
+                    <span style={{ fontSize: 11, color: "var(--faint)", flexShrink: 0 }}>{dt(t.last.created_at)}</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <b style={{ color: "var(--brand)" }}>{ROTULO[t.last.autor_papel] ?? t.last.autor_papel}:</b> {t.last.texto} <span style={{ color: "var(--faint)" }}>· {t.ms.length} msg</span>
+                  </div>
+                </div>
+                {precisa && <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "var(--warn)", background: "var(--warn-bg)", padding: "3px 8px", borderRadius: 20 }}>aguardando</span>}
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
       <p className="hint">Acesso total às conversas (auditoria · só admin). O admin pode entrar como “suporte”.</p>
