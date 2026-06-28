@@ -2,18 +2,18 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AdminShell from "./AdminShell";
-import { Icon } from "../Icons";
+import { Icon, type IconName } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { enviarComunicado } from "@/actions/comunicados";
 
 type Com = { id: string; titulo: string; corpo: string; alvo: string; created_at: string };
 
-const ALVOS = [
-  { k: "todos", txt: "Todos" },
-  { k: "entregadores", txt: "Entregadores" },
-  { k: "negocios", txt: "Negócios" },
+const ALVOS: { k: string; txt: string; ic: IconName; cor: string }[] = [
+  { k: "todos", txt: "Todos", ic: "send", cor: "var(--brand)" },
+  { k: "entregadores", txt: "Entregadores", ic: "moto", cor: "#f59e0b" },
+  { k: "negocios", txt: "Negócios", ic: "building", cor: "var(--go)" },
 ];
-const ALVO_TXT: Record<string, string> = { todos: "Todos", entregadores: "Entregadores", negocios: "Negócios" };
+const alvoMeta = (k: string) => ALVOS.find((a) => a.k === k) ?? ALVOS[0];
 const dt = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
 export default function ComunicadosAdmin() {
@@ -60,13 +60,16 @@ export default function ComunicadosAdmin() {
         <div className="card-h"><Icon name="send" /><h3>Novo comunicado</h3></div>
         <input className="input" placeholder="Título" value={titulo} onChange={(e) => setTitulo(e.target.value)} style={{ marginBottom: 10 }} />
         <textarea className="input" placeholder="Mensagem…" value={corpo} onChange={(e) => setCorpo(e.target.value)} rows={3} style={{ marginBottom: 10, resize: "vertical" }} />
-        <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
-          {ALVOS.map((a) => (
-            <button key={a.k} onClick={() => setAlvo(a.k)} className="btn"
-              style={{ width: "auto", padding: "7px 14px", fontSize: 12.5, background: alvo === a.k ? "var(--brand)" : "#fff", color: alvo === a.k ? "#fff" : "var(--ink-2)", border: "1px solid var(--line-2)" }}>
-              {a.txt}
-            </button>
-          ))}
+        <div style={{ display: "inline-flex", background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 12, padding: 3, gap: 2, marginBottom: 10, flexWrap: "wrap" }}>
+          {ALVOS.map((a) => {
+            const on = alvo === a.k;
+            return (
+              <button key={a.k} onClick={() => setAlvo(a.k)}
+                style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 12.5, fontWeight: 700, padding: "7px 15px", borderRadius: 9, background: on ? "#fff" : "transparent", color: on ? "var(--brand)" : "var(--muted)", boxShadow: on ? "var(--shadow-sm)" : "none", transition: ".15s" }}>
+                {a.txt}
+              </button>
+            );
+          })}
         </div>
         <button className="btn btn-primary" style={{ width: "auto", padding: "9px 18px" }} disabled={!podeEnviar} onClick={enviar}>
           <Icon name="send" /> {busy ? "Enviando…" : "Enviar"}
@@ -80,16 +83,22 @@ export default function ComunicadosAdmin() {
         {coms.length === 0 ? (
           <div style={{ fontSize: 12.5, color: "var(--faint)" }}>Nenhum comunicado enviado ainda.</div>
         ) : (
-          coms.map((c) => (
-            <div key={c.id} style={{ padding: "10px 0", borderBottom: "1px solid var(--line)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span className="td-name" style={{ fontSize: 13.5 }}>{c.titulo}</span>
-                <span className="status-pill s-live">{ALVO_TXT[c.alvo] ?? c.alvo}</span>
+          coms.map((c) => {
+            const m = alvoMeta(c.alvo);
+            return (
+              <div key={c.id} style={{ display: "flex", gap: 11, padding: "11px 0", borderBottom: "1px solid var(--line)" }}>
+                <span style={{ width: 36, height: 36, borderRadius: 10, background: "var(--brand-light)", display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name={m.ic} /></span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <span className="td-name" style={{ fontSize: 13.5 }}>{c.titulo}</span>
+                    <span style={{ flexShrink: 0, fontSize: 10.5, fontWeight: 800, color: m.cor, background: `color-mix(in srgb, ${m.cor} 13%, transparent)`, padding: "3px 9px", borderRadius: 20 }}>{m.txt}</span>
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "var(--ink-2)", margin: "4px 0" }}>{c.corpo}</div>
+                  <div style={{ fontSize: 11, color: "var(--faint)" }}>{dt(c.created_at)}</div>
+                </div>
               </div>
-              <div style={{ fontSize: 12.5, color: "var(--ink-2)", margin: "4px 0" }}>{c.corpo}</div>
-              <div style={{ fontSize: 11, color: "var(--faint)" }}>{dt(c.created_at)}</div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </AdminShell>
