@@ -14,6 +14,11 @@ type Row = {
   raio_m: number;
   protecao_teto: number;
   pin_supervisor: string | null;
+  risco_coleta_min: number;
+  risco_gps_min: number;
+  sla_buscando_min: number;
+  sla_buscando_cancel_min: number;
+  taxa_cancelamento: number;
 };
 
 export default function ConfigAdmin() {
@@ -118,6 +123,38 @@ export default function ConfigAdmin() {
             placeholder="vazio = sem PIN"
             onChange={(e) => setRow((r) => (r ? { ...r, pin_supervisor: e.target.value } : r))}
           />
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-h">
+          <Icon name="bolt" />
+          <h3>Controles operacionais</h3>
+        </div>
+        <div className="field">
+          <label>Coleta atrasada — alerta após (min)</label>
+          <input className="input" type="number" value={row.risco_coleta_min} onChange={num("risco_coleta_min")} />
+          <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 4 }}>Aceitou e não coletou nesse tempo → pedido entra em risco no Despacho.</div>
+        </div>
+        <div className="field">
+          <label>Carga parada — alerta de GPS frio após (min)</label>
+          <input className="input" type="number" value={row.risco_gps_min} onChange={num("risco_gps_min")} />
+          <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 4 }}>Coletou mas o entregador parou de se mover → alerta de carga em risco.</div>
+        </div>
+        <div className="field">
+          <label>Sem entregador — alerta após (min)</label>
+          <input className="input" type="number" value={row.sla_buscando_min} onChange={num("sla_buscando_min")} />
+          <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 4 }}>Pedido em &ldquo;buscando&rdquo; além desse tempo → sinaliza no Despacho.</div>
+        </div>
+        <div className="field">
+          <label>Auto-cancelar sem entregador após (min)</label>
+          <input className="input" type="number" value={row.sla_buscando_cancel_min} onChange={num("sla_buscando_cancel_min")} />
+          <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 4 }}>Acima de 0: cancela e estorna sozinho se ninguém aceitar nesse tempo. <b>0 desliga.</b></div>
+        </div>
+        <div className="field">
+          <label>Taxa de cancelamento do lojista (R$)</label>
+          <input className="input" type="number" step="0.01" value={row.taxa_cancelamento} onChange={num("taxa_cancelamento")} />
+          <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 4 }}>Lojista cancela com entregador já designado → retém esse valor e repassa como compensação pro entregador. <b>0 = estorno cheio.</b></div>
         </div>
       </div>
 
