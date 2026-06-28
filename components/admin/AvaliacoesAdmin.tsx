@@ -19,7 +19,20 @@ type Av = {
 };
 
 const dt = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-const estrelas = (n: number) => "★".repeat(n) + "☆".repeat(5 - n);
+const corNota = (n: number) => (n >= 4 ? "var(--go)" : n === 3 ? "#f59e0b" : "var(--warn)");
+
+// estrelas em SVG (sem glifo unicode) — âmbar cheio até a nota, cinza no resto
+function Estrelas({ n, size = 14 }: { n: number; size?: number }) {
+  return (
+    <span style={{ display: "inline-flex", gap: 1 }}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <svg key={i} width={size} height={size} viewBox="0 0 24 24" fill={i <= n ? "#f59e0b" : "var(--line-2)"} aria-hidden>
+          <polygon points="12 2 15 9 22 9.3 16.5 14 18.5 21 12 17 5.5 21 7.5 14 2 9.3 9 9" />
+        </svg>
+      ))}
+    </span>
+  );
+}
 
 export default function AvaliacoesAdmin() {
   const [avs, setAvs] = useState<Av[]>([]);
@@ -60,11 +73,14 @@ export default function AvaliacoesAdmin() {
         <div className="card-h"><Icon name="chart" /><h3>Distribuição</h3></div>
         {dist.map((d) => (
           <div key={d.n} style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 0" }}>
-            <span style={{ width: 26, fontSize: 12.5, color: "var(--muted)" }}>{d.n}★</span>
+            <span style={{ width: 30, fontSize: 12.5, color: "var(--muted)", display: "inline-flex", alignItems: "center", gap: 3 }}>
+              {d.n}
+              <svg width={11} height={11} viewBox="0 0 24 24" fill="#f59e0b" aria-hidden><polygon points="12 2 15 9 22 9.3 16.5 14 18.5 21 12 17 5.5 21 7.5 14 2 9.3 9 9" /></svg>
+            </span>
             <div style={{ flex: 1, height: 8, background: "var(--line)", borderRadius: 6, overflow: "hidden" }}>
-              <div style={{ width: `${(d.qtd / max) * 100}%`, height: "100%", background: "var(--brand)" }} />
+              <div style={{ width: `${(d.qtd / max) * 100}%`, height: "100%", background: corNota(d.n), transition: "width .3s" }} />
             </div>
-            <span style={{ width: 28, textAlign: "right", fontSize: 12.5 }}>{d.qtd}</span>
+            <span style={{ width: 28, textAlign: "right", fontSize: 12.5, fontVariantNumeric: "tabular-nums" }}>{d.qtd}</span>
           </div>
         ))}
       </div>
@@ -80,7 +96,7 @@ export default function AvaliacoesAdmin() {
           lista.map((a, i) => (
             <div key={i} style={{ padding: "10px 0", borderBottom: "1px solid var(--line)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ color: "var(--amber, #d97706)", fontSize: 13, letterSpacing: 1 }}>{estrelas(a.nota ?? 0)}</span>
+                <Estrelas n={a.nota ?? 0} />
                 <span style={{ color: "var(--faint)", fontSize: 11 }}>{dt(a.created_at)}</span>
               </div>
               {a.comentario?.trim() && <div style={{ fontSize: 13, color: "var(--ink)", margin: "4px 0" }}>{a.comentario}</div>}
