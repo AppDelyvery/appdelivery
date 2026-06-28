@@ -17,11 +17,13 @@ export async function abrirDisputa(pedidoId: string, papel: string, tipo: string
   return { ok: true };
 }
 
-// Admin resolve o chamado.
-export async function resolverDisputa(id: string, resolucao: string): Promise<DispResult> {
+// Admin resolve o chamado — opcionalmente com reembolso (total/parcial) pra carteira do lojista.
+// Via RPC resolver_disputa (SECURITY DEFINER, is_admin): credita a carteira + registra a transação.
+export async function resolverDisputa(id: string, resolucao: string, reembolso = 0): Promise<DispResult> {
   const sb = await getServerSupabase();
   if (!sb) return { ok: false, motivo: "supabase-nao-configurado" };
-  const { error } = await sb.from("disputas").update({ status: "resolvida", resolucao, resolvida_at: new Date().toISOString() }).eq("id", id);
+  const { data, error } = await sb.rpc("resolver_disputa", { p_disputa_id: id, p_resolucao: resolucao, p_reembolso: reembolso });
   if (error) return { ok: false, motivo: error.message };
+  if (data && data !== "ok") return { ok: false, motivo: data as string };
   return { ok: true };
 }
