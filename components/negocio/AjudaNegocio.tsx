@@ -125,7 +125,7 @@ export default function AjudaNegocio() {
             <div key={d.id} style={{ padding: "9px 0", borderBottom: "1px solid var(--line)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                 <b style={{ fontSize: 12.5 }}>{TIPOS.find((t) => t.v === d.tipo)?.l ?? d.tipo}</b>
-                <span style={{ fontSize: 11.5, color: d.status === "resolvida" ? "var(--ok,#059669)" : "var(--muted)" }}>{STATUS[d.status] ?? d.status}</span>
+                <span className={`status-pill ${d.status === "resolvida" ? "s-ok" : d.status === "em_analise" ? "s-live" : "s-pend"}`} style={{ flexShrink: 0 }}>{STATUS[d.status] ?? d.status}</span>
               </div>
               {d.descricao && <div style={{ fontSize: 12, color: "var(--ink-2)", marginTop: 2 }}>{d.descricao}</div>}
               <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{dt(d.created_at)}</div>
@@ -139,7 +139,7 @@ export default function AjudaNegocio() {
           <div onClick={(e) => e.stopPropagation()} className="card" style={{ maxWidth: 400, width: "100%", margin: 0 }}>
             <div className="card-h" style={{ justifyContent: "space-between" }}>
               <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}><Icon name="send" /><h3 style={{ margin: 0 }}>Abrir chamado</h3></span>
-              <span onClick={fechar} style={{ cursor: "pointer", color: "var(--muted)", fontSize: 18 }}>×</span>
+              <button onClick={fechar} aria-label="Fechar" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", display: "grid", placeItems: "center", padding: 0 }}><Icon name="stop" /></button>
             </div>
             {okMsg ? (
               <div style={{ textAlign: "center", padding: "8px 0" }}>

@@ -109,10 +109,13 @@ export default function EquipeNegocio() {
           <div style={{ fontSize: 12.5, color: "var(--faint)" }}>Nenhum funcionário ainda. Convide a sua equipe pra dividir a operação.</div>
         ) : (
           membros.map((m) => (
-            <div key={m.profile_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--line)" }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>{m.nome || "—"}</div>
-                <div style={{ fontSize: 11.5, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.email || "—"}</div>
+            <div key={m.profile_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "10px 0", borderBottom: "1px solid var(--line)", opacity: m.ativo ? 1 : 0.5 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                <span style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,var(--brand-2),var(--brand-dark))", color: "#fff", display: "grid", placeItems: "center", fontWeight: 800, fontSize: 14, flexShrink: 0 }}>{(m.nome || "?").charAt(0).toUpperCase()}</span>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{m.nome || "—"}</div>
+                  <div style={{ fontSize: 11.5, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.email || "—"}</div>
+                </div>
               </div>
               <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
                 <button onClick={() => trocarPapel(m)} className={`status-pill ${m.papel === "gerente" ? "s-live" : "s-pend"}`} style={{ cursor: "pointer", border: "none" }} title="Trocar papel">
@@ -133,7 +136,7 @@ export default function EquipeNegocio() {
           <div onClick={(e) => e.stopPropagation()} className="card" style={{ maxWidth: 400, width: "100%", margin: 0 }}>
             <div className="card-h" style={{ justifyContent: "space-between" }}>
               <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}><Icon name="send" /><h3 style={{ margin: 0 }}>Convidar funcionário</h3></span>
-              <span onClick={fechar} style={{ cursor: "pointer", color: "var(--muted)", fontSize: 18 }}>×</span>
+              <button onClick={fechar} aria-label="Fechar" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", display: "grid", placeItems: "center", padding: 0 }}><Icon name="stop" /></button>
             </div>
 
             {!(res && "ok" in res) && (
