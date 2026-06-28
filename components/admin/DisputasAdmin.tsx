@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AdminShell from "./AdminShell";
-import { Icon } from "../Icons";
+import { Icon, type IconName } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { resolverDisputa } from "@/actions/disputas";
 import { money } from "@/lib/precos";
@@ -15,6 +15,7 @@ type Disputa = {
 type Msg = { autor_papel: string | null; texto: string; created_at: string };
 
 const ROTULO: Record<string, string> = { estabelecimento: "Loja", entregador: "Entregador", cliente_final: "Cliente", cliente: "Cliente" };
+const papelIc = (papel: string | null): IconName => (papel === "entregador" ? "moto" : papel === "estabelecimento" ? "building" : "user");
 const ST: Record<string, { cls: string; txt: string }> = {
   aberta: { cls: "s-pend", txt: "Aberta" },
   em_analise: { cls: "s-live", txt: "Em análise" },
@@ -64,9 +65,16 @@ export default function DisputasAdmin() {
   };
 
   const abertas = disputas.filter((d) => d.status !== "resolvida");
+  const resolvidos = disputas.filter((d) => d.status === "resolvida").length;
+  const reembolsado = disputas.reduce((s, d) => s + (d.valor_reembolso ?? 0), 0);
 
   return (
     <AdminShell title="Suporte">
+      <div className="kpis" style={{ marginBottom: 14 }}>
+        <div className="kpi"><div className="ic"><Icon name="alert" /></div><div className="v" style={{ color: abertas.length ? "var(--warn)" : undefined }}>{abertas.length}</div><div className="l">Chamados abertos</div></div>
+        <div className="kpi"><div className="ic"><Icon name="checkThin" /></div><div className="v">{resolvidos}</div><div className="l">Resolvidos</div></div>
+        <div className="kpi"><div className="ic"><Icon name="money" /></div><div className="v" style={{ fontSize: 19 }}>{money(reembolsado)}</div><div className="l">Reembolsado</div></div>
+      </div>
       <div className="card">
         <div className="card-h"><Icon name="shield" /><h3>Chamados</h3><span className="right">{abertas.length} aberto(s)</span></div>
         {disputas.length === 0 ? (
@@ -78,15 +86,18 @@ export default function DisputasAdmin() {
             return (
               <div key={d.id} style={{ padding: "12px 0", borderBottom: "1px solid var(--line)" }}>
                 {/* cabeçalho clicável */}
-                <button onClick={() => abrir(d)} style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, gap: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700 }}>{ROTULO[d.papel ?? ""] ?? d.papel ?? "—"} · {d.tipo}</span>
-                    <span className={`status-pill ${ST[d.status]?.cls ?? "s-pend"}`}>{ST[d.status]?.txt ?? d.status}</span>
+                <button onClick={() => abrir(d)} style={{ display: "flex", gap: 11, width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>
+                  <span style={{ width: 36, height: 36, borderRadius: 10, background: "var(--brand-light)", display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name={papelIc(d.papel)} /></span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, gap: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700 }}>{ROTULO[d.papel ?? ""] ?? d.papel ?? "—"} · {d.tipo}</span>
+                      <span className={`status-pill ${ST[d.status]?.cls ?? "s-pend"}`}>{ST[d.status]?.txt ?? d.status}</span>
+                    </div>
+                    <div style={{ fontSize: 11.5, color: "var(--faint)", marginBottom: 4 }}>
+                      {d.pedidos ? `${d.pedidos.coleta_endereco} → ${d.pedidos.entrega_endereco}` : ""} · {dt(d.created_at)}{frete ? ` · frete ${money(frete)}` : ""}
+                    </div>
+                    <div style={{ fontSize: 13, color: "var(--ink-2)" }}>{d.descricao}</div>
                   </div>
-                  <div style={{ fontSize: 11.5, color: "var(--faint)", marginBottom: 4 }}>
-                    {d.pedidos ? `${d.pedidos.coleta_endereco} → ${d.pedidos.entrega_endereco}` : ""} · {dt(d.created_at)}{frete ? ` · frete ${money(frete)}` : ""}
-                  </div>
-                  <div style={{ fontSize: 13, color: "var(--ink-2)" }}>{d.descricao}</div>
                 </button>
 
                 {/* resolvida: mostra desfecho + reembolso */}

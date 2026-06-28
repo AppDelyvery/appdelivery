@@ -17,6 +17,8 @@ export default function NegociosAdmin() {
   const [mostrar, setMostrar] = useState(30);
   const filtrados = negocios.filter((n) => norm(`${n.razao_social} ${n.cnpj ?? ""}`).includes(norm(q)));
   const visiveis = filtrados.slice(0, mostrar);
+  const ativos = negocios.filter((n) => n.ativo).length;
+  const saldoTotal = negocios.reduce((s, n) => s + (n.saldo_carteira ?? 0), 0);
 
   const carregar = useCallback(async () => {
     const sb = getBrowserSupabase();
@@ -32,6 +34,12 @@ export default function NegociosAdmin() {
 
   return (
     <AdminShell title="Negócios">
+      <div className="kpis" style={{ marginBottom: 14 }}>
+        <div className="kpi"><div className="ic"><Icon name="building" /></div><div className="v">{negocios.length}</div><div className="l">Negócios</div></div>
+        <div className="kpi"><div className="ic"><Icon name="checkThin" /></div><div className="v" style={{ color: "var(--go)" }}>{ativos}</div><div className="l">Ativos</div></div>
+        <div className="kpi"><div className="ic"><Icon name="shield" /></div><div className="v" style={{ color: negocios.length - ativos ? "var(--warn)" : undefined }}>{negocios.length - ativos}</div><div className="l">Suspensos</div></div>
+        <div className="kpi"><div className="ic"><Icon name="money" /></div><div className="v" style={{ fontSize: 19 }}>{money(saldoTotal)}</div><div className="l">Saldo em carteira</div></div>
+      </div>
       <div className="card">
         <div className="card-h"><Icon name="building" /><h3>Negócios cadastrados</h3><span className="right">{negocios.length}</span></div>
         <Busca value={q} onChange={(v) => { setQ(v); setMostrar(30); }} placeholder="Buscar por nome ou CNPJ…" />

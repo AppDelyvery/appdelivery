@@ -72,6 +72,10 @@ export default function DespachoAdmin() {
 
   return (
     <AdminShell title="Despacho">
+      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12, fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--go)", boxShadow: "0 0 0 3px color-mix(in srgb, var(--go) 25%, transparent)" }} />
+        Ao vivo · atualiza a cada 8s · última {updated}
+      </div>
       <div className="kpis" style={{ marginBottom: 14 }}>
         <div className="kpi"><div className="ic"><Icon name="moto" /></div><div className="v">{ents.length}</div><div className="l">Entregadores online</div></div>
         <div className="kpi"><div className="ic"><Icon name="checkThin" /></div><div className="v">{livres}</div><div className="l">Livres agora</div></div>
@@ -104,10 +108,13 @@ export default function DespachoAdmin() {
             <div style={{ fontSize: 12.5, color: "var(--faint)" }}>Nenhum entregador online agora.</div>
           ) : (
             ents.map((e) => (
-              <div key={e.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: "1px solid var(--line)" }}>
-                <div>
-                  <div className="td-name" style={{ fontSize: 13 }}>{e.nome}</div>
-                  <div style={{ color: "var(--muted)", fontSize: 11.5 }}>{e.vehicle_type}</div>
+              <div key={e.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "9px 0", borderBottom: "1px solid var(--line)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                  <span style={{ width: 32, height: 32, borderRadius: 9, background: "linear-gradient(135deg,var(--brand-2),var(--brand-dark))", color: "#fff", display: "grid", placeItems: "center", fontWeight: 800, fontSize: 13, flexShrink: 0 }}>{e.nome.charAt(0).toUpperCase()}</span>
+                  <div style={{ minWidth: 0 }}>
+                    <div className="td-name" style={{ fontSize: 13 }}>{e.nome}</div>
+                    <div style={{ color: "var(--muted)", fontSize: 11.5 }}>{e.vehicle_type}</div>
+                  </div>
                 </div>
                 <span className={`status-pill ${e.em_corrida ? "s-live" : "s-ok"}`}>{e.em_corrida ? "Em corrida" : "Livre"}</span>
               </div>
@@ -164,7 +171,7 @@ export default function DespachoAdmin() {
         </div>
       </div>
 
-      <p className="hint">Atualiza a cada 8s · última {updated}. Risco e posição vêm de quem está com GPS ligado (is_online).</p>
+      <p className="hint">Risco e posição vêm de quem está com GPS ligado (is_online).</p>
     </AdminShell>
   );
 }
