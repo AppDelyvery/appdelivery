@@ -44,6 +44,12 @@ export default function AddressAutocomplete({
     return () => document.removeEventListener("mousedown", fora);
   }, []);
 
+  // sincroniza o texto quando o valor é definido DE FORA (ex.: coleta semeada do endereço
+  // do negócio depois do mount) — sem isso o campo mostra só o placeholder com coords carregadas.
+  useEffect(() => {
+    if (valor?.endereco) setTexto(valor.endereco);
+  }, [valor]);
+
   const buscar = (q: string) => {
     setTexto(q);
     onSelecionar(null); // mudou o texto → coords ainda não confirmadas

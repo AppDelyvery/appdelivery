@@ -36,10 +36,10 @@ export default function AvaliacoesNegocio() {
     <NegocioShell title="Avaliações">
       <div className="card" style={{ textAlign: "center" }}>
         <div style={{ fontSize: 44, fontWeight: 800, color: "var(--brand)", letterSpacing: -1 }}>
-          {carregando ? "—" : rating != null ? Number(rating).toFixed(1).replace(".", ",") : "—"}
+          {carregando ? "—" : total > 0 && rating != null ? Number(rating).toFixed(1).replace(".", ",") : "—"}
         </div>
         <div style={{ display: "flex", justifyContent: "center", marginTop: 2 }}>
-          <Estrelas n={rating != null ? Math.round(Number(rating)) : 0} size={20} />
+          <Estrelas n={total > 0 && rating != null ? Math.round(Number(rating)) : 0} size={20} />
         </div>
         <div style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 6 }}>{total} avaliação(ões) de entregadores</div>
         <div style={{ fontSize: 11, color: "var(--faint)", marginTop: 4 }}>As novas avaliações só aparecem no dia seguinte.</div>

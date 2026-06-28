@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import AppShell, { type ShellNavGroup } from "../AppShell";
 import BotaoSuporte from "../BotaoSuporte";
 import SlideConfirm from "../SlideConfirm";
@@ -111,8 +112,11 @@ function FormScreen() {
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [negocioEndereco, setNegocioEndereco] = useState<Lugar | null>(null);
+  const [saldo, setSaldo] = useState<number | null>(null); // só carregado pra dono/gerente
+  const [pleno, setPleno] = useState(false);
 
-  // coleta semi-automática: começa do endereço cadastrado do negócio (só semeia se ainda não escolheu)
+  // coleta semi-automática + saldo: começa do endereço cadastrado do negócio (só semeia se ainda
+  // não escolheu); carrega o saldo apenas pra dono/gerente (operador não vê financeiro).
   useEffect(() => {
     (async () => {
       const sb = getBrowserSupabase();
@@ -123,6 +127,12 @@ function FormScreen() {
         const lugar = { endereco: d.endereco, lat: d.lat, lng: d.lng };
         setNegocioEndereco(lugar);
         setColeta((c) => c ?? lugar);
+      }
+      const { data: papel } = await sb.rpc("meu_papel_negocio");
+      if (papel === "dono" || papel === "gerente") {
+        setPleno(true);
+        const { data: sd } = await sb.from("estabelecimentos").select("saldo_carteira").limit(1).maybeSingle();
+        setSaldo((sd as { saldo_carteira?: number } | null)?.saldo_carteira ?? 0);
       }
     })();
   }, []);
@@ -295,6 +305,25 @@ function FormScreen() {
         </div>
       </div>
 
+      {pleno && saldo != null && (
+        <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "12px 14px" }}>
+          <span style={{ fontSize: 12.5, color: "var(--muted)", fontWeight: 600 }}>Saldo em carteira</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <b style={{ fontVariantNumeric: "tabular-nums", color: saldo < pc.total ? "var(--warn)" : "var(--ink)" }}>{money(saldo)}</b>
+            {saldo < pc.total && (
+              <Link href="/negocio/carteira" className="btn btn-primary" style={{ width: "auto", padding: "6px 12px", fontSize: 12 }}>
+                <Icon name="upload" /> Recarregar
+              </Link>
+            )}
+          </span>
+        </div>
+      )}
+      {pleno && saldo != null && saldo < pc.total && (
+        <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)", marginBottom: 12 }}>
+          <Icon name="alert" />
+          <div>Saldo insuficiente pra esta entrega ({money(pc.total)}). Recarregue a carteira antes de solicitar.</div>
+        </div>
+      )}
       {erro && (
         <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)", marginBottom: 12 }}>
           <Icon name="shield" />
@@ -305,7 +334,7 @@ function FormScreen() {
         <Icon name="shield" />
         <div>Esta entrega tem <b>proteção de carga inclusa</b> (até {money(teto)}) e entregador com <b>antecedentes verificados</b>.</div>
       </div>
-      <SlideConfirm label="Solicitar entrega" icon="send" color="brand" busy={enviando} disabled={!podeEnviar} onConfirm={solicitar} />
+      <SlideConfirm label="Solicitar entrega" icon="send" color="brand" busy={enviando} disabled={!podeEnviar || (pleno && saldo != null && saldo < pc.total)} onConfirm={solicitar} />
       <p className="hint">
         O preço é calculado pela fórmula km + coleta + paradas,
         <br />
