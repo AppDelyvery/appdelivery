@@ -36,6 +36,8 @@ const MOTIVO: Record<string, string> = {
 const traduzMotivo = (m: string) => MOTIVO[m] ?? `Falha ao criar o pedido (${m}).`;
 
 const km1 = (n: number) => n.toFixed(1).replace(".", ",");
+const MAX_PARADAS = 5;
+const MAX_ESPERA_MIN = 60;
 
 const TITLES: Record<NegocioView, string> = {
   form: "Nova entrega",
@@ -206,11 +208,21 @@ function FormScreen() {
           <h3>Solicitar entrega</h3>
         </div>
         <AddressAutocomplete label="Local de coleta" valor={coleta} onSelecionar={setColeta} placeholder="Ex.: Ótica Visão Center, Q.104 Norte" />
-        {coleta && negocioEndereco && coleta.endereco === negocioEndereco.endereco && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: -4, marginBottom: 10, fontSize: 11.5, color: "var(--muted)", fontWeight: 600 }}>
-            <Icon name="building" /> Saindo do endereço do seu negócio · troque acima se for outro ponto
+        {coleta && negocioEndereco && coleta.endereco === negocioEndereco.endereco ? (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: -4, marginBottom: 10, flexWrap: "wrap" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "var(--muted)", fontWeight: 600 }}>
+              <Icon name="building" /> Saindo do endereço do seu negócio
+            </span>
+            <button type="button" onClick={() => setColeta(null)} style={{ background: "none", border: "none", color: "var(--brand)", fontWeight: 700, fontSize: 12, cursor: "pointer", fontFamily: "inherit", padding: 0 }}>
+              Usar outro endereço
+            </button>
           </div>
-        )}
+        ) : !coleta && !negocioEndereco ? (
+          <div className="trust-banner" style={{ marginTop: -4, marginBottom: 10 }}>
+            <Icon name="building" />
+            <div>Defina o <Link href="/negocio/perfil" style={{ color: "var(--brand)", fontWeight: 700 }}>endereço do seu negócio</Link> pra toda entrega já sair de lá automaticamente.</div>
+          </div>
+        ) : null}
         <AddressAutocomplete label="Local de entrega" valor={entrega} onSelecionar={setEntrega} placeholder="Ex.: Arse 122, Plano Diretor Sul" />
         <div className="field">
           <label>O que será enviado</label>
@@ -236,7 +248,7 @@ function FormScreen() {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button type="button" className="btn" style={{ width: "auto", padding: "6px 14px", fontSize: 16 }} onClick={() => setParadasExtras((n) => Math.max(0, n - 1))} aria-label="Menos paradas">−</button>
             <span style={{ fontWeight: 700, minWidth: 24, textAlign: "center" }}>{paradasExtras}</span>
-            <button type="button" className="btn" style={{ width: "auto", padding: "6px 14px", fontSize: 16 }} onClick={() => setParadasExtras((n) => n + 1)} aria-label="Mais paradas">+</button>
+            <button type="button" className="btn" style={{ width: "auto", padding: "6px 14px", fontSize: 16 }} onClick={() => setParadasExtras((n) => Math.min(MAX_PARADAS, n + 1))} aria-label="Mais paradas">+</button>
           </div>
         </div>
 
@@ -245,7 +257,7 @@ function FormScreen() {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button type="button" className="btn" style={{ width: "auto", padding: "6px 14px", fontSize: 16 }} onClick={() => setMinutosEspera((n) => Math.max(0, n - PRICE.esperaBlocoMin))} aria-label="Menos espera">−</button>
             <span style={{ fontWeight: 700, minWidth: 56, textAlign: "center" }}>{minutosEspera} min</span>
-            <button type="button" className="btn" style={{ width: "auto", padding: "6px 14px", fontSize: 16 }} onClick={() => setMinutosEspera((n) => n + PRICE.esperaBlocoMin)} aria-label="Mais espera">+</button>
+            <button type="button" className="btn" style={{ width: "auto", padding: "6px 14px", fontSize: 16 }} onClick={() => setMinutosEspera((n) => Math.min(MAX_ESPERA_MIN, n + PRICE.esperaBlocoMin))} aria-label="Mais espera">+</button>
           </div>
         </div>
       </div>

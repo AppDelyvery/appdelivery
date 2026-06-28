@@ -56,10 +56,14 @@ export async function criarPedido(input: NovoPedidoInput): Promise<CriarPedidoRe
   const distSegura = rota?.distKm ?? Math.max(input.distanciaKm ?? 0, piso);
   const durSegura = rota?.durMin ?? input.duracaoMin;
 
+  // tetos autoritativos no server (cliente também limita, mas aqui é a fonte da verdade)
+  const paradas = Math.min(5, Math.max(0, Math.floor(input.paradasExtras ?? 0)));
+  const espera = Math.min(60, Math.max(0, Math.floor(input.minutosEspera ?? 0)));
+
   const cfg = await getConfig(sb);
   const pc = priceCalc(input.veiculo, distSegura, cfg, {
-    paradasExtras: input.paradasExtras,
-    minutosEspera: input.minutosEspera,
+    paradasExtras: paradas,
+    minutosEspera: espera,
   });
 
   const { data: novo, error: eIns } = await sb
@@ -79,8 +83,8 @@ export async function criarPedido(input: NovoPedidoInput): Promise<CriarPedidoRe
       vehicle_type: input.veiculo,
       distancia_km: distSegura,
       duracao_min: durSegura,
-      paradas_extras: Math.max(0, Math.floor(input.paradasExtras ?? 0)),
-      minutos_espera: Math.max(0, Math.floor(input.minutosEspera ?? 0)),
+      paradas_extras: paradas,
+      minutos_espera: espera,
       preco_total: pc.total,
       preco_entregador: pc.driver,
       preco_plataforma: pc.taxa,
