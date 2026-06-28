@@ -26,7 +26,8 @@ export const VEICULOS: { id: Veiculo; nome: string; desc: string }[] = [
   { id: "van", nome: "Van", desc: "Cargas grandes e volumosas" },
 ];
 
-export const money = (v: number) => "R$ " + v.toFixed(2).replace(".", ",");
+export const money = (v: number) =>
+  "R$ " + (v ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export type Preco = {
   base: number;

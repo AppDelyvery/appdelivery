@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentProps } from "react";
 import AdminShell from "./AdminShell";
 import { Icon } from "../Icons";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
@@ -10,7 +10,6 @@ import { baixarCSV } from "@/lib/csv";
 type Ped = { status: string; preco_plataforma: number | null; preco_entregador: number | null; entregadores: { nome: string } | null };
 type Carteira = { razao_social: string; saldo_carteira: number | null };
 
-// composição completa vinda do RPC composicao_financeira() (server-side, admin)
 type Comp = {
   passivo_lojistas: number; passivo_entregadores: number; caixa_liquido: number; total_em_conta: number;
   take_bruto: number; taxa_recargas: number; margem_pct: number;
@@ -19,7 +18,9 @@ type Comp = {
   taxa_recarga_unit: number;
 };
 
+const COR = { loja: "#64748b", ent: "#94a3b8", plat: "#059669", indigo: "#4f46e5", amber: "#b45309" };
 const pct = (v: number, total: number) => (total > 0 ? (v / total) * 100 : 0);
+const abbr = (v: number) => (v >= 1000 ? "R$ " + (v / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " mil" : money(v));
 
 export default function FinanceiroAdmin() {
   const [peds, setPeds] = useState<Ped[]>([]);
@@ -42,87 +43,108 @@ export default function FinanceiroAdmin() {
   const entregues = peds.filter((p) => p.status === "entregue");
   const porEntregador = new Map<string, number>();
   for (const p of entregues) {
-    const k = p.entregadores?.nome ?? "—";
-    porEntregador.set(k, (porEntregador.get(k) ?? 0) + (p.preco_entregador ?? 0));
+    const nome = p.entregadores?.nome;
+    if (!nome || (p.preco_entregador ?? 0) <= 0) continue; // ignora entregue sem entregador/preço (dado órfão)
+    porEntregador.set(nome, (porEntregador.get(nome) ?? 0) + (p.preco_entregador ?? 0));
   }
   const repasses = [...porEntregador.entries()].sort((a, b) => b[1] - a[1]);
+  const topRep = repasses.slice(0, 8);
+  const maxRep = topRep.length ? topRep[0][1] : 1;
 
   const total = comp?.total_em_conta ?? 0;
+  const seg = comp
+    ? [
+        { label: "Crédito dos lojistas", sub: "passivo — devido às lojas", value: comp.passivo_lojistas, color: COR.loja },
+        { label: "A sacar — entregadores", sub: "passivo — ganho não sacado", value: comp.passivo_entregadores, color: COR.ent },
+        { label: "Caixa da plataforma", sub: "líquido — isto é do app", value: comp.caixa_liquido, color: COR.plat },
+      ]
+    : [];
 
   return (
     <AdminShell title="Financeiro">
-      {/* ───────── Composição do saldo: de quem é o dinheiro na conta (custódia) ───────── */}
+      {/* ───────── Hero: pizza de custódia (de quem é o dinheiro) ───────── */}
       <div className="card">
         <div className="card-h"><Icon name="building" /><h3>Composição do saldo — de quem é o dinheiro</h3></div>
-        <div style={{ padding: "4px 2px 2px" }}>
-          <div style={{ fontSize: 12.5, color: "var(--faint)" }}>Total parado na conta Asaas</div>
-          <div style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.02em", margin: "2px 0 14px" }}>{money(total)}</div>
-
-          {/* barra de proporção — mostra o quanto é da plataforma vs de terceiros */}
-          {comp && (
-            <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden", marginBottom: 16, background: "var(--line)" }}>
-              <div title="Crédito das lojas" style={{ width: `${pct(comp.passivo_lojistas, total)}%`, background: "#64748b" }} />
-              <div title="A sacar (entregadores)" style={{ width: `${pct(comp.passivo_entregadores, total)}%`, background: "#94a3b8" }} />
-              <div title="Caixa da plataforma" style={{ width: `${Math.max(pct(comp.caixa_liquido, total), 0.6)}%`, background: "#059669" }} />
-            </div>
-          )}
-
-          <div style={{ display: "grid", gap: 10 }}>
-            <BucketRow color="#64748b" label="Crédito pré-pago dos lojistas" sub="passivo — você deve de volta às lojas" valor={comp?.passivo_lojistas ?? 0} share={pct(comp?.passivo_lojistas ?? 0, total)} />
-            <BucketRow color="#94a3b8" label="Saldo a sacar dos entregadores" sub="passivo — ganho ainda não sacado" valor={comp?.passivo_entregadores ?? 0} share={pct(comp?.passivo_entregadores ?? 0, total)} />
-            <BucketRow color="#059669" label="Caixa da plataforma (líquido)" sub="ISTO é do app — take 20% já menos as taxas" valor={comp?.caixa_liquido ?? 0} share={pct(comp?.caixa_liquido ?? 0, total)} destaque />
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "center", padding: "6px 2px" }}>
+          <div style={{ flex: "0 0 auto", margin: "0 auto" }}>
+            <Donut segments={seg} total={total} centro={abbr(total)} legenda="na conta" />
           </div>
-
-          <p className="hint" style={{ marginTop: 14 }}>
-            Esse total tem que <b>bater com o saldo real da conta Asaas</b> (reconciliação). Dos {money(total)},
-            só <b style={{ color: "#059669" }}>{money(comp?.caixa_liquido ?? 0)}</b> são da plataforma — o resto é dinheiro de terceiros.
-          </p>
+          <div style={{ flex: "1 1 280px", minWidth: 260, display: "grid", gap: 9 }}>
+            {seg.map((s) => (
+              <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 11px", borderRadius: 11,
+                background: s.color === COR.plat ? "rgba(5,150,105,0.07)" : "rgba(100,116,139,0.06)",
+                border: s.color === COR.plat ? "1px solid rgba(5,150,105,0.25)" : "1px solid var(--line)" }}>
+                <span style={{ width: 11, height: 11, borderRadius: 3, background: s.color, flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: s.color === COR.plat ? 700 : 600, color: s.color === COR.plat ? COR.plat : "var(--ink)" }}>{s.label}</div>
+                  <div style={{ fontSize: 11.5, color: "var(--faint)" }}>{s.sub}</div>
+                </div>
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <div style={{ fontSize: 14.5, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: s.color === COR.plat ? COR.plat : "var(--ink)" }}>{money(s.value)}</div>
+                  <div style={{ fontSize: 11, color: "var(--faint)", fontVariantNumeric: "tabular-nums" }}>{pct(s.value, total).toFixed(1)}%</div>
+                </div>
+              </div>
+            ))}
+            <p className="hint" style={{ margin: "4px 2px 0" }}>
+              Dos <b style={{ fontVariantNumeric: "tabular-nums" }}>{money(total)}</b> na conta, só <b style={{ color: COR.plat, fontVariantNumeric: "tabular-nums" }}>{money(comp?.caixa_liquido ?? 0)}</b> são da plataforma. O resto é dinheiro de terceiros — tem que bater com o saldo real do Asaas.
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* ───────── Margem: de onde vem o caixa líquido ───────── */}
+      {/* ───────── KPIs principais ───────── */}
+      <div className="kpis">
+        <Kpi cor={COR.plat} valor={money(comp?.caixa_liquido ?? 0)} label="Caixa líquido (da plataforma)" forte />
+        <Kpi valor={money(comp?.take_bruto ?? 0)} label="Take bruto (20%)" />
+        <Kpi cor={COR.amber} valor={"− " + money(comp?.taxa_recargas ?? 0)} label={`Taxas Asaas (${comp?.n_recargas ?? 0} recargas)`} />
+        <Kpi valor={(comp?.margem_pct ?? 0).toFixed(1) + "%"} label="Margem efetiva no frete" />
+      </div>
+
+      {/* ───────── Margem: take − taxas = líquido ───────── */}
       <div className="card">
         <div className="card-h"><Icon name="money" /><h3>Margem real (take − taxas Asaas)</h3></div>
-        <table>
+        <table className="tbl-num">
           <tbody>
             <tr><td className="td-name">Take bruto (20% dos fretes)</td><td>{money(comp?.take_bruto ?? 0)}</td></tr>
-            <tr><td className="td-name" style={{ color: "var(--faint)" }}>(−) Taxas Asaas — {comp?.n_recargas ?? 0} recargas × {money(comp?.taxa_recarga_unit ?? 1.99)}</td><td style={{ color: "#b45309" }}>− {money(comp?.taxa_recargas ?? 0)}</td></tr>
-            <tr style={{ fontWeight: 700 }}><td className="td-name" style={{ color: "#059669" }}>= Caixa líquido</td><td style={{ color: "#059669" }}>{money(comp?.caixa_liquido ?? 0)}</td></tr>
-            <tr><td className="td-name">Margem efetiva sobre o frete</td><td>{(comp?.margem_pct ?? 0).toFixed(1)}%</td></tr>
+            <tr><td className="td-name" style={{ color: "var(--faint)" }}>(−) Taxas Asaas — {comp?.n_recargas ?? 0} × {money(comp?.taxa_recarga_unit ?? 1.99)}</td><td style={{ color: COR.amber }}>− {money(comp?.taxa_recargas ?? 0)}</td></tr>
+            <tr style={{ fontWeight: 700 }}><td className="td-name" style={{ color: COR.plat }}>= Caixa líquido</td><td style={{ color: COR.plat }}>{money(comp?.caixa_liquido ?? 0)}</td></tr>
           </tbody>
         </table>
-        <p className="hint">A taxa de R$ {(comp?.taxa_recarga_unit ?? 1.99).toFixed(2)} é fixa por recarga — recarga maior e menos frequente dilui melhor a margem.</p>
+        <p className="hint">A taxa de {money(comp?.taxa_recarga_unit ?? 1.99)} é fixa por recarga — recarga maior e menos frequente dilui melhor a margem.</p>
       </div>
 
-      {/* ───────── Fluxo: entradas, saídas, movimentação ───────── */}
+      {/* ───────── Fluxo ───────── */}
       <div className="kpis">
-        <div className="kpi"><div className="ic"><Icon name="download" /></div><div className="v" style={{ fontSize: 18 }}>{money(comp?.recargas_total ?? 0)}</div><div className="l">Recargas — entrada ({comp?.n_recargas ?? 0})</div></div>
-        <div className="kpi"><div className="ic"><Icon name="moto" /></div><div className="v" style={{ fontSize: 18 }}>{money(comp?.saques_total ?? 0)}</div><div className="l">Saques — saída ({comp?.n_saques ?? 0})</div></div>
-        <div className="kpi"><div className="ic"><Icon name="money" /></div><div className="v" style={{ fontSize: 18 }}>{money(comp?.fretes_entregues ?? 0)}</div><div className="l">Fretes movimentados ({comp?.n_entregues ?? 0})</div></div>
-        <div className="kpi"><div className="ic"><Icon name="checkThin" /></div><div className="v" style={{ fontSize: 18 }}>{money(comp?.saques_processando ?? 0)}</div><div className="l">Saques em processamento</div></div>
+        <Kpi icon="download" valor={money(comp?.recargas_total ?? 0)} label={`Recargas — entrada (${comp?.n_recargas ?? 0})`} />
+        <Kpi icon="moto" valor={money(comp?.saques_total ?? 0)} label={`Saques — saída (${comp?.n_saques ?? 0})`} />
+        <Kpi icon="money" valor={money(comp?.fretes_entregues ?? 0)} label={`Fretes movimentados (${comp?.n_entregues ?? 0})`} />
+        <Kpi icon="checkThin" valor={money(comp?.saques_processando ?? 0)} label="Saques em processamento" />
       </div>
 
-      {/* ───────── Detalhe: repasses por entregador ───────── */}
+      {/* ───────── Barras: top entregadores por repasse ───────── */}
       <div className="card">
         <div className="card-h">
-          <Icon name="moto" /><h3>Repasses por entregador</h3>
+          <Icon name="moto" /><h3>Top entregadores por repasse</h3>
           <button className="btn btn-ghost right" style={{ width: "auto", padding: "6px 12px", fontSize: 12 }} disabled={repasses.length === 0}
             onClick={() => baixarCSV("repasses-entregadores.csv", [{ chave: "entregador", titulo: "Entregador" }, { chave: "recebido", titulo: "Recebido (R$)" }], repasses.map(([nome, v]) => ({ entregador: nome, recebido: v })))}>
             <Icon name="download" /> Exportar CSV
           </button>
         </div>
-        <table>
-          <tbody>
-            <tr><th>Entregador</th><th>Recebido</th></tr>
-            {repasses.map(([nome, v]) => (
-              <tr key={nome}><td className="td-name">{nome}</td><td>{money(v)}</td></tr>
-            ))}
-            {repasses.length === 0 && <tr><td colSpan={2} style={{ color: "var(--faint)", fontSize: 12.5 }}>Sem entregas pagas ainda.</td></tr>}
-          </tbody>
-        </table>
+        <div style={{ display: "grid", gap: 11, padding: "4px 2px" }}>
+          {topRep.map(([nome, v]) => (
+            <div key={nome} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 130, flexShrink: 0, fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{nome}</div>
+              <div style={{ flex: 1, height: 22, borderRadius: 6, background: "var(--line)", overflow: "hidden" }}>
+                <div style={{ width: `${Math.max(pct(v, maxRep), 2)}%`, height: "100%", background: COR.indigo, borderRadius: 6 }} />
+              </div>
+              <div style={{ width: 92, flexShrink: 0, textAlign: "right", fontSize: 12.5, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{money(v)}</div>
+            </div>
+          ))}
+          {topRep.length === 0 && <p className="hint">Sem entregas pagas ainda.</p>}
+        </div>
       </div>
 
-      {/* ───────── Detalhe: carteiras dos lojistas ───────── */}
+      {/* ───────── Carteiras dos lojistas ───────── */}
       <div className="card">
         <div className="card-h">
           <Icon name="building" /><h3>Carteiras dos lojistas (crédito pré-pago)</h3>
@@ -131,7 +153,7 @@ export default function FinanceiroAdmin() {
             <Icon name="download" /> Exportar CSV
           </button>
         </div>
-        <table>
+        <table className="tbl-num">
           <tbody>
             <tr><th>Negócio</th><th>Saldo</th></tr>
             {carteiras.map((c) => (
@@ -142,23 +164,43 @@ export default function FinanceiroAdmin() {
         </table>
       </div>
 
-      <p className="hint">O movimento real do dinheiro (recarga Pix + repasse + saque) liga quando a conta Asaas existir. As taxas (R$ {(comp?.taxa_recarga_unit ?? 1.99).toFixed(2)}/recarga) já entram no cálculo da margem.</p>
+      <p className="hint">O movimento real do dinheiro (recarga Pix + repasse + saque) liga quando a conta Asaas existir. A taxa ({money(comp?.taxa_recarga_unit ?? 1.99)}/recarga) já entra no cálculo da margem.</p>
+
+      <style>{`.tbl-num td:last-child, .tbl-num th:last-child { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }`}</style>
     </AdminShell>
   );
 }
 
-function BucketRow({ color, label, sub, valor, share, destaque }: { color: string; label: string; sub: string; valor: number; share: number; destaque?: boolean }) {
+// Card KPI moderno
+function Kpi({ valor, label, icon, cor, forte }: { valor: string; label: string; icon?: ComponentProps<typeof Icon>["name"]; cor?: string; forte?: boolean }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 10, background: destaque ? "rgba(5,150,105,0.07)" : "rgba(0,0,0,0.02)", border: destaque ? "1px solid rgba(5,150,105,0.25)" : "1px solid var(--line)" }}>
-      <span style={{ width: 10, height: 10, borderRadius: 3, background: color, flexShrink: 0 }} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13.5, fontWeight: destaque ? 700 : 600, color: destaque ? "#059669" : "var(--ink)" }}>{label}</div>
-        <div style={{ fontSize: 11.5, color: "var(--faint)" }}>{sub}</div>
-      </div>
-      <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: destaque ? "#059669" : "var(--ink)" }}>{money(valor)}</div>
-        <div style={{ fontSize: 11, color: "var(--faint)" }}>{share.toFixed(1)}%</div>
-      </div>
+    <div className="kpi" style={forte ? { borderColor: "rgba(5,150,105,0.3)", background: "rgba(5,150,105,0.05)" } : undefined}>
+      {icon && <div className="ic"><Icon name={icon} /></div>}
+      <div className="v" style={{ fontSize: 19, fontVariantNumeric: "tabular-nums", color: cor }}>{valor}</div>
+      <div className="l">{label}</div>
     </div>
+  );
+}
+
+// Gráfico de rosca (pizza) em SVG puro — segmentos por stroke-dasharray
+function Donut({ segments, total, centro, legenda }: { segments: { value: number; color: string }[]; total: number; centro: string; legenda: string }) {
+  const size = 196, thickness = 30, r = (size - thickness) / 2, C = 2 * Math.PI * r, cx = size / 2;
+  const soma = segments.reduce((s, x) => s + Math.max(x.value, 0), 0) || 1;
+  let acc = 0;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label="Composição do saldo">
+      <circle cx={cx} cy={cx} r={r} fill="none" stroke="var(--line)" strokeWidth={thickness} />
+      <g transform={`rotate(-90 ${cx} ${cx})`}>
+        {segments.map((s, i) => {
+          const frac = Math.max(s.value, 0) / soma;
+          const len = Math.max(frac * C, frac > 0 ? 1.5 : 0); // garante sliver visível p/ fatia minúscula
+          const offset = -acc * C;
+          acc += frac;
+          return <circle key={i} cx={cx} cy={cx} r={r} fill="none" stroke={s.color} strokeWidth={thickness} strokeDasharray={`${len} ${C - len}`} strokeDashoffset={offset} strokeLinecap="butt" />;
+        })}
+      </g>
+      <text x={cx} y={cx - 6} textAnchor="middle" style={{ fontSize: 19, fontWeight: 800, fill: "var(--ink)" }}>{centro}</text>
+      <text x={cx} y={cx + 13} textAnchor="middle" style={{ fontSize: 10.5, fill: "var(--faint)" }}>{legenda}</text>
+    </svg>
   );
 }
