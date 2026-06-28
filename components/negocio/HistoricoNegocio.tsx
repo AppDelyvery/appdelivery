@@ -79,7 +79,7 @@ export default function HistoricoNegocio() {
               {lista.map((p) => (
                 <tr key={p.id}>
                   <td className="td-name" style={{ fontSize: 12.5 }}>{p.coleta_endereco} → {p.entrega_endereco}</td>
-                  <td>{money(p.preco_total ?? 0)}</td>
+                  <td style={{ fontVariantNumeric: "tabular-nums" }}>{money(p.preco_total ?? 0)}</td>
                   <td style={{ color: "var(--muted)", fontSize: 12 }}>{dt(p.created_at)}</td>
                   <td><span className={`status-pill ${ST[p.status]?.cls ?? "s-pend"}`}>{ST[p.status]?.txt ?? p.status}</span></td>
                   <td>

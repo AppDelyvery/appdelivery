@@ -83,12 +83,15 @@ export default function CarteiraNegocio() {
           movs.map((m, i) => {
             const cred = m.tipo === "credito";
             return (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: "1px solid var(--line)" }}>
-                <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 600 }}>{cred ? "Recarga" : "Frete de entrega"}</div>
-                  <div style={{ fontSize: 11.5, color: "var(--muted)" }}>{dtMov(m.created_at)}</div>
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "9px 0", borderBottom: "1px solid var(--line)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                  <span style={{ width: 32, height: 32, borderRadius: 9, display: "grid", placeItems: "center", flexShrink: 0, background: cred ? "color-mix(in srgb, var(--go) 13%, transparent)" : "var(--bg)", color: cred ? "var(--go)" : "var(--muted)" }}><Icon name={cred ? "upload" : "pkg"} /></span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 600 }}>{cred ? "Recarga" : "Frete de entrega"}</div>
+                    <div style={{ fontSize: 11.5, color: "var(--muted)" }}>{dtMov(m.created_at)}</div>
+                  </div>
                 </div>
-                <div style={{ fontWeight: 700, color: cred ? "var(--ok,#059669)" : "var(--ink-2)" }}>{cred ? "+" : "−"} {money(m.valor)}</div>
+                <div style={{ fontWeight: 700, fontVariantNumeric: "tabular-nums", flexShrink: 0, color: cred ? "var(--go)" : "var(--ink-2)" }}>{cred ? "+" : "−"} {money(m.valor)}</div>
               </div>
             );
           })
@@ -101,7 +104,7 @@ export default function CarteiraNegocio() {
           <div onClick={(e) => e.stopPropagation()} className="card" style={{ maxWidth: 380, width: "100%", margin: 0 }}>
             <div className="card-h" style={{ justifyContent: "space-between" }}>
               <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}><Icon name="upload" /><h3 style={{ margin: 0 }}>Adicionar saldo</h3></span>
-              <span onClick={fechar} style={{ cursor: "pointer", color: "var(--muted)", fontSize: 18 }}>×</span>
+              <button onClick={fechar} aria-label="Fechar" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", display: "grid", placeItems: "center", padding: 0 }}><Icon name="stop" /></button>
             </div>
 
             {!res && (

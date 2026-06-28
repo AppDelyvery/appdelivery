@@ -81,13 +81,16 @@ export default function RelatoriosNegocio() {
 
   return (
     <NegocioShell title="Relatórios">
-      <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
-        {PERIODOS.map((f) => (
-          <button key={f.k} onClick={() => setPeriodo(f.k)} className="btn"
-            style={{ width: "auto", padding: "7px 14px", fontSize: 12.5, background: periodo === f.k ? "var(--brand)" : "#fff", color: periodo === f.k ? "#fff" : "var(--ink-2)", border: "1px solid var(--line-2)" }}>
-            {f.txt}
-          </button>
-        ))}
+      <div style={{ display: "inline-flex", background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 12, padding: 3, gap: 2, marginBottom: 14, flexWrap: "wrap" }}>
+        {PERIODOS.map((f) => {
+          const on = periodo === f.k;
+          return (
+            <button key={f.k} onClick={() => setPeriodo(f.k)}
+              style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 12.5, fontWeight: 700, padding: "7px 15px", borderRadius: 9, background: on ? "#fff" : "transparent", color: on ? "var(--brand)" : "var(--muted)", boxShadow: on ? "var(--shadow-sm)" : "none", transition: ".15s" }}>
+              {f.txt}
+            </button>
+          );
+        })}
       </div>
 
       <div className="kpis" style={{ marginBottom: 14 }}>
@@ -101,9 +104,18 @@ export default function RelatoriosNegocio() {
 
       <div className="card">
         <div className="card-h"><Icon name="moto" /><h3>Por veículo</h3></div>
-        {porVeiculo.map((x) => (
-          <div key={x.v} className="price-line"><span>{VEH[x.v]}</span><span>{x.n} pedido(s)</span></div>
-        ))}
+        {(() => {
+          const max = Math.max(1, ...porVeiculo.map((x) => x.n));
+          return porVeiculo.map((x) => (
+            <div key={x.v} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0" }}>
+              <span style={{ width: 70, fontSize: 12.5, color: "var(--ink-2)", display: "inline-flex", alignItems: "center", gap: 6 }}><Icon name={x.v === "carro" ? "car" : x.v === "van" ? "van" : "moto"} />{VEH[x.v]}</span>
+              <div style={{ flex: 1, height: 8, background: "var(--line)", borderRadius: 6, overflow: "hidden" }}>
+                <div style={{ width: `${(x.n / max) * 100}%`, height: "100%", background: "var(--brand)", transition: "width .3s" }} />
+              </div>
+              <span style={{ width: 28, textAlign: "right", fontSize: 12.5, fontVariantNumeric: "tabular-nums" }}>{x.n}</span>
+            </div>
+          ));
+        })()}
       </div>
 
       <div className="card">
@@ -125,7 +137,7 @@ export default function RelatoriosNegocio() {
                 <tr key={p.id}>
                   <td className="td-name" style={{ fontSize: 12.5 }}>{p.coleta_endereco} → {p.entrega_endereco}</td>
                   <td style={{ color: "var(--muted)", fontSize: 12 }}>{VEH[p.vehicle_type] ?? p.vehicle_type}</td>
-                  <td>{money(p.preco_total ?? 0)}</td>
+                  <td style={{ fontVariantNumeric: "tabular-nums" }}>{money(p.preco_total ?? 0)}</td>
                   <td style={{ color: "var(--muted)", fontSize: 12 }}>{dt(p.created_at)}</td>
                 </tr>
               ))}
