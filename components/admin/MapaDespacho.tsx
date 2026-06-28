@@ -26,6 +26,9 @@ export type CorridaMapa = {
   entrega_lng: number;
   entregador_nome: string | null;
   negocio: string | null;
+  preco_total?: number | null;
+  em_risco?: boolean;
+  risco_motivo?: string | null;
 };
 
 const SVG_MOTO =

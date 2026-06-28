@@ -1,0 +1,16 @@
+import { readFileSync } from "node:fs";
+import pg from "pg";
+const env = Object.fromEntries(readFileSync(new URL("../.env.local", import.meta.url), "utf8").split(/\r?\n/).filter((l) => l.includes("=") && !l.startsWith("#")).map((l) => { const i = l.indexOf("="); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; }));
+const m = env.DATABASE_URL.match(/^postgres(?:ql)?:\/\/([^:]+):(.*)@([^:\/]+):(\d+)\/(.+)$/);
+const c = new pg.Client({ user: m[1], password: m[2], host: m[3], port: +m[4], database: m[5], ssl: { rejectUnauthorized: false } });
+await c.connect();
+const pid = process.argv[2];
+await c.query("begin");
+await c.query("set local role authenticated");
+await c.query("select set_config('request.jwt.claims', json_build_object('sub',$1::text,'role','authenticated')::text, true)", [pid]);
+const tot = await c.query("select count(*)::int n from pedidos where status='entregue'");
+const meus = await c.query("select count(*)::int n from pedidos p where p.status='entregue' and exists (select 1 from entregadores e where e.id=p.entregador_id and e.profile_id=$1)", [pid]);
+await c.query("rollback");
+console.log("entregue VISÍVEL p/ esse entregador:", tot.rows[0].n);
+console.log("entregue que SÃO dele:", meus.rows[0].n);
+await c.end();
