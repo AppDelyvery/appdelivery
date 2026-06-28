@@ -79,6 +79,9 @@ export default function CorridasAdmin() {
     .filter((c) => (filtro === "todas" ? true : filtro === "ativas" ? ATIVOS.includes(c.status) : c.status === filtro))
     .filter((c) => norm(`${c.coleta_endereco} ${c.entrega_endereco} ${c.entregadores?.nome ?? ""} ${c.estabelecimentos?.razao_social ?? ""}`).includes(norm(q)));
 
+  const movimentado = lista.reduce((s, c) => s + (c.preco_total ?? 0), 0);
+  const take = lista.reduce((s, c) => s + (c.preco_plataforma ?? 0), 0);
+
   const exportar = () =>
     baixarCSV(
       "corridas.csv",
@@ -112,19 +115,24 @@ export default function CorridasAdmin() {
 
   return (
     <AdminShell title="Corridas">
-      <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
-        {FILTROS.map((f) => (
-          <button
-            key={f.k}
-            onClick={() => setFiltro(f.k)}
-            className="btn"
-            style={{ width: "auto", padding: "7px 14px", fontSize: 12.5, background: filtro === f.k ? "var(--brand)" : "#fff", color: filtro === f.k ? "#fff" : "var(--ink-2)", border: "1px solid var(--line-2)" }}
-          >
-            {f.txt}
-          </button>
-        ))}
+      <div style={{ display: "inline-flex", background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 12, padding: 3, gap: 2, marginBottom: 12, flexWrap: "wrap" }}>
+        {FILTROS.map((f) => {
+          const on = filtro === f.k;
+          return (
+            <button key={f.k} onClick={() => setFiltro(f.k)}
+              style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 12.5, fontWeight: 700, padding: "7px 15px", borderRadius: 9, background: on ? "#fff" : "transparent", color: on ? "var(--brand)" : "var(--muted)", boxShadow: on ? "var(--shadow-sm)" : "none", transition: ".15s" }}>
+              {f.txt}
+            </button>
+          );
+        })}
       </div>
       <Busca value={q} onChange={setQ} placeholder="Buscar por endereço, entregador ou negócio…" />
+
+      <div className="kpis" style={{ marginTop: 14 }}>
+        <div className="kpi"><div className="ic"><Icon name="pkg" /></div><div className="v">{lista.length}</div><div className="l">Corridas no filtro</div></div>
+        <div className="kpi"><div className="ic"><Icon name="money" /></div><div className="v" style={{ fontSize: 19 }}>{money(movimentado)}</div><div className="l">Valor movimentado</div></div>
+        <div className="kpi"><div className="ic"><Icon name="chart" /></div><div className="v" style={{ fontSize: 19, color: "var(--go)" }}>{money(take)}</div><div className="l">Take da plataforma</div></div>
+      </div>
 
       <div className="card">
         <div className="card-h">
@@ -139,9 +147,12 @@ export default function CorridasAdmin() {
             <tr><th>Rota</th><th>Entregador</th><th>Valor</th><th>Status</th></tr>
             {lista.map((c) => (
               <tr key={c.id} style={{ cursor: "pointer" }} onClick={() => abrir(c)}>
-                <td className="td-name" style={{ fontSize: 12.5 }}>{c.coleta_endereco} → {c.entrega_endereco}</td>
+                <td className="td-name" style={{ fontSize: 12.5 }}>
+                  {c.coleta_endereco} → {c.entrega_endereco}
+                  <div style={{ fontSize: 11, color: "var(--faint)", fontWeight: 500, marginTop: 2 }}>{c.estabelecimentos?.razao_social ?? "—"} · {dt(c.created_at)}</div>
+                </td>
                 <td style={{ color: "var(--muted)" }}>{c.entregadores?.nome ?? "—"}</td>
-                <td>{money(c.preco_total ?? 0)}</td>
+                <td style={{ fontVariantNumeric: "tabular-nums" }}>{money(c.preco_total ?? 0)}</td>
                 <td><span className={`status-pill ${ST[c.status]?.cls ?? "s-pend"}`}>{ST[c.status]?.txt ?? c.status}</span></td>
               </tr>
             ))}
