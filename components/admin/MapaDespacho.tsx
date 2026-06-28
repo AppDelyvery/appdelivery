@@ -175,7 +175,7 @@ export default function MapaDespacho({
 
   if (!hasMapbox()) {
     return (
-      <div id="map" style={{ height: 420 }}>
+      <div id="despacho-map" style={{ height: 420 }}>
         <div className="map-placeholder">
           Mapa Mapbox — defina <code>NEXT_PUBLIC_MAPBOX_TOKEN</code> no <code>.env.local</code>.
         </div>
@@ -183,7 +183,8 @@ export default function MapaDespacho({
     );
   }
 
-  return <div id="map" ref={containerRef} style={{ height: 420, borderRadius: 14 }} />;
+  // id próprio (não "map"): o admin roda com .content.no-map, que esconde #map global
+  return <div id="despacho-map" ref={containerRef} style={{ height: 420, borderRadius: 14 }} />;
 }
 
 const esc = (s: string) => (s ?? "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!));
