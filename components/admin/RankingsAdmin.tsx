@@ -15,6 +15,8 @@ type Pedido = {
 };
 type Item = { nome: string; valor: number; sub?: string };
 
+const MEDALHA = ["#f59e0b", "#94a3b8", "#c2772f"]; // ouro, prata, bronze
+
 const zona = (e: string) => {
   const q = e.match(/Q\.?\s?\d+\s*(Norte|Sul|Leste|Oeste)?/i);
   if (q) return q[0].replace(/\s+/g, " ").trim();
@@ -45,15 +47,17 @@ function Ranking({ titulo, ic, itens, fmt }: { titulo: string; ic: IconName; ite
       ) : (
         itens.map((i, idx) => (
           <div key={i.nome} style={{ marginBottom: 11 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
-              <span style={{ fontWeight: 700 }}>
-                <span style={{ color: "var(--faint)", marginRight: 6 }}>{idx + 1}.</span>{i.nome}
-                {i.sub && <span style={{ color: "var(--muted)", fontWeight: 500 }}> · {i.sub}</span>}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, marginBottom: 4, gap: 8 }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                <span style={{ width: 22, height: 22, borderRadius: "50%", display: "grid", placeItems: "center", fontSize: 11, fontWeight: 800, flexShrink: 0, background: idx < 3 ? MEDALHA[idx] : "var(--line)", color: idx < 3 ? "#fff" : "var(--muted)" }}>{idx + 1}</span>
+                <span style={{ fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {i.nome}{i.sub && <span style={{ color: "var(--muted)", fontWeight: 500 }}> · {i.sub}</span>}
+                </span>
               </span>
-              <span style={{ fontWeight: 800, color: "var(--brand)" }}>{fmt(i.valor)}</span>
+              <span style={{ fontWeight: 800, color: "var(--brand)", flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{fmt(i.valor)}</span>
             </div>
-            <div style={{ height: 7, background: "var(--line)", borderRadius: 5, overflow: "hidden" }}>
-              <div style={{ width: `${(i.valor / max) * 100}%`, height: "100%", background: "var(--brand)", borderRadius: 5 }} />
+            <div style={{ height: 7, background: "var(--line)", borderRadius: 5, overflow: "hidden", marginLeft: 30 }}>
+              <div style={{ width: `${(i.valor / max) * 100}%`, height: "100%", background: idx < 3 ? MEDALHA[idx] : "var(--brand)", borderRadius: 5, transition: "width .3s" }} />
             </div>
           </div>
         ))
@@ -80,8 +84,16 @@ export default function RankingsAdmin() {
   const topEmpresas = agrupar(peds, (p) => p.estabelecimentos?.razao_social ?? null, (g) => ({ valor: g.length, sub: money(g.reduce((s, p) => s + (p.preco_total ?? 0), 0)) }));
   const topAreas = agrupar(peds, (p) => zona(p.coleta_endereco), (g) => ({ valor: g.length }));
 
+  const entregadoresAtivos = new Set(entregues.map((p) => p.entregadores?.nome).filter(Boolean)).size;
+  const empresasAtivas = new Set(peds.map((p) => p.estabelecimentos?.razao_social).filter(Boolean)).size;
+
   return (
     <AdminShell title="Rankings">
+      <div className="kpis" style={{ marginBottom: 14 }}>
+        <div className="kpi"><div className="ic"><Icon name="checkThin" /></div><div className="v">{entregues.length}</div><div className="l">Entregas concluídas</div></div>
+        <div className="kpi"><div className="ic"><Icon name="moto" /></div><div className="v">{entregadoresAtivos}</div><div className="l">Entregadores ativos</div></div>
+        <div className="kpi"><div className="ic"><Icon name="building" /></div><div className="v">{empresasAtivas}</div><div className="l">Empresas ativas</div></div>
+      </div>
       <Ranking titulo="Melhores entregadores" ic="moto" itens={topEntregadores} fmt={(n) => `${n}`} />
       <Ranking titulo="Melhores empresas" ic="building" itens={topEmpresas} fmt={(n) => `${n} pedido(s)`} />
       <Ranking titulo="Áreas com mais demanda" ic="pin" itens={topAreas} fmt={(n) => `${n}`} />
