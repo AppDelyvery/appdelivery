@@ -17,22 +17,15 @@ export type ShellNavItem = {
 };
 export type ShellNavGroup = { group: string; items: ShellNavItem[] };
 
-const DEMO: { persona: Persona; ic: IconName; label: string; href: string }[] = [
-  { persona: "negocio", ic: "building", label: "Negócio", href: "/negocio/novo-pedido" },
-  { persona: "entregador", ic: "moto", label: "Entregador", href: "/entregador" },
-  { persona: "admin", ic: "chart", label: "Operação", href: "/admin" },
-];
-
 export default function AppShell({
   title,
   nav,
-  demo,
   noMap = false,
   children,
 }: {
   title: string;
   nav: ShellNavGroup[];
-  demo: Persona;
+  demo?: Persona; // mantido só p/ compatibilidade dos callers; não há mais troca de persona
   noMap?: boolean;
   children: React.ReactNode;
 }) {
@@ -84,17 +77,6 @@ export default function AppShell({
           </div>
         ))}
 
-        <div className="sb-bottom">
-          <div className="sb-demo-h">Demo · ver como</div>
-          <div className="sb-demo">
-            {DEMO.map((d) => (
-              <Link key={d.persona} href={d.href} className={demo === d.persona ? "on" : ""} onClick={fechar}>
-                <Icon name={d.ic} />
-                {d.label}
-              </Link>
-            ))}
-          </div>
-        </div>
       </aside>
 
       <main className="main">
