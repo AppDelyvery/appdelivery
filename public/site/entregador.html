@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seja entregador APPDELYVERY — ganhe entregando em Palmas-TO</title>
+<meta name="description" content="Rode com um app moderno e ganhe entregando em Palmas. 80% do frete, saque por Pix, ofertas no mapa e sem meta. Ser verificado vale mais corridas. Moto, carro ou van.">
+<link rel="canonical" href="https://appdelivery-psi.vercel.app/seja-entregador">
+<meta name="theme-color" content="#2563eb">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="APPDELYVERY">
+<meta property="og:title" content="Seja entregador APPDELYVERY — ganhe entregando em Palmas">
+<meta property="og:description" content="80% do frete, saque por Pix, ofertas no mapa. Ser verificado vale mais corridas.">
+<link rel="icon" href="/icon" type="image/png">
+<link rel="apple-touch-icon" href="/apple-icon">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --indigo:#2563eb; --indigo-2:#3b82f6; --indigo-d:#1d4ed8;
+    --navy:#0e1430; --ink:#1c2340; --ink-2:#3a4263; --muted:#6b7395;
+    --line:#e6e8f4; --line-2:#d7daed; --bg:#ffffff; --bg-soft:#f6f7fc;
+    --go:#0d9b6c; --go-d:#0a7d57;
+    --r:18px; --shadow:0 18px 50px -22px rgba(20,27,71,.28); --shadow-sm:0 8px 24px -14px rgba(20,27,71,.30);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Manrope',system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;font-size:16.5px;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4{font-family:'Sora','Manrope',sans-serif;color:var(--navy);letter-spacing:-.02em;line-height:1.1}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 28px}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--indigo)}
+  .eyebrow.lt{color:#bfdbfe}
+  .btn{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:15.5px;padding:14px 24px;border-radius:13px;border:1.5px solid transparent;cursor:pointer;transition:.18s;font-family:inherit}
+  .btn svg{width:18px;height:18px}
+  .btn-primary{background:var(--indigo);color:#fff;box-shadow:0 10px 26px -12px rgba(37,99,235,.7)}
+  .btn-primary:hover{background:var(--indigo-d);transform:translateY(-1px)}
+  .btn-ghost{background:#fff;color:var(--ink);border-color:var(--line-2)}
+  .btn-ghost:hover{border-color:var(--indigo);color:var(--indigo)}
+  .btn-light{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.34)}
+  .btn-light:hover{background:rgba(255,255,255,.2)}
+  .btn-go{background:var(--go);color:#fff}
+  .btn-go:hover{background:var(--go-d);transform:translateY(-1px)}
+  .btn-lg{padding:16px 30px;font-size:16.5px}
+
+  nav{position:sticky;top:0;z-index:50;background:var(--indigo);border-bottom:1px solid rgba(255,255,255,.14)}
+  .nav-in{display:flex;align-items:center;gap:14px;height:66px}
+  .brand{display:flex;align-items:center;gap:11px;font-family:'Sora';font-weight:800;font-size:20px;letter-spacing:-.02em;color:#fff}
+  .brand .mk{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.18);display:grid;place-items:center}
+  .brand .mk svg{width:21px;height:21px;color:#fff}
+  .brand b{color:#fff}
+  .nav-menu{display:flex;align-items:center;gap:24px;margin-left:auto;font-size:14.5px;font-weight:600}
+  .nav-menu>a{color:rgba(255,255,255,.86)}
+  .nav-menu>a:hover{color:#fff}
+  nav .btn-primary{background:#fff;color:var(--indigo);box-shadow:none}
+  nav .btn-primary:hover{background:#eff6ff;transform:translateY(-1px)}
+  @media(max-width:760px){.nav-menu>a:not(.btn){display:none}}
+
+  .hero{position:relative;overflow:hidden;background:linear-gradient(160deg,#2563eb 0%,#1d4ed8 56%,#1e3a8a 100%);color:#fff}
+  .hero:after{content:"";position:absolute;inset:0;background:radial-gradient(900px 480px at 82% 6%,rgba(255,255,255,.16),transparent 60%);pointer-events:none}
+  .hero-in{position:relative;z-index:1;display:grid;grid-template-columns:1.04fr .96fr;gap:50px;align-items:center;padding:70px 0 82px}
+  .hero h1{font-size:52px;font-weight:800;margin:18px 0 0;color:#fff}
+  .hero h1 .hl{color:#bfdbfe}
+  .hero p.sub{font-size:19px;color:#dbeafe;margin-top:22px;max-width:520px}
+  .hero .cta{display:flex;gap:13px;margin-top:32px;flex-wrap:wrap}
+  .hero .btn-primary{background:#fff;color:var(--indigo);box-shadow:0 16px 32px -16px rgba(0,0,0,.55)}
+  .hero .btn-primary:hover{background:#eff6ff;transform:translateY(-1px)}
+  .hero .btn-light{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.34)}
+  .hero .micro{margin-top:22px;font-size:13.5px;color:#bfdbfe;display:flex;gap:18px;flex-wrap:wrap}
+  .hero .micro b{color:#fff}
+  .hero-art{position:relative;z-index:1}
+  .hero-art .photo{border-radius:22px;overflow:hidden;box-shadow:0 38px 80px -28px rgba(8,12,40,.7);aspect-ratio:4/5}
+  .hero-art .photo img{width:100%;height:100%;object-fit:cover}
+  .float{position:absolute;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:12px 15px;display:flex;align-items:center;gap:11px}
+  .float .av{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--go),var(--go-d));display:grid;place-items:center;color:#fff;flex-shrink:0}
+  .float .av svg{width:19px;height:19px}
+  .float .ft{font-size:13px;font-weight:800;color:var(--navy);line-height:1.2}
+  .float .fs{font-size:11.5px;color:var(--muted)}
+  .float.a{top:18px;left:-22px}
+  .float.b{bottom:20px;right:-20px}
+  @media(max-width:860px){.hero-in{grid-template-columns:1fr;gap:30px;padding:40px 0 50px}.hero h1{font-size:35px}.float.a{left:6px}.float.b{right:6px}}
+
+  .strip{background:var(--navy);color:#fff}
+  .strip-in{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;padding:30px 0}
+  .strip .v{font-family:'Sora';font-size:30px;font-weight:800;color:#fff;letter-spacing:-.02em}
+  .strip .l{font-size:13px;color:#aab0d8;margin-top:3px}
+  @media(max-width:860px){.strip-in{grid-template-columns:1fr 1fr;gap:18px}}
+
+  section.blk{padding:74px 0}
+  .bg-soft{background:var(--bg-soft)}
+  .sechead{max-width:640px}
+  .sechead h2{font-size:38px;font-weight:800;margin-top:12px}
+  .sechead p{font-size:17.5px;color:var(--ink-2);margin-top:14px}
+  .center{margin:0 auto;text-align:center}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:54px;align-items:center}
+  @media(max-width:860px){.split{grid-template-columns:1fr;gap:32px}}
+
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:34px}
+  @media(max-width:860px){.cards{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:26px;box-shadow:var(--shadow-sm)}
+  .card .n{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--indigo);color:#fff;font-family:'Sora';font-weight:800;font-size:15px;margin-bottom:14px}
+  .card .ic{width:44px;height:44px;border-radius:13px;background:#eaf0ff;display:grid;place-items:center;margin-bottom:14px}
+  .card .ic svg{width:22px;height:22px;color:var(--indigo)}
+  .card.go .ic{background:#e3f6ee}.card.go .ic svg{color:var(--go-d)}
+  .card h4{font-size:18px;font-weight:800}
+  .card p{font-size:14.5px;color:var(--muted);margin-top:7px}
+
+  .earn{background:linear-gradient(135deg,var(--go),var(--go-d));color:#fff;border-radius:26px;padding:48px 46px;display:grid;grid-template-columns:1.2fr 1fr;gap:34px;align-items:center}
+  @media(max-width:860px){.earn{grid-template-columns:1fr;padding:36px 28px}}
+  .earn h2{color:#fff;font-size:34px;font-weight:800;max-width:460px}
+  .earn p{color:#dbf5ea;font-size:16px;margin-top:12px;max-width:460px}
+  .earn .big{font-family:'Sora';font-size:54px;font-weight:800;line-height:1}
+  .earn .bl{font-size:14px;color:#cdeede;margin-top:6px}
+  .earn ul{list-style:none;margin-top:16px}
+  .earn li{padding:6px 0 6px 26px;position:relative;color:#eafaf2;font-size:15px}
+  .earn li:before{content:"";position:absolute;left:0;top:11px;width:13px;height:8px;border-left:2.4px solid #fff;border-bottom:2.4px solid #fff;transform:rotate(-45deg)}
+
+  .req{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:30px}
+  @media(max-width:760px){.req{grid-template-columns:1fr 1fr}}
+  .req .r{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;text-align:center}
+  .req .r .ic{width:42px;height:42px;border-radius:12px;background:#eaf0ff;display:grid;place-items:center;margin:0 auto 12px}
+  .req .r .ic svg{width:21px;height:21px;color:var(--indigo)}
+  .req .r h4{font-size:15.5px}
+  .req .r p{font-size:13px;color:var(--muted);margin-top:5px}
+
+  .finalcta{background:linear-gradient(135deg,var(--indigo),var(--indigo-d));border-radius:26px;padding:56px 50px;text-align:center;color:#fff}
+  .finalcta h2{color:#fff;font-size:36px;font-weight:800;max-width:640px;margin:0 auto}
+  .finalcta p{color:#dbeafe;font-size:17px;margin:14px auto 26px;max-width:520px}
+
+  footer{background:var(--navy);color:#aab0d8;padding:42px 0 32px;font-size:14px}
+  .footer-cols{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,.1)}
+  footer a{color:#aab0d8}footer a:hover{color:#fff}
+  footer .links a{margin-left:18px}
+  footer .fbot{padding-top:16px;font-size:12.5px}
+  @media(max-width:680px){.footer-cols{flex-direction:column}footer .links a{margin:0 18px 0 0}}
+</style>
+</head>
+<body>
+
+<svg style="display:none">
+<symbol id="i-moto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="17" r="3"/><circle cx="19" cy="17" r="3"/><path d="M8 17h6l3-5h-3.5l-2-3H7"/><path d="M14 7h3"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h8l-1 8 10-12h-8z"/></symbol>
+<symbol id="i-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></symbol>
+<symbol id="i-route" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M6 17V9a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+</svg>
+
+<nav><div class="wrap nav-in">
+  <a class="brand" href="/"><span class="mk"><svg><use href="#i-moto"/></svg></span><span><b>APP</b>DELYVERY</span></a>
+  <div class="nav-menu">
+    <a href="/">Para empresas</a>
+    <a href="#ganhos">Ganhos</a>
+    <a href="#como">Como funciona</a>
+    <a href="#requisitos">Requisitos</a>
+    <a class="btn btn-primary" href="/cadastro/entregador" style="padding:9px 16px"><svg><use href="#i-moto"/></svg> Quero me cadastrar</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap hero-in">
+  <div>
+    <span class="eyebrow lt"><svg style="width:15px;height:15px"><use href="#i-moto"/></svg> Para entregadores</span>
+    <h1>Ganhe entregando, com um app que <span class="hl">funciona.</span></h1>
+    <p class="sub">Em Palmas, do jeito que você já conhece dos apps de corrida: oferta no mapa, aceita deslizando, entrega e recebe. Você fica com 80% do frete e saca por Pix.</p>
+    <div class="cta">
+      <a class="btn btn-primary btn-lg" href="/cadastro/entregador"><svg><use href="#i-moto"/></svg> Quero me cadastrar</a>
+      <a class="btn btn-light btn-lg" href="#como">Como funciona</a>
+    </div>
+    <div class="micro"><span><b>80% do frete</b></span><span>·</span><span><b>Saque por Pix</b></span><span>·</span><span><b>Sem meta</b></span></div>
+  </div>
+  <div class="hero-art">
+    <div class="photo"><img src="/site/img/motoboy2.jpg" alt="Seja entregador APPDELYVERY em Palmas-TO"></div>
+    <div class="float a"><span class="av"><svg><use href="#i-money"/></svg></span><div><div class="ft">+ R$ 18,40</div><div class="fs">recebido · cai no Pix</div></div></div>
+    <div class="float b"><span class="av" style="background:linear-gradient(135deg,var(--indigo),var(--indigo-d))"><svg><use href="#i-shield"/></svg></span><div><div class="ft">Verificado</div><div class="fs">empresa confia em você</div></div></div>
+  </div>
+</div></header>
+
+<div class="strip"><div class="wrap strip-in">
+  <div><div class="v">80%</div><div class="l">do frete é seu</div></div>
+  <div><div class="v">Pix</div><div class="l">saque quando quiser</div></div>
+  <div><div class="v">0</div><div class="l">meta ou taxa pra rodar</div></div>
+  <div><div class="v">3</div><div class="l">veículos: moto, carro, van</div></div>
+</div></div>
+
+<section id="ganhos" class="blk"><div class="wrap"><div class="earn">
+  <div>
+    <span class="eyebrow lt">Quanto você ganha</span>
+    <h2 style="margin-top:12px">80% do frete em cada entrega, na sua conta.</h2>
+    <p>Sem desconto escondido. O valor entra na sua carteira e você saca por Pix quando quiser.</p>
+    <ul>
+      <li>Você fica com 80% de cada frete</li>
+      <li>Saque por Pix, sem esperar fechar a semana</li>
+      <li>Conecta e desconecta quando quiser, sem meta</li>
+    </ul>
+  </div>
+  <div>
+    <div class="big">80%</div>
+    <div class="bl">do frete é seu em toda entrega concluída</div>
+  </div>
+</div></div></section>
+
+<section class="blk bg-soft"><div class="wrap split">
+  <div>
+    <span class="eyebrow">Ser verificado vale mais</span>
+    <h2 style="font-size:36px;font-weight:800;margin-top:12px">Sua ficha checada = mais corridas pra você.</h2>
+    <p style="font-size:16.5px;color:var(--ink-2);margin-top:12px">Empresa confia em quem é verificado. Quando você passa pela checagem de antecedentes e CNH, ganha o selo de verificado — e é nele que o negócio confia pra mandar encomenda de valor.</p>
+    <a class="btn btn-go btn-lg" href="/cadastro/entregador" style="margin-top:18px"><svg><use href="#i-shield"/></svg> Quero ser verificado</a>
+  </div>
+  <div class="cards" style="grid-template-columns:1fr;margin-top:0">
+    <div class="card go"><div class="ic"><svg><use href="#i-shield"/></svg></div><h4>Selo de verificado</h4><p>Antecedentes e CNH checados. O selo aparece pro negócio na hora de escolher quem leva.</p></div>
+    <div class="card go"><div class="ic"><svg><use href="#i-money"/></svg></div><h4>Mais confiança, mais corrida</h4><p>Quem manda carga de valor prefere entregador verificado. Isso vira mais entrega pra você.</p></div>
+  </div>
+</div></section>
+
+<section id="como" class="blk"><div class="wrap">
+  <div class="sechead center"><span class="eyebrow">Como funciona</span><h2>Do cadastro à primeira corrida.</h2></div>
+  <div class="cards">
+    <div class="card"><div class="n">1</div><h4>Cadastra e verifica</h4><p>Você manda documento, CNH e dados do veículo. A gente faz a checagem de antecedentes e te aprova.</p></div>
+    <div class="card"><div class="n">2</div><h4>Recebe oferta no mapa</h4><p>Fica online e as ofertas chegam no mapa, com cronômetro. Aceita deslizando a que te serve.</p></div>
+    <div class="card"><div class="n">3</div><h4>Entrega e recebe</h4><p>Coleta, entrega com foto e código, e o valor cai na sua carteira. Saca por Pix quando quiser.</p></div>
+  </div>
+</div></section>
+
+<section id="requisitos" class="blk bg-soft"><div class="wrap">
+  <div class="sechead center"><span class="eyebrow">Requisitos</span><h2>O que você precisa pra começar.</h2></div>
+  <div class="req">
+    <div class="r"><div class="ic"><svg><use href="#i-user"/></svg></div><h4>18 anos ou mais</h4><p>Documento com foto válido.</p></div>
+    <div class="r"><div class="ic"><svg><use href="#i-doc"/></svg></div><h4>CNH válida</h4><p>Categoria certa pro seu veículo.</p></div>
+    <div class="r"><div class="ic"><svg><use href="#i-moto"/></svg></div><h4>Moto, carro ou van</h4><p>Em condições de rodar.</p></div>
+    <div class="r"><div class="ic"><svg><use href="#i-money"/></svg></div><h4>Conta pra Pix</h4><p>No seu nome, pra receber.</p></div>
+  </div>
+</div></section>
+
+<section class="blk"><div class="wrap"><div class="finalcta">
+  <h2>Bora rodar com a APPDELYVERY.</h2>
+  <p>Cadastre-se, passe pela verificação e comece a receber ofertas em Palmas. 80% do frete, saque por Pix.</p>
+  <a class="btn btn-light btn-lg" href="/cadastro/entregador"><svg><use href="#i-moto"/></svg> Quero ser entregador</a>
+</div></div></section>
+
+<footer><div class="wrap">
+  <div class="footer-cols">
+    <a class="brand" href="/" style="color:#fff"><span class="mk"><svg><use href="#i-moto"/></svg></span><span style="color:#fff"><b style="color:#93c5fd">APP</b>DELYVERY</span></a>
+    <div class="links"><a href="/">Para empresas</a><a href="/login">Entrar</a><a href="/cadastro/entregador">Cadastrar</a><a href="/termos">Termos</a><a href="/privacidade">Privacidade</a></div>
+  </div>
+  <div class="fbot">© 2026 APPDELYVERY · Logística sob demanda · Palmas-TO · Impulso Digital</div>
+</div></footer>
+
+</body>
+</html>
