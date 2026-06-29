@@ -44,7 +44,7 @@
   "mainEntity": [
     { "@type": "Question", "name": "Como funciona a verificação do entregador?", "acceptedAnswer": { "@type": "Answer", "text": "Todo entregador passa por checagem de antecedentes criminais e CNH antes de ser aprovado. Você vê o selo de quem está verificado, e esses dados ficam protegidos pela LGPD — só a nossa operação tem acesso." } },
     { "@type": "Question", "name": "Em quais regiões a APPDELYVERY atende?", "acceptedAnswer": { "@type": "Answer", "text": "Palmas e região, incluindo Luzimangues. Com a Van, atendemos intercidade para Porto Nacional, e estamos abrindo Gurupi. Onde a busca não acha o endereço, você marca no mapa." } },
-    { "@type": "Question", "name": "Já uso outro serviço de entrega. Por que mudar?", "acceptedAnswer": { "@type": "Answer", "text": "Porque aqui você tem entregador de ficha checada, atendimento de gente que conhece o seu negócio e resolve rápido — não um call-center que te trata como um número. Somos daqui, e a sua entrega a gente leva a sério." } },
+    { "@type": "Question", "name": "Já uso outro serviço de entrega. Por que mudar?", "acceptedAnswer": { "@type": "Answer", "text": "Aqui o entregador passa por checagem de antecedentes e CNH, e você fala com gente daqui que conhece o seu negócio e resolve rápido. Somos de Palmas e levamos a sua entrega a sério." } },
     { "@type": "Question", "name": "Tenho sistema próprio. Dá para integrar?", "acceptedAnswer": { "@type": "Answer", "text": "Sim. Você gera uma chave de API e o seu sistema (loja virtual, ERP, PDV) dispara o pedido automático e recebe cada status de volta por webhook, sem digitação manual." } },
     { "@type": "Question", "name": "Quanto custa?", "acceptedAnswer": { "@type": "Answer", "text": "Sem mensalidade no plano avulso: você paga por entrega, com preço por km e veículo. Há também carteira pré-paga e plano empresarial para volume. Proteção de carga inclusa." } },
     { "@type": "Question", "name": "Como acompanho a entrega?", "acceptedAnswer": { "@type": "Answer", "text": "Ao vivo, no mapa. Você e o seu cliente recebem um link por WhatsApp e veem o entregador chegando, sem instalar nada. No fim, comprovante com foto e assinatura." } }
@@ -207,6 +207,15 @@
   .plan li{padding:6px 0 6px 26px;position:relative;font-size:14px}
   .plan li:before{content:"✓";position:absolute;left:0;color:var(--go-d);font-weight:900}
 
+  .faq{max-width:820px;margin:32px auto 0}
+  .faq details{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden;transition:border-color .18s}
+  .faq details[open]{border-color:var(--line-2)}
+  .faq summary{list-style:none;cursor:pointer;padding:18px 20px;font-family:'Sora','Manrope',sans-serif;font-weight:700;font-size:16px;color:var(--navy);display:flex;justify-content:space-between;align-items:center;gap:16px}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary .chev{flex-shrink:0;width:20px;height:20px;color:var(--indigo);transition:transform .2s}
+  .faq details[open] summary .chev{transform:rotate(180deg)}
+  .faq .ans{padding:0 20px 18px;font-size:14.5px;color:var(--ink-2);line-height:1.65}
+
   .driver{background:linear-gradient(135deg,var(--navy),#1a2247);color:#fff}
   .driver h2{color:#fff;font-size:36px;font-weight:800}
   .driver p{color:#c6cbef;font-size:16.5px;margin-top:12px}
@@ -249,7 +258,6 @@
     <div class="nav-menu">
       <a href="#negocios">Para empresas</a>
       <a href="#como">Como funciona</a>
-      <a href="#tecnologia">Tecnologia</a>
       <a href="#cobertura">Cobertura</a>
       <a href="#entregadores">Entregadores</a>
       <a href="#planos">Planos</a>
@@ -322,31 +330,6 @@
   </div>
 </div></section>
 
-<section id="tecnologia" class="blk bg-soft"><div class="wrap">
-  <div class="sechead"><span class="eyebrow">Tecnologia</span><h2>Despacho inteligente e integração que cai sozinha.</h2><p>Por baixo do app, um sistema de verdade: um motor que escolhe o melhor entregador em segundos, e uma API que conecta a sua loja.</p></div>
-  <div class="split" style="margin-top:36px">
-    <div>
-      <div class="feat"><div class="ic"><svg><use href="#i-bolt"/></svg></div><div><h4>Motor de despacho adaptativo</h4><p>Ordena por proximidade, avaliação e veículo certo — e aprende com a performance real de cada entregador.</p></div></div>
-      <div class="feat"><div class="ic"><svg><use href="#i-plug"/></svg></div><div><h4>Integração via API + webhook</h4><p>O seu sistema (loja virtual, ERP, PDV) dispara o pedido automático e recebe cada status de volta. O modelo das grandes redes.</p></div></div>
-      <div class="feat"><div class="ic"><svg><use href="#i-route"/></svg></div><div><h4>Rastreio e rota reais</h4><p>GPS ao vivo, rota pelas ruas, e busca de endereço que entende a dupla nomenclatura de Palmas (ARSE / numérico).</p></div></div>
-    </div>
-    <div>
-      <p style="font-weight:800;color:var(--navy);margin-bottom:10px">Construído sobre infraestrutura profissional</p>
-      <div class="tech">
-        <div class="t"><img src="https://cdn.simpleicons.org/supabase/3ECF8E" alt="Supabase"><div class="n">Supabase</div><div class="d">Banco + tempo real</div></div>
-        <div class="t"><img src="https://cdn.simpleicons.org/postgresql/4f46e5" alt="PostgreSQL"><div class="n">PostgreSQL</div><div class="d">+ PostGIS (geo)</div></div>
-        <div class="t"><img src="https://cdn.simpleicons.org/vercel/0e1430" alt="Vercel"><div class="n">Vercel</div><div class="d">Hospedagem</div></div>
-        <div class="t"><img src="https://cdn.simpleicons.org/mapbox/4f46e5" alt="Mapbox"><div class="n">Mapbox</div><div class="d">Mapas e rotas</div></div>
-      </div>
-      <div class="flowline">
-        <div class="s"><div class="k">01</div><h4>Loja vende</h4><p>No site / PDV dela</p></div>
-        <div class="s"><div class="k">02</div><h4>API cria o pedido</h4><p>O despacho dispara</p></div>
-        <div class="s"><div class="k">03</div><h4>Entregador acionado</h4><p>E status de volta</p></div>
-      </div>
-    </div>
-  </div>
-</div></section>
-
 <section id="cobertura" class="blk"><div class="wrap split">
   <div class="shot"><img src="/site/img/map-cobertura.png" alt="Cobertura APPDELYVERY em Palmas e região"></div>
   <div>
@@ -388,13 +371,31 @@
 
 <section id="faq" class="blk bg-soft"><div class="wrap">
   <div class="sechead center"><span class="eyebrow">Dúvidas</span><h2>Perguntas frequentes</h2></div>
-  <div class="cards" style="grid-template-columns:1fr 1fr">
-    <div class="card"><h4>Como funciona a verificação do entregador?</h4><p>Todo entregador passa por checagem de antecedentes criminais e CNH antes de ser aprovado. Você vê o selo de quem está verificado, e esses dados ficam protegidos (LGPD) — só a nossa operação tem acesso.</p></div>
-    <div class="card"><h4>Em quais regiões vocês atendem?</h4><p>Palmas e região, incluindo Luzimangues. Com a Van, atendemos intercidade pra Porto Nacional, e estamos abrindo Gurupi. Onde a busca não acha o endereço, você marca no mapa.</p></div>
-    <div class="card"><h4>Já uso outro serviço de entrega. Por que mudar?</h4><p>Porque aqui você tem entregador de ficha checada, atendimento de gente que conhece o seu negócio e resolve rápido — não um call-center que te trata como um número. Somos daqui, e a sua entrega a gente leva a sério.</p></div>
-    <div class="card"><h4>Tenho sistema próprio (loja virtual, ERP, PDV). Dá pra integrar?</h4><p>Sim. Você gera uma chave de API e o seu sistema dispara o pedido automático — e recebe cada status de volta. Sem ninguém digitar. É o mesmo modelo que as grandes redes usam.</p></div>
-    <div class="card"><h4>Quanto custa?</h4><p>Sem mensalidade no plano avulso: você paga por entrega (preço por km e veículo). Tem também carteira pré-paga e plano empresarial pra volume. Proteção de carga inclusa.</p></div>
-    <div class="card"><h4>Como acompanho a entrega?</h4><p>Ao vivo, no mapa. Você e o seu cliente recebem um link (por WhatsApp) e veem o entregador chegando — sem instalar nada. No fim, comprovante com foto e assinatura.</p></div>
+  <div class="faq">
+    <details>
+      <summary>Como funciona a verificação do entregador?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="ans">Todo entregador passa por checagem de antecedentes criminais e CNH antes de ser aprovado. Você vê o selo de quem está verificado, e esses dados ficam protegidos (LGPD) — só a nossa operação tem acesso.</div>
+    </details>
+    <details>
+      <summary>Em quais regiões vocês atendem?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="ans">Palmas e região, incluindo Luzimangues. Com a Van, atendemos intercidade pra Porto Nacional, e estamos abrindo Gurupi. Onde a busca não acha o endereço, você marca no mapa.</div>
+    </details>
+    <details>
+      <summary>Já uso outro serviço de entrega. Por que mudar?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="ans">Aqui o entregador passa por checagem de antecedentes e CNH, e você fala com gente daqui que conhece o seu negócio e resolve rápido. Somos de Palmas e levamos a sua entrega a sério.</div>
+    </details>
+    <details>
+      <summary>Tenho sistema próprio (loja virtual, ERP, PDV). Dá pra integrar?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="ans">Sim. Você gera uma chave de API e o seu sistema dispara o pedido automático — e recebe cada status de volta, sem ninguém digitar.</div>
+    </details>
+    <details>
+      <summary>Quanto custa?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="ans">Sem mensalidade no plano avulso: você paga por entrega (preço por km e veículo). Tem também carteira pré-paga e plano empresarial pra volume. Proteção de carga inclusa.</div>
+    </details>
+    <details>
+      <summary>Como acompanho a entrega?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="ans">Ao vivo, no mapa. Você e o seu cliente recebem um link (por WhatsApp) e veem o entregador chegando — sem instalar nada. No fim, comprovante com foto e assinatura.</div>
+    </details>
   </div>
 </div></section>
 
@@ -410,7 +411,7 @@
       <a class="brand" href="#top" style="color:#fff"><span class="mk"><svg><use href="#i-moto"/></svg></span><span style="color:#fff"><b style="color:#a5acff">APP</b>DELYVERY</span></a>
       <p style="margin-top:12px;max-width:300px">Entrega de encomendas para empresas, com entregador verificado. Palmas-TO e região.</p>
     </div>
-    <div><h5>Plataforma</h5><a href="#negocios">Para empresas</a><a href="#entregadores">Para entregadores</a><a href="#tecnologia">Tecnologia</a><a href="#planos">Planos</a></div>
+    <div><h5>Plataforma</h5><a href="#negocios">Para empresas</a><a href="#entregadores">Para entregadores</a><a href="#planos">Planos</a></div>
     <div><h5>Acesso</h5><a href="/login">Entrar</a><a href="/cadastro">Cadastrar empresa</a><a href="/cadastro/entregador">Ser entregador</a><a href="/termos">Termos</a><a href="/privacidade">Privacidade</a></div>
   </div>
   <div class="fbot"><span>© 2026 APPDELYVERY · Logística sob demanda · Palmas-TO</span><span>Impulso Digital</span></div>
