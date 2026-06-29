@@ -56,7 +56,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --indigo:#4f46e5; --indigo-2:#6366f1; --indigo-d:#3730a3;
+    /* cor de marca AppDelyvery = AZUL (var mantém nome --indigo por compat) */
+    --indigo:#2563eb; --indigo-2:#3b82f6; --indigo-d:#1d4ed8;
     --navy:#0e1430; --navy-2:#161d3f; --ink:#1c2340; --ink-2:#3a4263;
     --muted:#6b7395; --line:#e6e8f4; --line-2:#d7daed;
     --bg:#ffffff; --bg-soft:#f6f7fc;
@@ -83,36 +84,58 @@
   .btn-light:hover{background:rgba(255,255,255,.18);}
   .btn-lg{padding:16px 30px;font-size:16.5px;}
 
-  nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
-  .nav-in{display:flex;align-items:center;justify-content:space-between;height:70px;}
-  .brand{display:flex;align-items:center;gap:11px;font-family:'Sora';font-weight:800;font-size:20px;letter-spacing:-.02em;color:var(--navy);}
-  .brand .mk{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--indigo),var(--indigo-d));display:grid;place-items:center;box-shadow:0 6px 16px -6px rgba(79,70,229,.7);}
+  nav{position:sticky;top:0;z-index:50;background:var(--indigo);border-bottom:1px solid rgba(255,255,255,.14);}
+  .nav-in{display:flex;align-items:center;gap:14px;height:66px;}
+  .brand{display:flex;align-items:center;gap:11px;font-family:'Sora';font-weight:800;font-size:20px;letter-spacing:-.02em;color:#fff;}
+  .brand .mk{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.18);display:grid;place-items:center;}
   .brand .mk svg{width:21px;height:21px;color:#fff}
-  .brand b{color:var(--indigo)}
-  .nav-links{display:flex;align-items:center;gap:30px;font-size:14.5px;font-weight:600;color:var(--ink-2);}
-  .nav-links a:hover{color:var(--indigo)}
-  .nav-cta{display:flex;align-items:center;gap:12px}
-  @media(max-width:860px){.nav-links{display:none}.nav-cta .ghost-hide{display:none}}
+  .brand b{color:#fff}
+  .nav-menu{display:flex;align-items:center;gap:26px;margin-left:auto;font-size:14.5px;font-weight:600;}
+  .nav-menu>a{color:rgba(255,255,255,.86)}
+  .nav-menu>a:hover{color:#fff}
+  nav .btn-ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.4)}
+  nav .btn-ghost:hover{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.6)}
+  nav .btn-primary{background:#fff;color:var(--indigo);box-shadow:none}
+  nav .btn-primary:hover{background:#eef0ff;transform:translateY(-1px)}
+  .burger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;margin-left:auto}
+  .burger span{width:24px;height:2px;background:#fff;border-radius:2px;transition:.2s}
+  #navtog{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+  #navtog:checked ~ .nav-in .burger span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  #navtog:checked ~ .nav-in .burger span:nth-child(2){opacity:0}
+  #navtog:checked ~ .nav-in .burger span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  @media(max-width:860px){
+    .burger{display:flex}
+    .nav-menu{position:absolute;top:66px;left:0;right:0;flex-direction:column;align-items:stretch;gap:2px;background:var(--indigo);margin:0;padding:8px 28px 18px;border-bottom:1px solid rgba(255,255,255,.14);display:none}
+    #navtog:checked ~ .nav-in .nav-menu{display:flex}
+    .nav-menu>a{padding:12px 0;font-size:15.5px}
+    .nav-menu .btn{width:100%;justify-content:center;margin-top:6px}
+  }
 
-  .hero{position:relative;overflow:hidden;background:radial-gradient(1100px 560px at 78% -10%,#eef0ff,#ffffff 60%);}
-  .hero-in{display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center;padding:74px 0 80px;}
-  .hero h1{font-size:53px;font-weight:800;margin:18px 0 0;color:var(--navy);}
-  .hero h1 .hl{color:var(--indigo);}
-  .hero p.sub{font-size:19px;color:var(--ink-2);margin-top:22px;max-width:520px;}
+  .hero{position:relative;overflow:hidden;background:linear-gradient(160deg,#2563eb 0%,#1d4ed8 56%,#1e3a8a 100%);color:#fff;}
+  .hero:after{content:"";position:absolute;inset:0;background:radial-gradient(900px 480px at 82% 6%,rgba(255,255,255,.16),transparent 60%);pointer-events:none}
+  .hero-in{position:relative;z-index:1;display:grid;grid-template-columns:1.04fr .96fr;gap:50px;align-items:center;padding:72px 0 84px;}
+  .hero .eyebrow{color:#bfdbfe}
+  .hero h1{font-size:54px;font-weight:800;margin:18px 0 0;color:#fff;}
+  .hero h1 .hl{color:#bfdbfe;}
+  .hero p.sub{font-size:19px;color:#dbeafe;margin-top:22px;max-width:520px;}
   .hero .cta{display:flex;gap:13px;margin-top:32px;flex-wrap:wrap}
-  .hero .micro{margin-top:20px;font-size:13.5px;color:var(--muted);display:flex;gap:18px;flex-wrap:wrap}
-  .hero .micro b{color:var(--navy)}
-  .hero-art{position:relative;}
-  .hero-art .photo{border-radius:24px;overflow:hidden;box-shadow:var(--shadow);aspect-ratio:4/5;}
-  .hero-art .photo img{width:100%;height:100%;object-fit:cover}
-  .float{position:absolute;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:13px 16px;display:flex;align-items:center;gap:11px;}
+  .hero .btn-primary{background:#fff;color:var(--indigo);box-shadow:0 16px 32px -16px rgba(0,0,0,.55)}
+  .hero .btn-primary:hover{background:#eff6ff;transform:translateY(-1px)}
+  .hero .btn-ghost{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.34)}
+  .hero .btn-ghost:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.55);color:#fff}
+  .hero .micro{margin-top:22px;font-size:13.5px;color:#bfdbfe;display:flex;gap:18px;flex-wrap:wrap}
+  .hero .micro b{color:#fff}
+  .hero-art{position:relative;z-index:1;}
+  .hero-art .appcard{background:#fff;border-radius:20px;padding:12px;box-shadow:0 38px 80px -28px rgba(8,12,40,.7);}
+  .hero-art .appcard img{width:100%;display:block;border-radius:12px}
+  .float{position:absolute;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:12px 15px;display:flex;align-items:center;gap:11px;}
   .float .av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--go),var(--go-d));display:grid;place-items:center;color:#fff;flex-shrink:0}
   .float .av svg{width:19px;height:19px}
   .float .ft{font-size:13px;font-weight:800;color:var(--navy);line-height:1.2}
   .float .fs{font-size:11.5px;color:var(--muted)}
-  .float.a{top:24px;left:-26px}
-  .float.b{bottom:26px;right:-22px}
-  @media(max-width:860px){.hero-in{grid-template-columns:1fr;gap:34px;padding:48px 0 56px}.hero h1{font-size:38px}.float.a{left:8px}.float.b{right:8px}}
+  .float.a{top:18px;left:-24px}
+  .float.b{bottom:20px;right:-20px}
+  @media(max-width:860px){.hero-in{grid-template-columns:1fr;gap:32px;padding:40px 0 52px}.hero h1{font-size:36px}.float.a{left:6px}.float.b{right:6px}}
 
   .strip{background:var(--navy);color:#fff;}
   .strip-in{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;padding:30px 0;}
@@ -218,35 +241,37 @@
 <symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></symbol>
 </svg>
 
-<nav><div class="wrap nav-in">
-  <a class="brand" href="#top"><span class="mk"><svg><use href="#i-moto"/></svg></span><span><b>APP</b>DELYVERY</span></a>
-  <div class="nav-links">
-    <a href="#negocios">Para empresas</a>
-    <a href="#como">Como funciona</a>
-    <a href="#tecnologia">Tecnologia</a>
-    <a href="#cobertura">Cobertura</a>
-    <a href="#entregadores">Entregadores</a>
-    <a href="#planos">Planos</a>
+<nav>
+  <input id="navtog" type="checkbox" aria-label="Abrir menu">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top"><span class="mk"><svg><use href="#i-moto"/></svg></span><span><b>APP</b>DELYVERY</span></a>
+    <label for="navtog" class="burger" aria-hidden="true"><span></span><span></span><span></span></label>
+    <div class="nav-menu">
+      <a href="#negocios">Para empresas</a>
+      <a href="#como">Como funciona</a>
+      <a href="#tecnologia">Tecnologia</a>
+      <a href="#cobertura">Cobertura</a>
+      <a href="#entregadores">Entregadores</a>
+      <a href="#planos">Planos</a>
+      <a class="btn btn-ghost ghost-hide" href="/login" style="padding:9px 16px">Entrar</a>
+      <a class="btn btn-primary" href="/cadastro" style="padding:9px 16px"><svg><use href="#i-bolt"/></svg> Cadastrar empresa</a>
+    </div>
   </div>
-  <div class="nav-cta">
-    <a class="btn btn-ghost ghost-hide" href="/login" style="padding:10px 18px">Entrar</a>
-    <a class="btn btn-primary" href="/cadastro" style="padding:10px 18px"><svg><use href="#i-bolt"/></svg> Cadastrar empresa</a>
-  </div>
-</div></nav>
+</nav>
 
 <header id="top" class="hero"><div class="wrap hero-in">
   <div>
     <span class="eyebrow"><svg style="width:15px;height:15px"><use href="#i-shield"/></svg> Entregador verificado por antecedentes</span>
-    <h1>Entregas para a sua empresa, com quem você <span class="hl">pode confiar.</span></h1>
-    <p class="sub">A plataforma de entrega de encomendas B2B de Palmas e região. Você pede, o sistema aciona o entregador verificado mais próximo, e todo mundo acompanha ao vivo — com comprovante no fim.</p>
+    <h1>Suas entregas com quem você <span class="hl">pode confiar.</span></h1>
+    <p class="sub">Entrega de encomendas B2B em Palmas e região. Você pede, o sistema aciona o entregador verificado mais próximo, e todo mundo acompanha ao vivo — com comprovante no fim.</p>
     <div class="cta">
-      <a class="btn btn-primary btn-lg" href="/cadastro"><svg><use href="#i-moto"/></svg> Cadastrar meu negócio</a>
+      <a class="btn btn-primary btn-lg" href="/cadastro"><svg><use href="#i-moto"/></svg> Cadastrar minha loja</a>
       <a class="btn btn-ghost btn-lg" href="#como">Ver como funciona</a>
     </div>
-    <div class="micro"><span><b>Moto · Carro · Van</b></span><span>·</span><span><b>Rastreio ao vivo</b></span><span>·</span><span><b>Integração via API</b></span></div>
+    <div class="micro"><span><b>Moto · Carro · Van</b></span><span>·</span><span><b>Rastreio ao vivo</b></span><span>·</span><span><b>Sem mensalidade</b></span></div>
   </div>
   <div class="hero-art">
-    <div class="photo"><img src="/site/img/motoboy.jpg" alt="Entregador verificado APPDELYVERY em Palmas-TO"></div>
+    <div class="appcard"><img src="/site/img/app-negocio.png" alt="Painel do negócio APPDELYVERY — pedido em andamento"></div>
     <div class="float a"><span class="av"><svg><use href="#i-shield"/></svg></span><div><div class="ft">Carlos · verificado</div><div class="fs">antecedentes + CNH checados</div></div></div>
     <div class="float b"><span class="av" style="background:linear-gradient(135deg,var(--indigo),var(--indigo-d))"><svg><use href="#i-pin"/></svg></span><div><div class="ft">A caminho · 6 min</div><div class="fs">rastreio ao vivo no mapa</div></div></div>
   </div>
