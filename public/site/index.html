@@ -126,10 +126,10 @@
   .hero .btn-ghost:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.55);color:#fff}
   .hero .micro{margin-top:22px;font-size:13.5px;color:#bfdbfe;display:flex;gap:18px;flex-wrap:wrap}
   .hero .micro b{color:#fff}
-  .hero .hero-alt{display:inline-flex;align-items:center;gap:11px;margin-top:20px;font-size:13.5px;color:#bfdbfe;flex-wrap:wrap}
-  .hero .hero-alt a{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#fff;font-weight:700;font-size:13.5px;padding:8px 15px;border-radius:30px;transition:.18s}
-  .hero .hero-alt a:hover{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.55)}
-  .hero .hero-alt a svg{width:15px;height:15px}
+  .hero .btn-go{background:var(--go);color:#fff;border-color:transparent;box-shadow:0 16px 34px -14px rgba(13,155,108,.7)}
+  .hero .btn-go:hover{background:var(--go-d);transform:translateY(-1px)}
+  .hero .hero-link{display:inline-block;margin-top:18px;color:#dbeafe;font-weight:700;font-size:14.5px;border-bottom:1.5px solid rgba(255,255,255,.4);padding-bottom:1px}
+  .hero .hero-link:hover{color:#fff;border-color:#fff}
   .hero-art{position:relative;z-index:1;}
   .hero-art .appcard{background:#fff;border-radius:20px;padding:12px;box-shadow:0 38px 80px -28px rgba(8,12,40,.7);}
   .hero-art .appcard img{width:100%;display:block;border-radius:12px}
@@ -287,11 +287,11 @@
     <h1>Suas entregas com quem você <span class="hl">pode confiar.</span></h1>
     <p class="sub">Entrega de encomendas B2B em Palmas e região. Você pede, o sistema aciona o entregador verificado mais próximo, e todo mundo acompanha ao vivo — com comprovante no fim.</p>
     <div class="cta">
-      <a class="btn btn-primary btn-lg" href="/cadastro"><svg><use href="#i-moto"/></svg> Cadastrar minha loja</a>
-      <a class="btn btn-ghost btn-lg" href="#como">Ver como funciona</a>
+      <a class="btn btn-primary btn-lg" href="/cadastro"><svg><use href="#i-bolt"/></svg> Cadastrar minha loja</a>
+      <a class="btn btn-go btn-lg" href="/seja-entregador"><svg><use href="#i-moto"/></svg> Quero ser entregador</a>
     </div>
+    <a class="hero-link" href="#como">Ver como funciona →</a>
     <div class="micro"><span><b>Moto · Carro · Van</b></span><span>·</span><span><b>Rastreio ao vivo</b></span><span>·</span><span><b>Sem mensalidade</b></span></div>
-    <div class="hero-alt">É entregador? <a href="/seja-entregador"><svg><use href="#i-moto"/></svg> Quero ser entregador</a></div>
   </div>
   <div class="hero-art">
     <div class="appcard"><img src="/site/img/app-negocio.png" alt="Painel do negócio APPDELYVERY — pedido em andamento"></div>
