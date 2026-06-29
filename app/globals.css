@@ -497,3 +497,6 @@ tr:hover td { background: var(--bg); }
 .legal .ph { background: #fff3cd; padding: 0 4px; border-radius: 4px; font-weight: 700; color: #8a5a12; }
 .legal a { color: var(--brand); font-weight: 600; }
 .legal-foot { margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--faint); }
+
+/* Vitrine (Landing): esconde links de texto do nav no mobile (CTA principal permanece) */
+@media (max-width: 720px) { .hide-sm { display: none !important; } }
