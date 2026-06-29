@@ -172,6 +172,12 @@
   .card .n{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--indigo);color:#fff;font-family:'Sora';font-weight:800;font-size:15px;margin-bottom:14px}
   .card .ic{width:44px;height:44px;border-radius:13px;background:#eaf0ff;display:grid;place-items:center;margin-bottom:14px}
   .card .ic svg{width:22px;height:22px;color:var(--indigo)}
+  .vcard{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-sm);transition:transform .18s,box-shadow .18s}
+  .vcard:hover{transform:translateY(-3px);box-shadow:0 18px 40px -16px rgba(16,20,48,.25)}
+  .vcard img{width:100%;height:188px;object-fit:cover;display:block}
+  .vcard .vbody{padding:18px 22px 24px}
+  .vcard h4{font-size:18px;font-weight:800}
+  .vcard p{font-size:14.5px;color:var(--muted);margin-top:7px}
   .card h4{font-size:18px;font-weight:800}
   .card p{font-size:14.5px;color:var(--muted);margin-top:7px}
 
@@ -339,7 +345,7 @@
 </div></section>
 
 <section id="envios" class="blk"><div class="wrap">
-  <div class="sechead center"><span class="eyebrow">O que você envia</span><h2>Documento, encomenda ou produto de valor — a gente leva.</h2></div>
+  <div class="sechead center"><span class="eyebrow">O que você envia</span><h2>Praticamente qualquer encomenda, dentro de Palmas.</h2><p>Documento, remédio, peça, produto de valor — se cabe na moto, no carro ou na van, a gente leva. Os exemplos abaixo são só um começo.</p></div>
   <div class="cards">
     <div class="card"><div class="ic"><svg><use href="#i-doc"/></svg></div><h4>Documentos e contratos</h4><p>Notas, contratos e papelada entre escritórios e clientes.</p></div>
     <div class="card"><div class="ic"><svg><use href="#i-heart"/></svg></div><h4>Remédios e receitas</h4><p>Da farmácia ao cliente, com cuidado e rastreio.</p></div>
@@ -348,14 +354,15 @@
     <div class="card"><div class="ic"><svg><use href="#i-route"/></svg></div><h4>Encomendas de e-commerce</h4><p>Suas vendas entregues no mesmo dia, dentro da cidade.</p></div>
     <div class="card"><div class="ic"><svg><use href="#i-shield"/></svg></div><h4>Produtos de valor</h4><p>Itens caros nas mãos de um entregador verificado.</p></div>
   </div>
+  <p style="text-align:center;color:var(--muted);font-size:15px;margin-top:26px">Não está na lista? Se cabe e é permitido, a gente entrega — é só pedir.</p>
 </div></section>
 
 <section id="veiculos" class="blk bg-soft"><div class="wrap">
   <div class="sechead center"><span class="eyebrow">Veículos</span><h2>O veículo certo para cada entrega.</h2></div>
   <div class="cards">
-    <div class="card"><div class="ic"><svg><use href="#i-moto"/></svg></div><h4>Moto</h4><p>Documentos e itens pequenos, no menor preço e mais rápido pela cidade.</p></div>
-    <div class="card"><div class="ic"><svg><use href="#i-car"/></svg></div><h4>Carro</h4><p>Encomendas maiores ou em maior quantidade, protegidas no trajeto.</p></div>
-    <div class="card"><div class="ic"><svg><use href="#i-van"/></svg></div><h4>Van</h4><p>Volume e carga entre cidades — Luzimangues, Porto Nacional e região.</p></div>
+    <div class="vcard"><img src="/site/img/veiculo-moto.jpg" alt="Entrega de moto" loading="lazy"><div class="vbody"><h4>Moto</h4><p>Documentos e itens pequenos, no menor preço e mais rápido pela cidade.</p></div></div>
+    <div class="vcard"><img src="/site/img/veiculo-carro.jpg" alt="Entrega de carro" loading="lazy"><div class="vbody"><h4>Carro</h4><p>Encomendas maiores ou em maior quantidade, protegidas no trajeto.</p></div></div>
+    <div class="vcard"><img src="/site/img/veiculo-van.jpg" alt="Entrega de van" loading="lazy"><div class="vbody"><h4>Van</h4><p>Volume e carga entre cidades — Luzimangues, Porto Nacional e região.</p></div></div>
   </div>
 </div></section>
 
