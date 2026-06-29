@@ -170,6 +170,8 @@
   @media(max-width:860px){.cards{grid-template-columns:1fr}}
   .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:26px;box-shadow:var(--shadow-sm);}
   .card .n{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--indigo);color:#fff;font-family:'Sora';font-weight:800;font-size:15px;margin-bottom:14px}
+  .card .ic{width:44px;height:44px;border-radius:13px;background:#eaf0ff;display:grid;place-items:center;margin-bottom:14px}
+  .card .ic svg{width:22px;height:22px;color:var(--indigo)}
   .card h4{font-size:18px;font-weight:800}
   .card p{font-size:14.5px;color:var(--muted);margin-top:7px}
 
@@ -266,6 +268,9 @@
 <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></symbol>
 <symbol id="i-support" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M4 14a2 2 0 0 1 2 2v2a2 2 0 0 1-4 0v-2a2 2 0 0 1 2-2zM20 14a2 2 0 0 1 2 2v2a2 2 0 0 1-4 0v-2a2 2 0 0 1 2-2z"/><path d="M20 18a8 8 0 0 1-8 4"/></symbol>
 <symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></symbol>
+<symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></symbol>
+<symbol id="i-car" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l1.5-4.5A2 2 0 0 1 8.4 7h7.2a2 2 0 0 1 1.9 1.5L19 13"/><path d="M4 13h16v4h-2v-1H6v1H4z"/><circle cx="7.5" cy="14.5" r="1"/><circle cx="16.5" cy="14.5" r="1"/></symbol>
+<symbol id="i-van" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h12v9H2z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.5"/><circle cx="17.5" cy="17.5" r="1.5"/></symbol>
 <symbol id="i-wpp" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.372-.025-.521-.075-.148-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></symbol>
 </svg>
 
@@ -330,6 +335,27 @@
     <div class="card"><div class="n">1</div><h4>Você pede</h4><p>Informe coleta, destino e o que enviar. O sistema reconhece os endereços de Palmas e mostra o preço de moto, carro e van na hora.</p></div>
     <div class="card"><div class="n">2</div><h4>O sistema aciona</h4><p>A entrega é oferecida ao entregador verificado mais próximo e melhor avaliado. Se ele recusa, passa para o próximo na hora.</p></div>
     <div class="card"><div class="n">3</div><h4>Você acompanha</h4><p>Você e o seu cliente veem o entregador no mapa por um link no WhatsApp, sem instalar nada. No final, comprovante com foto e assinatura.</p></div>
+  </div>
+</div></section>
+
+<section id="envios" class="blk"><div class="wrap">
+  <div class="sechead center"><span class="eyebrow">O que você envia</span><h2>Documento, encomenda ou produto de valor — a gente leva.</h2></div>
+  <div class="cards">
+    <div class="card"><div class="ic"><svg><use href="#i-doc"/></svg></div><h4>Documentos e contratos</h4><p>Notas, contratos e papelada entre escritórios e clientes.</p></div>
+    <div class="card"><div class="ic"><svg><use href="#i-heart"/></svg></div><h4>Remédios e receitas</h4><p>Da farmácia ao cliente, com cuidado e rastreio.</p></div>
+    <div class="card"><div class="ic"><svg><use href="#i-box"/></svg></div><h4>Óculos e lentes</h4><p>Da ótica até a casa do cliente, com comprovante.</p></div>
+    <div class="card"><div class="ic"><svg><use href="#i-bolt"/></svg></div><h4>Peças e autopeças</h4><p>O item certo na loja ou na oficina, na hora.</p></div>
+    <div class="card"><div class="ic"><svg><use href="#i-route"/></svg></div><h4>Encomendas de e-commerce</h4><p>Suas vendas entregues no mesmo dia, dentro da cidade.</p></div>
+    <div class="card"><div class="ic"><svg><use href="#i-shield"/></svg></div><h4>Produtos de valor</h4><p>Itens caros nas mãos de um entregador verificado.</p></div>
+  </div>
+</div></section>
+
+<section id="veiculos" class="blk bg-soft"><div class="wrap">
+  <div class="sechead center"><span class="eyebrow">Veículos</span><h2>O veículo certo para cada entrega.</h2></div>
+  <div class="cards">
+    <div class="card"><div class="ic"><svg><use href="#i-moto"/></svg></div><h4>Moto</h4><p>Documentos e itens pequenos, no menor preço e mais rápido pela cidade.</p></div>
+    <div class="card"><div class="ic"><svg><use href="#i-car"/></svg></div><h4>Carro</h4><p>Encomendas maiores ou em maior quantidade, protegidas no trajeto.</p></div>
+    <div class="card"><div class="ic"><svg><use href="#i-van"/></svg></div><h4>Van</h4><p>Volume e carga entre cidades — Luzimangues, Porto Nacional e região.</p></div>
   </div>
 </div></section>
 
@@ -415,6 +441,18 @@
     <details>
       <summary>Como acompanho a entrega?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></summary>
       <div class="ans">Ao vivo, no mapa. Você e o seu cliente recebem um link (por WhatsApp) e veem o entregador chegando — sem instalar nada. No final, comprovante com foto e assinatura.</div>
+    </details>
+    <details>
+      <summary>Tem limite de peso ou valor por entrega?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="ans">Cada veículo tem um limite de peso e tamanho: moto para itens menores, carro e van para cargas maiores. Para enviar algo de alto valor, declare o valor no pedido — assim a proteção de carga cobre dentro do limite do seu plano.</div>
+    </details>
+    <details>
+      <summary>Quais itens não podem ser enviados?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="ans">Não transportamos itens ilegais, perigosos (inflamáveis, armas) nem dinheiro em espécie. Na dúvida sobre algum item, confirme com o suporte antes de enviar.</div>
+    </details>
+    <details>
+      <summary>Como funciona a proteção de carga?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="ans">Toda entrega inclui proteção de carga. Em caso de extravio ou avaria comprovados, você é ressarcido conforme as regras de cobertura do seu plano.</div>
     </details>
   </div>
 </div></section>
