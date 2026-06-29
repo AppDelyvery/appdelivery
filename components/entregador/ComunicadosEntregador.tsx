@@ -34,10 +34,13 @@ export default function ComunicadosEntregador() {
           <div style={{ fontSize: 12.5, color: "var(--faint)" }}>Nenhum aviso por enquanto. Comunicados da central aparecem aqui.</div>
         ) : (
           coms.map((c) => (
-            <div key={c.id} style={{ padding: "12px 0", borderBottom: "1px solid var(--line)" }}>
-              <div className="td-name" style={{ fontSize: 14 }}>{c.titulo}</div>
-              <div style={{ fontSize: 13, color: "var(--ink-2)", margin: "4px 0", lineHeight: 1.5 }}>{c.corpo}</div>
-              <div style={{ fontSize: 11, color: "var(--faint)" }}>{dt(c.created_at)}</div>
+            <div key={c.id} style={{ display: "flex", gap: 11, padding: "12px 0", borderBottom: "1px solid var(--line)" }}>
+              <span style={{ width: 36, height: 36, borderRadius: 10, background: "var(--brand-light)", display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name="send" /></span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="td-name" style={{ fontSize: 14 }}>{c.titulo}</div>
+                <div style={{ fontSize: 13, color: "var(--ink-2)", margin: "4px 0", lineHeight: 1.5 }}>{c.corpo}</div>
+                <div style={{ fontSize: 11, color: "var(--faint)" }}>{dt(c.created_at)}</div>
+              </div>
             </div>
           ))
         )}
