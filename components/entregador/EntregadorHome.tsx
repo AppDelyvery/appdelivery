@@ -9,6 +9,7 @@ import { registerPush } from "@/lib/push";
 import { liberarAudio, tocarAlerta, pararAlerta } from "@/lib/alertaSom";
 import { geoDist } from "@/lib/rota";
 import { MAPBOX_TOKEN } from "@/lib/mapbox";
+import { useStatusSistema } from "@/lib/statusSistema";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { useMinhaOferta } from "@/lib/oferta";
@@ -31,6 +32,7 @@ export default function EntregadorHome() {
   useAtualizarPosicao(online, gps);
   useWakeLock(true); // mapa tela-cheia: mantém a tela acesa enquanto o entregador está aqui
   const { oferta, aceitar, recusar } = useMinhaOferta(online);
+  const status = useStatusSistema(online, gps);
 
   const [tema, setTema] = useState<TemaMapa>("auto");
   const [menu, setMenu] = useState(false);
@@ -133,6 +135,11 @@ export default function EntregadorHome() {
         {money(ganhoHoje)} <Icon name="arrow" />
       </button>
 
+      {/* detector de status REAL do sistema (rede + backend + GPS + online) — sempre visível */}
+      <div className={`emap-statuschip ${status.nivel}`} title={status.detalhe}>
+        <span className="d" /> {status.texto}
+      </div>
+
       {/* ícones flutuantes à direita: recentralizar + tema + reportar */}
       <div className="emap-side">
         <button className="emap-fab" onClick={() => recenterRef.current?.()} aria-label="Centralizar no meu local"><Icon name="target" /></button>
@@ -207,7 +214,7 @@ export default function EntregadorHome() {
             {msg && <div className="emap-erro">{msg}</div>}
             <div className="emap-procurando">
               <span className="emap-radar-dot" />
-              Esperando a próxima entrega da sua região aparecer. Fique por perto.
+              {status.nivel === "conectado" ? "Esperando a próxima entrega da sua região aparecer. Fique por perto." : status.detalhe}
             </div>
           </>
         )}

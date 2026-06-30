@@ -291,6 +291,14 @@ tr:hover td { background: var(--bg); }
 .emap-fab { position: absolute; width: 46px; height: 46px; border-radius: 14px; background: #fff; border: none; box-shadow: 0 3px 12px rgba(13,20,36,.18); display: grid; place-items: center; color: var(--ink-2); cursor: pointer; z-index: 5; }
 .emap-fab svg { width: 21px; height: 21px; }
 .emap-burger { top: calc(env(safe-area-inset-top, 0px) + 12px); left: 14px; }
+.emap-statuschip { position: absolute; left: 14px; top: calc(env(safe-area-inset-top, 0px) + 68px); z-index: 6; display: inline-flex; align-items: center; gap: 8px; background: var(--card); border-radius: 999px; padding: 7px 13px 7px 11px; box-shadow: 0 3px 12px rgba(13,20,36,.16); font-size: 12.5px; font-weight: 800; max-width: 70vw; }
+.emap-statuschip .d { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.emap-statuschip.conectado { color: #047857; }
+.emap-statuschip.conectado .d { background: var(--go); animation: pulse2 1.8s infinite; }
+.emap-statuschip.instavel { color: #a86b00; }
+.emap-statuschip.instavel .d { background: #e6a700; }
+.emap-statuschip.offline { color: #b91c1c; }
+.emap-statuschip.offline .d { background: #dc2626; }
 .emap-pill { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 14px); left: 50%; transform: translateX(-50%); z-index: 5; background: var(--ink); color: #fff; border: none; border-radius: 30px; padding: 11px 18px; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 14px rgba(13,20,36,.25); cursor: pointer; }
 .emap-pill svg { width: 15px; height: 15px; transform: rotate(90deg); opacity: .7; }
 .emap-side { position: absolute; right: 14px; top: 34%; display: flex; flex-direction: column; gap: 10px; z-index: 5; }
