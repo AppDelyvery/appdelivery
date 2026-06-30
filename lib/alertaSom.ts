@@ -1,9 +1,9 @@
 "use client";
 
-// Toque de nova oferta estilo 99/iFood: bipe alto e REPETIDO enquanto a oferta está
-// na tela. O push do SO dá só um "pluc" único; com o app aberto, tocamos no próprio app.
-// iOS exige que o áudio seja liberado num gesto do usuário (chamar liberarAudio() no tap
-// de "Conectar"). Sem AudioContext, no-op silencioso.
+// Toque de nova oferta: melodia "Hook 5 notas" (do-mi-ré-sol-do) em timbre de caixa
+// de música — agradável, grudenta e que resolve na tônica (não cansa no repeat).
+// O push do SO dá só um "pluc" único; com o app aberto tocamos no próprio app.
+// iOS exige liberar o áudio num gesto do usuário (liberarAudio() no tap de "Conectar").
 
 let ctx: AudioContext | null = null;
 let loop: ReturnType<typeof setInterval> | null = null;
@@ -22,42 +22,47 @@ export function liberarAudio() {
   if (c && c.state === "suspended") c.resume().catch(() => {});
 }
 
-function bipe() {
+// timbre caixa de música: fundamental + oitava + harmônico, ataque rápido e cauda macia
+function nota(c: AudioContext, m: GainNode, t: number, freq: number, dur = 0.42, vol = 0.42) {
+  ([[freq, vol, "sine"], [freq * 2, vol * 0.22, "sine"], [freq * 3, vol * 0.07, "triangle"]] as [number, number, OscillatorType][])
+    .forEach(([f, v, type]) => {
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(v, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g);
+      g.connect(m);
+      o.start(t);
+      o.stop(t + dur + 0.05);
+    });
+}
+
+// Melodia #10 — ~10% mais lenta, com brilho (oitava suave) na última nota.
+function melodia() {
   const c = getCtx();
   if (!c) return;
   if (c.state === "suspended") c.resume().catch(() => {});
-  const t0 = c.currentTime;
-  const master = c.createGain();
-  master.gain.value = 0.95;
-  master.connect(c.destination);
-
-  // cada nota é um acorde: grave (corpo/presença) + fundamental brilhante + harmônico
-  const nota = (start: number, dur: number, freqs: number[]) => {
-    freqs.forEach((f, i) => {
-      const o = c.createOscillator();
-      const g = c.createGain();
-      o.type = i === 0 ? "sine" : i === 1 ? "sawtooth" : "triangle";
-      o.frequency.setValueAtTime(f, start);
-      const vol = i === 0 ? 0.34 : 0.2; // grave mais forte = presença
-      g.gain.setValueAtTime(0.0001, start);
-      g.gain.exponentialRampToValueAtTime(vol, start + 0.012);
-      g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
-      o.connect(g);
-      g.connect(master);
-      o.start(start);
-      o.stop(start + dur + 0.03);
-    });
-  };
-  // "ring-ring" que sobe — chamada, com grave de corpo
-  nota(t0, 0.24, [196, 392, 588]);
-  nota(t0 + 0.3, 0.34, [261, 523, 784, 1046]);
+  const m = c.createGain();
+  m.gain.value = 0.95;
+  m.connect(c.destination);
+  const t = c.currentTime;
+  const C5 = 523.25, E5 = 659.25, D5 = 587.33, G5 = 783.99, C6 = 1046.5, C7 = 2093;
+  nota(c, m, t + 0.0, C5);
+  nota(c, m, t + 0.11, E5);
+  nota(c, m, t + 0.22, D5);
+  nota(c, m, t + 0.33, G5);
+  nota(c, m, t + 0.46, C6, 0.52);       // última nota, um tico mais longa
+  nota(c, m, t + 0.46, C7, 0.52, 0.12); // brilho: oitava suave por cima
 }
 
-// Começa o toque repetido (idempotente).
+// Começa o toque repetido (idempotente). Intervalo dá um respiro entre as repetições.
 export function tocarAlerta() {
   if (loop) return;
-  bipe();
-  loop = setInterval(bipe, 1300);
+  melodia();
+  loop = setInterval(melodia, 1700);
 }
 
 export function pararAlerta() {
