@@ -154,7 +154,7 @@ export default function MapaAoVivo({
       coords.forEach((c) => b.extend(c));
       map.fitBounds(b, { padding: 70, duration: 700 });
     } else if (O) {
-      map.easeTo({ center: [O.lng, O.lat], zoom: 14, duration: 500 });
+      map.easeTo({ center: [O.lng, O.lat], zoom: 15.5, duration: 500 });
     }
     readyRef.current = true;
   }

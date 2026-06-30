@@ -31,11 +31,14 @@ export default function AddressAutocomplete({
   valor,
   onSelecionar,
   placeholder,
+  complemento: usarComplemento = true,
 }: {
   label: string;
   valor: Lugar | null;
   onSelecionar: (l: Lugar | null) => void;
   placeholder?: string;
+  /** Mostra o campo de complemento (lote/nº). Off na coleta do novo-pedido (endereço fixo do negócio). */
+  complemento?: boolean;
 }) {
   const [texto, setTexto] = useState(valor?.endereco ?? "");
   const [sugestoes, setSugestoes] = useState<Lugar[]>([]);
@@ -144,20 +147,19 @@ export default function AddressAutocomplete({
           ))}
         </div>
       )}
-      {valor && (
+      {valor && usarComplemento && (
         <div style={{ marginTop: 9 }}>
-          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--muted)", marginBottom: 4 }}>
-            Complemento — lote, nº, referência
+          <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: "var(--ink, #243651)", marginBottom: 4 }}>
+            Número / lote do endereço
           </label>
           <input
             className="input"
-            style={{ fontSize: 13.5 }}
             value={complemento}
-            placeholder="Ex.: lote 9, casa 2, ao lado da praça"
+            placeholder="Ex.: lote 9, nº 122, casa 2"
             autoComplete="off"
             onChange={(e) => mudarComplemento(e.target.value)}
           />
-          <div className="ac-hint" style={{ marginTop: 4 }}>Em Palmas o lote faz parte do endereço — informe aqui.</div>
+          <div className="ac-hint" style={{ marginTop: 4 }}>Em Palmas o número/lote faz parte do endereço — complete aqui.</div>
         </div>
       )}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 5, gap: 8 }}>

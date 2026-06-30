@@ -217,7 +217,7 @@ function FormScreen({ coleta, setColeta, entrega, setEntrega }: {
           <Icon name="send" />
           <h3>Solicitar entrega</h3>
         </div>
-        <AddressAutocomplete label="Local de coleta" valor={coleta} onSelecionar={setColeta} placeholder="Ex.: Ótica Visão Center, Q.104 Norte" />
+        <AddressAutocomplete label="Local de coleta" valor={coleta} onSelecionar={setColeta} placeholder="Ex.: Ótica Visão Center, Q.104 Norte" complemento={false} />
         {coleta && negocioEndereco && coleta.endereco === negocioEndereco.endereco ? (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: -4, marginBottom: 10, flexWrap: "wrap" }}>
             <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "var(--muted)", fontWeight: 600 }}>
