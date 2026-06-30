@@ -463,6 +463,7 @@ function TrackingScreen() {
   const usarReal = !!real;
   const stepEff = real ? (STATUS_STEP[real.status] ?? -1) : step;
   const doneEff = real ? real.status === "entregue" : done;
+  const finalizado = real ? (real.status === "entregue" || real.status === "cancelado") : done;
 
   const cancelarPedido = async (motivo: string) => {
     const sb = getBrowserSupabase();
@@ -581,7 +582,7 @@ function TrackingScreen() {
       {pedido && <ChatBox msgs={chat.msgs} enviar={chat.enviar} meuPapel="estabelecimento" />}
       {pedido && <BotaoSuporte onEnviar={(t, d) => abrirDisputa(pedido.id, "estabelecimento", t, d).then((r) => (r.ok ? "ok" : r.motivo))} />}
 
-      {pedido && !done && (
+      {pedido && !finalizado && (
         <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => setCancelar(true)}>
           <Icon name="stop" /> Cancelar pedido
         </button>
@@ -595,7 +596,13 @@ function TrackingScreen() {
         />
       )}
 
-      {running ? (
+      {usarReal ? (
+        doneEff && (
+          <button className="btn btn-go" onClick={() => setView("done")}>
+            <Icon name="arrow" /> Ver comprovante
+          </button>
+        )
+      ) : running ? (
         <button
           className="btn btn-ghost"
           onClick={() => {
