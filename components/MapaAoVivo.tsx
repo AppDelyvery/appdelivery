@@ -76,8 +76,9 @@ export default function MapaAoVivo({
     const mbgl = mbglRef.current;
     if (!map || !mbgl) return;
     const { preview: pv, origem: o, destino: d } = odRef.current;
-    const O: Ponto = pv ? o ?? null : { lng: ORIGEM.lng, lat: ORIGEM.lat };
-    const D: Ponto = pv ? d ?? null : { lng: DESTINO.lng, lat: DESTINO.lat };
+    const provided = !!(o || d); // coords reais do pedido vieram por prop
+    const O: Ponto = o ?? (pv ? null : { lng: ORIGEM.lng, lat: ORIGEM.lat });
+    const D: Ponto = d ?? (pv ? null : { lng: DESTINO.lng, lat: DESTINO.lat });
 
     // limpa pontos antigos (redesenho)
     pinsRef.current.forEach((m) => m.remove());
@@ -134,18 +135,18 @@ export default function MapaAoVivo({
     pin(O, "o", SVG_PIN, pv ? "Coleta — seu negócio" : ORIGEM.nome);
     pin(D, "d", SVG_PKG, pv ? "Entrega" : DESTINO.nome);
 
-    if (pv) {
-      // prévia: sem motoboy animado
-      motoRef.current?.remove();
-      motoRef.current = null;
-      routeRef.current = null;
-    } else {
+    if (!pv && !provided) {
+      // demo puro: motoboy animado por frac ao longo da rota fixa
       const { cum, total } = indexRoute(coords);
       routeRef.current = { coords, cum, total };
       const el = document.createElement("div");
       el.className = "moto-marker";
       el.innerHTML = SVG_MOTO;
       motoRef.current = new mbgl.Marker({ element: el }).setLngLat(coords[0]).addTo(map);
+    } else {
+      // prévia ou rastreamento REAL: sem motoboy simulado (o real entra via posicaoReal)
+      if (pv) { motoRef.current?.remove(); motoRef.current = null; }
+      routeRef.current = null;
     }
 
     // enquadra
@@ -201,15 +202,37 @@ export default function MapaAoVivo({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preview, origem?.lng, origem?.lat, destino?.lng, destino?.lat]);
 
-  // Move o motoboy (só rastreamento): posição real (GPS) se houver; senão a simulação.
+  // Move o motoboy. Rastreamento REAL (origem/destino do pedido): motoboy só com GPS real.
+  // Demo puro (sem coords): segue a simulação por frac.
   useEffect(() => {
     if (preview) return;
+    const map = mapRef.current;
+    const mbgl = mbglRef.current;
+    if (!readyRef.current || !map) return;
+    const real = !!(origem || destino);
+    if (real) {
+      if (posicaoReal) {
+        if (!motoRef.current && mbgl) {
+          const el = document.createElement("div");
+          el.className = "moto-marker";
+          el.innerHTML = SVG_MOTO;
+          motoRef.current = new mbgl.Marker({ element: el }).setLngLat(posicaoReal).addTo(map);
+        } else {
+          motoRef.current?.setLngLat(posicaoReal);
+        }
+        map.easeTo({ center: posicaoReal, duration: 230 });
+      } else if (motoRef.current) {
+        motoRef.current.remove();
+        motoRef.current = null;
+      }
+      return;
+    }
     const r = routeRef.current;
-    if (!readyRef.current || !r || !motoRef.current || !mapRef.current) return;
+    if (!r || !motoRef.current) return;
     const ll: LngLat = posicaoReal ?? posAt(r.coords, r.cum, r.total, frac);
     motoRef.current.setLngLat(ll);
-    mapRef.current.easeTo({ center: ll, duration: 230 });
-  }, [frac, posicaoReal, preview]);
+    map.easeTo({ center: ll, duration: 230 });
+  }, [frac, posicaoReal, preview, origem, destino]);
 
   const badge = preview
     ? (origem && destino ? "Rota da entrega · Palmas-TO" : idleLabel)

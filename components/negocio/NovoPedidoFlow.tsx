@@ -101,7 +101,7 @@ export default function NovoPedidoFlow() {
       {view === "form" ? (
         <MapaAoVivo preview origem={coleta} destino={entrega} idleLabel="Escolha o destino — a rota sai do seu negócio" frac={0} running={false} done={false} eta={{ min: 0, km: "" }} />
       ) : (
-        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} posicaoReal={posReal} />
+        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} posicaoReal={posReal} origem={coleta} destino={entrega} />
       )}
     </AppShell>
   );
