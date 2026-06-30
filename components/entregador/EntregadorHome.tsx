@@ -8,6 +8,7 @@ import { money } from "@/lib/precos";
 import { registerPush } from "@/lib/push";
 import { liberarAudio, tocarAlerta, pararAlerta } from "@/lib/alertaSom";
 import { geoDist } from "@/lib/rota";
+import { MAPBOX_TOKEN } from "@/lib/mapbox";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { useMinhaOferta } from "@/lib/oferta";
@@ -82,6 +83,22 @@ export default function EntregadorHome() {
     if (oferta) tocarAlerta();
     else pararAlerta();
     return () => pararAlerta();
+  }, [oferta?.oferta_id]);
+
+  // endereço atual do entregador (reverse geocode) pra abrir a lista: onde ele está → coleta → destino
+  const [meuEndereco, setMeuEndereco] = useState<string | null>(null);
+  useEffect(() => {
+    if (!oferta || !gps) { setMeuEndereco(null); return; }
+    let vivo = true;
+    (async () => {
+      try {
+        const [lng, lat] = gps;
+        const u = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&country=br&language=pt&types=address&limit=1`;
+        const d = await (await fetch(u)).json();
+        if (vivo) setMeuEndereco(d.features?.[0]?.place_name ?? null);
+      } catch { /* ignora */ }
+    })();
+    return () => { vivo = false; };
   }, [oferta?.oferta_id]);
 
   const onAceitar = async () => {
@@ -169,6 +186,7 @@ export default function EntregadorHome() {
                     <span className="veh-badge"><Icon name={oferta.vehicle_type === "carro" ? "car" : oferta.vehicle_type === "van" ? "van" : "moto"} /> {VEIC[oferta.vehicle_type] ?? oferta.vehicle_type}</span>
                   </div>
                   <div className="route-pts" style={{ margin: "10px 0" }}>
+                    <div className="rpt"><div className="pin me" /><div className="txt"><div className="a">{meuEndereco ?? "Sua localização atual"}</div><div className="b">você está aqui</div></div></div>
                     <div className="rpt"><div className="pin o" /><div className="txt"><div className="a">{oferta.coleta_endereco}</div><div className="b">{dc != null ? `${km1(dc)} km até a coleta` : "coleta"}</div></div></div>
                     <div className="rpt"><div className="pin d" /><div className="txt"><div className="a">{oferta.entrega_endereco}</div><div className="b">{oferta.distancia_km ? `${km1(oferta.distancia_km)} km de entrega` : "entrega"}</div></div></div>
                   </div>

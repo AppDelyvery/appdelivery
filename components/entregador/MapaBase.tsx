@@ -123,13 +123,14 @@ export default function MapaBase({
     if (!map || !mbgl || !readyRef.current) return;
     let cancelado = false;
 
-    const setLinha = (id: string, coords: [number, number][], cor: string, tracejado: boolean) => {
+    type EstiloLinha = { cor: string; largura: number; casing: boolean; opacidade?: number };
+    const setLinha = (id: string, coords: [number, number][], st: EstiloLinha) => {
       const data = { type: "Feature" as const, geometry: { type: "LineString" as const, coordinates: coords }, properties: {} };
       const src = map.getSource(id) as GeoJSONSource | undefined;
       if (src) { src.setData(data); return; }
       map.addSource(id, { type: "geojson", data });
-      map.addLayer({ id: id + "-bg", type: "line", source: id, paint: { "line-color": "#fff", "line-width": 8, "line-opacity": 0.85 }, layout: { "line-cap": "round", "line-join": "round" } });
-      map.addLayer({ id, type: "line", source: id, paint: { "line-color": cor, "line-width": 5, ...(tracejado ? { "line-dasharray": [1.4, 1.1] } : {}) }, layout: { "line-cap": "round", "line-join": "round" } });
+      if (st.casing) map.addLayer({ id: id + "-bg", type: "line", source: id, paint: { "line-color": "#fff", "line-width": st.largura + 3, "line-opacity": 0.9 }, layout: { "line-cap": "round", "line-join": "round" } });
+      map.addLayer({ id, type: "line", source: id, paint: { "line-color": st.cor, "line-width": st.largura, "line-opacity": st.opacidade ?? 1 }, layout: { "line-cap": "round", "line-join": "round" } });
     };
     const limpar = () => {
       ofMarkersRef.current.forEach((m) => m.remove());
@@ -155,8 +156,9 @@ export default function MapaBase({
       if (cancelado) return;
 
       limpar();
-      if (busca.length > 1) setLinha("of-busca", busca, "#4f46e5", true);
-      if (entrega.length > 1) setLinha("of-entrega", entrega, "#059669", false);
+      // destino primeiro (cinza, atrás) e busca por cima (destaque) — é a rota que ele faz 1º
+      if (entrega.length > 1) setLinha("of-entrega", entrega, { cor: "#9aa3b2", largura: 4, casing: false, opacidade: 0.85 });
+      if (busca.length > 1) setLinha("of-busca", busca, { cor: "#4f46e5", largura: 6, casing: true });
 
       const pin = (p: [number, number], cls: "o" | "d", svg: string) => {
         const el = document.createElement("div");
