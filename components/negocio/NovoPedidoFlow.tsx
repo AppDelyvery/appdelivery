@@ -382,14 +382,14 @@ function FormScreen({ coleta, setColeta, entrega, setEntrega }: {
 }
 
 function MatchingScreen() {
-  const { setView, start } = useEntrega();
+  const { setView, start, pedido } = useEntrega();
   useEffect(() => {
     const t = setTimeout(() => {
       setView("tracking");
-      start();
+      if (!(hasSupabase() && pedido)) start(); // simulação só no modo demo (sem pedido real)
     }, 2300);
     return () => clearTimeout(t);
-  }, [setView, start]);
+  }, [setView, start, pedido]);
 
   return (
     <>
@@ -458,6 +458,11 @@ function TrackingScreen() {
   }, [pedido?.id]);
 
   const ent = real?.entregador ?? null;
+  // havendo pedido REAL, timeline/ETA seguem o status do banco — não a simulação demo.
+  const STATUS_STEP: Record<string, number> = { buscando: -1, aceito: 0, a_caminho_coleta: 1, coletado: 2, a_caminho_entrega: 3, entregue: 4, cancelado: -1 };
+  const usarReal = !!real;
+  const stepEff = real ? (STATUS_STEP[real.status] ?? -1) : step;
+  const doneEff = real ? real.status === "entregue" : done;
 
   const cancelarPedido = async (motivo: string) => {
     const sb = getBrowserSupabase();
@@ -540,11 +545,11 @@ function TrackingScreen() {
         </div>
         <div className="eta-row">
           <div className="eta-box">
-            <div className="big">{done ? 0 : eta.min}</div>
+            <div className="big">{usarReal ? (doneEff ? 0 : "—") : done ? 0 : eta.min}</div>
             <div className="lbl">minutos</div>
           </div>
           <div className="eta-box">
-            <div className="big">{done ? "0,0" : eta.km.replace(".", ",")}</div>
+            <div className="big">{usarReal ? (doneEff ? "0,0" : "—") : done ? "0,0" : eta.km.replace(".", ",")}</div>
             <div className="lbl">km restantes</div>
           </div>
         </div>
@@ -557,7 +562,7 @@ function TrackingScreen() {
         </div>
         <div className="timeline">
           {STEPS.map((st, i) => {
-            const cls = i < step ? "done" : i === step ? (done ? "done" : "active") : "pending";
+            const cls = i < stepEff ? "done" : i === stepEff ? (doneEff ? "done" : "active") : "pending";
             return (
               <div className={`step ${cls}`} key={st.t}>
                 <div className="dot">
