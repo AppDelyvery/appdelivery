@@ -186,6 +186,9 @@
   .band p{color:#c6cbef;font-size:16.5px;margin-top:14px;max-width:640px}
   .band .pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
   .band .pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#e7e9ff;font-size:13.5px;font-weight:700;padding:9px 15px;border-radius:30px;}
+  .band-2col{display:grid;grid-template-columns:1.12fr .88fr;gap:44px;align-items:center}
+  .band-art img{width:100%;max-width:420px;margin:0 auto;display:block;border-radius:24px;border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 60px -24px rgba(0,0,0,.6)}
+  @media(max-width:860px){.band-2col{grid-template-columns:1fr;gap:30px}.band-art img{max-width:300px}}
 
   .tech{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px}
   @media(max-width:680px){.tech{grid-template-columns:1fr 1fr}}
@@ -366,11 +369,14 @@
   </div>
 </div></section>
 
-<section class="blk"><div class="wrap"><div class="band">
-  <span class="eyebrow lt"><svg style="width:15px;height:15px"><use href="#i-shield"/></svg> O diferencial</span>
-  <h2 style="margin-top:14px">Quando a encomenda tem valor, você precisa confiar em quem leva.</h2>
-  <p>Para enviar um documento, uma peça ou um produto de valor, velocidade não basta. Todo entregador da APPDELYVERY passa por verificação de antecedentes e CNH, e o selo de aprovado fica visível antes de cada entrega.</p>
-  <div class="pills"><span class="pill">Antecedentes checados</span><span class="pill">CNH válida</span><span class="pill">Proteção de carga</span><span class="pill">GPS antifraude</span><span class="pill">Foto + assinatura na entrega</span></div>
+<section class="blk"><div class="wrap"><div class="band band-2col">
+  <div class="band-txt">
+    <span class="eyebrow lt"><svg style="width:15px;height:15px"><use href="#i-shield"/></svg> O diferencial</span>
+    <h2 style="margin-top:14px">Quando a encomenda tem valor, você precisa confiar em quem leva.</h2>
+    <p>Para enviar um documento, uma peça ou um produto de valor, velocidade não basta. Todo entregador da APPDELYVERY passa por verificação de antecedentes e CNH, e o selo de aprovado fica visível antes de cada entrega.</p>
+    <div class="pills"><span class="pill">Antecedentes checados</span><span class="pill">CNH válida</span><span class="pill">Proteção de carga</span><span class="pill">GPS antifraude</span><span class="pill">Foto + assinatura na entrega</span></div>
+  </div>
+  <div class="band-art"><img src="/site/img/selo-verificado.jpg" alt="Selo de entregador verificado da APPDELYVERY" loading="lazy"></div>
 </div></div></section>
 
 <!-- LOCAL + SUPORTE -->
