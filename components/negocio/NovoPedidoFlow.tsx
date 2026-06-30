@@ -165,6 +165,8 @@ function FormScreen({ coleta, setColeta, entrega, setEntrega }: {
   const pc = priceCalc(veh, distReal, PRICE, { paradasExtras, minutosEspera });
   const prontoBackend = hasSupabase();
   const podeEnviar = !prontoBackend || (!!coleta && !!entrega);
+  const temDestino = !!coleta && !!entrega;
+  const calculandoRota = temDestino && !rota;
 
   async function solicitar() {
     setErro(null);
@@ -272,67 +274,80 @@ function FormScreen({ coleta, setColeta, entrega, setEntrega }: {
         </div>
       </div>
 
-      <div className="card">
-        <div className="card-h">
-          <Icon name="moto" />
-          <h3>Escolha o veículo</h3>
-          <span className="right">{km1(distReal)} km</span>
+      {!temDestino ? (
+        <div className="card" style={{ textAlign: "center", color: "var(--muted)", padding: "20px 14px" }}>
+          <Icon name="pin" />
+          <p style={{ margin: "8px 0 0", fontWeight: 600, fontSize: 13.5 }}>Escolha o <b>local de entrega</b> pra ver o veículo e o preço.</p>
         </div>
-        {VEICULOS.map((v) => {
-          const p = priceCalc(v.id, distReal);
-          return (
-            <button key={v.id} type="button" className={`veh-card${veh === v.id ? " sel" : ""}`} onClick={() => setVeh(v.id)}>
-              <span className="veh-ic"><Icon name={v.id === "carro" ? "car" : v.id === "van" ? "van" : "moto"} /></span>
-              <span className="veh-meta">
-                <span className="veh-n">{v.nome}</span>
-                <span className="veh-d">{v.desc}</span>
-              </span>
-              <span className="veh-p">{money(p.total)}</span>
-            </button>
-          );
-        })}
-      </div>
+      ) : calculandoRota ? (
+        <div className="card" style={{ textAlign: "center", color: "var(--muted)", padding: "20px 14px" }}>
+          <p style={{ margin: 0, fontWeight: 600, fontSize: 13.5 }}>Calculando a rota…</p>
+        </div>
+      ) : (
+        <>
+          <div className="card">
+            <div className="card-h">
+              <Icon name="moto" />
+              <h3>Escolha o veículo</h3>
+              <span className="right">{km1(distReal)} km</span>
+            </div>
+            {VEICULOS.map((v) => {
+              const p = priceCalc(v.id, distReal);
+              return (
+                <button key={v.id} type="button" className={`veh-card${veh === v.id ? " sel" : ""}`} onClick={() => setVeh(v.id)}>
+                  <span className="veh-ic"><Icon name={v.id === "carro" ? "car" : v.id === "van" ? "van" : "moto"} /></span>
+                  <span className="veh-meta">
+                    <span className="veh-n">{v.nome}</span>
+                    <span className="veh-d">{v.desc}</span>
+                  </span>
+                  <span className="veh-p">{money(p.total)}</span>
+                </button>
+              );
+            })}
+          </div>
 
-      <div className="card">
-        <div className="card-h">
-          <Icon name="money" />
-          <h3>Detalhe do {VEICULOS.find((v) => v.id === veh)?.nome}</h3>
-        </div>
-        <div className="price-line">
-          <span>Bandeirada</span>
-          <span>{money(faixaDoVeiculo(veh).base)}</span>
-        </div>
-        <div className="price-line">
-          <span>Distância · {km1(distReal)} km × {money(faixaDoVeiculo(veh).perKm)}</span>
-          <span>{money(pc.dist)}</span>
-        </div>
-        {pc.aplicouMin && (
-          <div className="price-line">
-            <span>Valor mínimo ({VEICULOS.find((v) => v.id === veh)?.nome})</span>
-            <span>{money(faixaDoVeiculo(veh).min)}</span>
+          <div className="card">
+            <div className="card-h">
+              <Icon name="money" />
+              <h3>Detalhe do {VEICULOS.find((v) => v.id === veh)?.nome}</h3>
+            </div>
+            <div className="price-line">
+              <span>Bandeirada</span>
+              <span>{money(faixaDoVeiculo(veh).base)}</span>
+            </div>
+            <div className="price-line">
+              <span>Distância · {km1(distReal)} km × {money(faixaDoVeiculo(veh).perKm)}</span>
+              <span>{money(pc.dist)}</span>
+            </div>
+            {pc.aplicouMin && (
+              <div className="price-line">
+                <span>Valor mínimo ({VEICULOS.find((v) => v.id === veh)?.nome})</span>
+                <span>{money(faixaDoVeiculo(veh).min)}</span>
+              </div>
+            )}
+            {pc.extras > 0 && (
+              <div className="price-line">
+                <span>Espera + paradas extras</span>
+                <span>{money(pc.extras)}</span>
+              </div>
+            )}
+            <div className="price-line total">
+              <span>Total</span>
+              <span>{money(pc.total)}</span>
+            </div>
+            <div className="price-sub">
+              ~{durReal} min · rota real Mapbox · entregador recebe {money(pc.driver)} ({PRICE.driverPct * 100}%)
+            </div>
           </div>
-        )}
-        {pc.extras > 0 && (
-          <div className="price-line">
-            <span>Espera + paradas extras</span>
-            <span>{money(pc.extras)}</span>
-          </div>
-        )}
-        <div className="price-line total">
-          <span>Total</span>
-          <span>{money(pc.total)}</span>
-        </div>
-        <div className="price-sub">
-          ~{durReal} min · rota real Mapbox · entregador recebe {money(pc.driver)} ({PRICE.driverPct * 100}%)
-        </div>
-      </div>
+        </>
+      )}
 
       {pleno && saldo != null && (
         <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "12px 14px" }}>
           <span style={{ fontSize: 12.5, color: "var(--muted)", fontWeight: 600 }}>Saldo em carteira</span>
           <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <b style={{ fontVariantNumeric: "tabular-nums", color: saldo < pc.total ? "var(--warn)" : "var(--ink)" }}>{money(saldo)}</b>
-            {saldo < pc.total && (
+            <b style={{ fontVariantNumeric: "tabular-nums", color: temDestino && saldo < pc.total ? "var(--warn)" : "var(--ink)" }}>{money(saldo)}</b>
+            {temDestino && saldo < pc.total && (
               <Link href="/negocio/carteira" className="btn btn-primary" style={{ width: "auto", padding: "6px 12px", fontSize: 12 }}>
                 <Icon name="upload" /> Recarregar
               </Link>
@@ -340,7 +355,7 @@ function FormScreen({ coleta, setColeta, entrega, setEntrega }: {
           </span>
         </div>
       )}
-      {pleno && saldo != null && saldo < pc.total && (
+      {pleno && saldo != null && temDestino && saldo < pc.total && (
         <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)", marginBottom: 12 }}>
           <Icon name="alert" />
           <div>Saldo insuficiente pra esta entrega ({money(pc.total)}). Recarregue a carteira antes de solicitar.</div>
@@ -356,7 +371,7 @@ function FormScreen({ coleta, setColeta, entrega, setEntrega }: {
         <Icon name="shield" />
         <div>Esta entrega tem <b>proteção de carga inclusa</b> (até {money(teto)}) e entregador com <b>antecedentes verificados</b>.</div>
       </div>
-      <SlideConfirm label="Solicitar entrega" icon="send" color="brand" busy={enviando} disabled={!podeEnviar || (pleno && saldo != null && saldo < pc.total)} onConfirm={solicitar} />
+      <SlideConfirm label="Solicitar entrega" icon="send" color="brand" busy={enviando} disabled={!podeEnviar || (pleno && saldo != null && temDestino && saldo < pc.total)} onConfirm={solicitar} />
       <p className="hint">
         O preço é calculado pela fórmula km + coleta + paradas,
         <br />
