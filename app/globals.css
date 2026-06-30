@@ -324,6 +324,9 @@ tr:hover td { background: var(--bg); }
 
 /* Oferta dirigida: cabeçalho + barra de timer (modelo B) */
 .oferta-timer-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+.oferta-recusar { background: none; border: 1px solid var(--line-2); color: var(--muted); font-weight: 700; font-size: 12.5px; padding: 5px 12px; border-radius: 999px; cursor: pointer; font-family: inherit; }
+.oferta-recusar:active { background: var(--bg); }
+.btn.btn-aceite { padding: 17px; font-size: 17px; font-weight: 800; margin-top: 6px; border-radius: 15px; }
 .oferta-titulo { font-size: 15px; font-weight: 800; color: var(--ink); }
 .oferta-seg { font-size: 15px; font-weight: 800; color: var(--brand); font-variant-numeric: tabular-nums; }
 .oferta-timer { height: 6px; border-radius: 4px; background: var(--line); overflow: hidden; margin-bottom: 12px; }

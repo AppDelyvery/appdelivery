@@ -173,7 +173,10 @@ export default function EntregadorHome() {
               <>
                 <div className="oferta-timer-row">
                   <div className="oferta-titulo">Nova entrega pra você</div>
-                  <div className="oferta-seg">{segRestantes}s</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div className="oferta-seg">{segRestantes}s</div>
+                    <button className="oferta-recusar" onClick={() => { setMsg(null); recusar(oferta.oferta_id); }}>Recusar</button>
+                  </div>
                 </div>
                 <div className="oferta-timer"><div className="oferta-timer-fill" style={{ width: `${frac * 100}%` }} /></div>
                 {msg && <div className="emap-erro">{msg}</div>}
@@ -190,8 +193,7 @@ export default function EntregadorHome() {
                     <div className="rpt"><div className="pin o" /><div className="txt"><div className="a">{oferta.coleta_endereco}</div><div className="b">{dc != null ? `${km1(dc)} km até a coleta` : "coleta"}</div></div></div>
                     <div className="rpt"><div className="pin d" /><div className="txt"><div className="a">{oferta.entrega_endereco}</div><div className="b">{oferta.distancia_km ? `${km1(oferta.distancia_km)} km de entrega` : "entrega"}</div></div></div>
                   </div>
-                  <button className="btn btn-go" onClick={onAceitar}><Icon name="checkThin" /> Aceitar entrega</button>
-                  <button className="btn btn-ghost" style={{ marginTop: 8 }} onClick={() => { setMsg(null); recusar(oferta.oferta_id); }}>Recusar</button>
+                  <button className="btn btn-go btn-aceite" onClick={onAceitar}><Icon name="checkThin" /> Aceitar entrega</button>
                 </div>
               </>
             );
