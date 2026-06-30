@@ -73,7 +73,10 @@ export default function AddressAutocomplete({
   // do negócio depois do mount) — sem isso o campo mostra só o placeholder com coords carregadas.
   useEffect(() => {
     // só semeia quando o valor vem DE FORA (não da nossa própria escolha, que seta baseRef)
-    if (valor?.endereco && !baseRef.current) setTexto(valor.endereco);
+    if (valor?.endereco && !baseRef.current) {
+      setTexto(valor.endereco);
+      baseRef.current = valor; // base p/ o complemento recompor o endereço semeado do negócio
+    }
   }, [valor]);
 
   const buscar = (q: string) => {
@@ -141,15 +144,22 @@ export default function AddressAutocomplete({
           ))}
         </div>
       )}
-      <input
-        className="input"
-        style={{ marginTop: 7 }}
-        value={complemento}
-        placeholder="Lote, nº, quadra/bloco/apto e ponto de referência"
-        autoComplete="off"
-        onChange={(e) => mudarComplemento(e.target.value)}
-      />
-      <div className="ac-hint" style={{ marginTop: 4 }}>Em Palmas o lote faz parte do endereço — informe aqui.</div>
+      {valor && (
+        <div style={{ marginTop: 9 }}>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--muted)", marginBottom: 4 }}>
+            Complemento — lote, nº, referência
+          </label>
+          <input
+            className="input"
+            style={{ fontSize: 13.5 }}
+            value={complemento}
+            placeholder="Ex.: lote 9, casa 2, ao lado da praça"
+            autoComplete="off"
+            onChange={(e) => mudarComplemento(e.target.value)}
+          />
+          <div className="ac-hint" style={{ marginTop: 4 }}>Em Palmas o lote faz parte do endereço — informe aqui.</div>
+        </div>
+      )}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 5, gap: 8 }}>
         {valor ? (
           <div className="ac-ok"><Icon name="checkThin" /> Endereço localizado</div>
