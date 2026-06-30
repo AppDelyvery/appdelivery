@@ -17,6 +17,13 @@ function extrairComplemento(raw: string): string {
   return achados ? achados.join(", ") : "";
 }
 
+// Junta o complemento (lote/nº/referência) ao endereço geocodado, sem duplicar.
+function comporEndereco(base: Lugar, comp: string): Lugar {
+  const c = comp.trim();
+  const jaTem = !!c && base.endereco.toLowerCase().includes(c.toLowerCase());
+  return c && !jaTem ? { ...base, endereco: `${base.endereco}, ${c}` } : base;
+}
+
 // Busca de endereço com autocomplete (Mapbox Geocoding), enviesada pra Palmas-TO.
 // Devolve o lugar COM coordenadas — sem isso o pedido não tem lat/lng real.
 export default function AddressAutocomplete({
@@ -35,15 +42,24 @@ export default function AddressAutocomplete({
   const [aberto, setAberto] = useState(false);
   const [buscando, setBuscando] = useState(false);
   const [picker, setPicker] = useState(false);
+  const [complemento, setComplemento] = useState("");
   const tRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
+  const baseRef = useRef<Lugar | null>(null); // endereço geocodado SEM complemento (pra recompor)
 
   const confirmarPino = (p: PontoMapa) => {
+    const base = { endereco: p.endereco, lat: p.lat, lng: p.lng };
+    baseRef.current = base;
     setTexto(p.endereco);
-    onSelecionar({ endereco: p.endereco, lat: p.lat, lng: p.lng });
+    onSelecionar(comporEndereco(base, complemento));
     setSugestoes([]);
     setAberto(false);
     setPicker(false);
+  };
+
+  const mudarComplemento = (v: string) => {
+    setComplemento(v);
+    if (baseRef.current) onSelecionar(comporEndereco(baseRef.current, v));
   };
 
   // fecha ao clicar fora
@@ -56,19 +72,21 @@ export default function AddressAutocomplete({
   // sincroniza o texto quando o valor é definido DE FORA (ex.: coleta semeada do endereço
   // do negócio depois do mount) — sem isso o campo mostra só o placeholder com coords carregadas.
   useEffect(() => {
-    if (valor?.endereco) setTexto(valor.endereco);
+    // só semeia quando o valor vem DE FORA (não da nossa própria escolha, que seta baseRef)
+    if (valor?.endereco && !baseRef.current) setTexto(valor.endereco);
   }, [valor]);
 
   const buscar = (q: string) => {
     setTexto(q);
+    baseRef.current = null;
     onSelecionar(null); // mudou o texto → coords ainda não confirmadas
     if (tRef.current) clearTimeout(tRef.current);
     if (!hasMapbox() || q.trim().length < 3) { setSugestoes([]); setAberto(false); return; }
     setBuscando(true);
     tRef.current = setTimeout(async () => {
-      // ARSE/ARSO → numérico (Mapbox só entende o numérico); Taquaralto/ruas = cru.
+      // texto cru + contexto Palmas (o Mapbox entende "ARSE 122" nativamente; ver enderecoPalmas).
       // bbox cobre a região: Palmas + Taquaralto/Aurenys + Luzimangues + Porto Nacional.
-      // Gurupi (230 km) e além ficam por conta do "marcar no mapa" (pino).
+      // Gurupi (230 km) e além ficam por conta do "marcar no mapa" (pino); o lote vai no complemento.
       const alvo = queryGeocoder(q);
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(alvo)}.json` +
         `?access_token=${MAPBOX_TOKEN}&country=br&language=pt&limit=6&autocomplete=true` +
@@ -89,13 +107,12 @@ export default function AddressAutocomplete({
   };
 
   const escolher = (l: Lugar) => {
-    // mantém o complemento (lote/casa/nº) que o usuário digitou e o geocoder não resolve
-    const comp = extrairComplemento(texto);
-    const endereco = comp && !l.endereco.toLowerCase().includes(comp.toLowerCase())
-      ? `${l.endereco}, ${comp}`
-      : l.endereco;
-    setTexto(endereco);
-    onSelecionar({ ...l, endereco });
+    baseRef.current = l;
+    // se o usuário já digitou lote/nº na busca, leva pro campo de complemento
+    const comp = complemento || extrairComplemento(texto);
+    if (comp !== complemento) setComplemento(comp);
+    setTexto(l.endereco);
+    onSelecionar(comporEndereco(l, comp));
     setSugestoes([]);
     setAberto(false);
   };
@@ -124,6 +141,15 @@ export default function AddressAutocomplete({
           ))}
         </div>
       )}
+      <input
+        className="input"
+        style={{ marginTop: 7 }}
+        value={complemento}
+        placeholder="Lote, nº, quadra/bloco/apto e ponto de referência"
+        autoComplete="off"
+        onChange={(e) => mudarComplemento(e.target.value)}
+      />
+      <div className="ac-hint" style={{ marginTop: 4 }}>Em Palmas o lote faz parte do endereço — informe aqui.</div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 5, gap: 8 }}>
         {valor ? (
           <div className="ac-ok"><Icon name="checkThin" /> Endereço localizado</div>
