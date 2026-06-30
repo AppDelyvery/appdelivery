@@ -7,6 +7,7 @@
 
 let ctx: AudioContext | null = null;
 let loop: ReturnType<typeof setInterval> | null = null;
+let keepAlive: OscillatorNode | null = null; // oscilador mudo que segura o contexto vivo no iOS
 
 function getCtx(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -17,9 +18,21 @@ function getCtx(): AudioContext | null {
 }
 
 // Chamar dentro de um gesto do usuário (tap em "Conectar") pra destravar o som no iOS.
+// Além do resume(), toca um buffer MUDO de 1 frame — o truque clássico que destrava
+// de vez o Web Audio no iOS (sem isso o som às vezes não sai mesmo conectado).
 export function liberarAudio() {
   const c = getCtx();
-  if (c && c.state === "suspended") c.resume().catch(() => {});
+  if (!c) return;
+  if (c.state === "suspended") c.resume().catch(() => {});
+  try {
+    const b = c.createBuffer(1, 1, 22050);
+    const s = c.createBufferSource();
+    s.buffer = b;
+    s.connect(c.destination);
+    s.start(0);
+  } catch {
+    /* sem suporte — ignora */
+  }
 }
 
 // timbre caixa de música: fundamental + oitava + harmônico, ataque rápido e cauda macia
@@ -61,6 +74,23 @@ function melodia() {
 // Começa o toque repetido (idempotente). Intervalo dá um respiro entre as repetições.
 export function tocarAlerta() {
   if (loop) return;
+  const c = getCtx();
+  if (c) {
+    if (c.state === "suspended") c.resume().catch(() => {});
+    // oscilador mudo contínuo: segura o contexto "running" pra a melodia não morrer
+    // depois da 1ª nota (iOS suspende o contexto entre disparos sem isso).
+    if (!keepAlive) {
+      try {
+        const o = c.createOscillator();
+        const g = c.createGain();
+        g.gain.value = 0;
+        o.connect(g);
+        g.connect(c.destination);
+        o.start();
+        keepAlive = o;
+      } catch { /* ignora */ }
+    }
+  }
   melodia();
   loop = setInterval(melodia, 1700);
 }
@@ -69,5 +99,9 @@ export function pararAlerta() {
   if (loop) {
     clearInterval(loop);
     loop = null;
+  }
+  if (keepAlive) {
+    try { keepAlive.stop(); } catch { /* ignora */ }
+    keepAlive = null;
   }
 }
