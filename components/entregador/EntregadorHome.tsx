@@ -6,7 +6,7 @@ import { Icon } from "../Icons";
 import MapaBase, { type TemaMapa } from "./MapaBase";
 import { money } from "@/lib/precos";
 import { registerPush } from "@/lib/push";
-import { liberarAudio, tocarAlerta, pararAlerta } from "@/lib/alertaSom";
+import { liberarAudio, tocarAlerta, pararAlerta, prepararAudio } from "@/lib/alertaSom";
 import { geoDist } from "@/lib/rota";
 import { MAPBOX_TOKEN } from "@/lib/mapbox";
 import { useStatusSistema } from "@/lib/statusSistema";
@@ -80,7 +80,10 @@ export default function EntregadorHome() {
   const segRestantes = oferta ? Math.max(0, Math.round((new Date(oferta.expira_at).getTime() - Date.now()) / 1000)) : 0;
   void tick;
 
-  // toque estilo 99: bipe repetido enquanto a oferta está na tela
+  // prepara o arquivo de áudio cedo, pra estar pronto quando tocar Conectar
+  useEffect(() => { void prepararAudio(); }, []);
+
+  // toque da oferta (melodia em loop) enquanto a oferta está na tela
   useEffect(() => {
     if (oferta) tocarAlerta();
     else pararAlerta();
