@@ -2,9 +2,15 @@
 
 import { useEffect } from "react";
 import { Icon } from "../Icons";
-import { TermosContent, PrivacidadeContent, VIGENCIA } from "./LegalContent";
+import { TermosContent, TermosEntregadorContent, PrivacidadeContent, VIGENCIA } from "./LegalContent";
 
-export type LegalDoc = "termos" | "privacidade";
+export type LegalDoc = "termos" | "termos_entregador" | "privacidade";
+
+const TITULOS: Record<LegalDoc, string> = {
+  termos: "Termos de Uso",
+  termos_entregador: "Termos do Entregador Parceiro",
+  privacidade: "Política de Privacidade",
+};
 
 // Lê os documentos legais SEM sair do cadastro (modal sobre o formulário).
 // Fechar volta ao ponto exato — campos, captcha e aceite preservados.
@@ -18,7 +24,7 @@ export default function LegalModal({ doc, onClose }: { doc: LegalDoc | null; onC
   }, [doc, onClose]);
 
   if (!doc) return null;
-  const titulo = doc === "termos" ? "Termos de Uso" : "Política de Privacidade";
+  const titulo = TITULOS[doc];
 
   return (
     <div className="legal-modal-ov" onClick={onClose}>
@@ -32,7 +38,9 @@ export default function LegalModal({ doc, onClose }: { doc: LegalDoc | null; onC
         </div>
 
         <div className="legal-modal-body legal">
-          {doc === "termos" ? <TermosContent /> : <PrivacidadeContent />}
+          {doc === "termos" && <TermosContent />}
+          {doc === "termos_entregador" && <TermosEntregadorContent />}
+          {doc === "privacidade" && <PrivacidadeContent />}
         </div>
 
         <div className="legal-modal-f">

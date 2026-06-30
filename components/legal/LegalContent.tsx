@@ -196,3 +196,108 @@ export function PrivacidadeContent() {
     </>
   );
 }
+
+export function TermosEntregadorContent() {
+  return (
+    <>
+      <p>
+        Estes Termos regulam o acesso e uso, pelo <b>Entregador Parceiro</b>, da plataforma APPDELYVERY, operada por{" "}
+        <PH>[RAZÃO SOCIAL DO DONO]</PH>, CNPJ <PH>[CNPJ]</PH>, para receber e executar ofertas de entrega de encomendas
+        em Palmas-TO e região, na qualidade de <b>profissional autônomo</b>. Ao se cadastrar, o Entregador declara ter
+        lido e aceito estes Termos e a <b>Política de Privacidade</b>, e autorizado a verificação descrita na seção 4.
+      </p>
+
+      <h2>1. Pré-requisitos</h2>
+      <ul>
+        <li>Ser maior de 18 anos, com documento oficial com foto.</li>
+        <li>CNH válida, categoria compatível com o veículo (com observação EAR quando exigida por lei).</li>
+        <li>Veículo (moto, carro ou van) em condições legais de circulação, com CRLV em dia.</li>
+        <li>Conta bancária ou chave Pix em nome próprio para recebimento.</li>
+      </ul>
+
+      <h2>2. Cadastro e conta</h2>
+      <p>
+        A conta é pessoal e intransferível. O Entregador mantém seus dados atualizados e é responsável pelas credenciais
+        e por todos os atos praticados na sua conta.
+      </p>
+
+      <h2>3. Verificação e dado sensível</h2>
+      <p>
+        O acesso depende de aprovação em <b>verificação de identidade, CNH e antecedentes criminais</b> — é o que
+        sustenta o selo de entregador verificado. A base legal do tratamento dos antecedentes é o <b>exercício regular
+        de direitos e a segurança da operação</b> (LGPD, art. 11, II), com o consentimento específico e destacado do
+        Entregador. A plataforma guarda apenas o <b>resultado</b> da verificação (apto/inapto); lojistas e destinatários
+        nunca têm acesso ao teor dos antecedentes.
+      </p>
+
+      <h2>4. Inexistência de vínculo empregatício</h2>
+      <p>
+        O Entregador é <b>profissional autônomo independente</b>. Estes Termos não criam vínculo empregatício,
+        societário, de representação ou de subordinação. Não há os elementos do vínculo de emprego: o Entregador
+        organiza livremente sua jornada, <b>conecta-se e desconecta-se quando quiser e aceita ou recusa cada oferta a
+        seu critério</b>, sem exclusividade. Cada parte arca com seus próprios tributos, contribuições (inclusive
+        previdenciária) e custos (combustível, manutenção, equipamentos).
+      </p>
+
+      <h2>5. Remuneração e repasse</h2>
+      <p>
+        O Entregador recebe <b>80% do valor do frete</b> de cada entrega concluída; a plataforma retém <b>20% a título
+        de intermediação</b>, deduzido diretamente na liquidação (sem cobrança externa ou boleto). Os valores são
+        creditados na carteira do Entregador e sacados via <b>Pix</b>. Falhas atribuíveis ao intermediador financeiro
+        não são de responsabilidade da plataforma.
+      </p>
+
+      <h2>6. Deveres e conduta</h2>
+      <ul>
+        <li>Tratar lojistas, destinatários e a plataforma com respeito; não discriminar.</li>
+        <li>Não dirigir sob efeito de álcool ou substâncias; cumprir o CTB e a Lei 12.009/2009, quando aplicável.</li>
+        <li>Não aliciar clientes para fora da plataforma nem usar dados de clientes para outro fim.</li>
+        <li>Zelar pela integridade da encomenda e cumprir as regras de itens proibidos e proteção de carga.</li>
+      </ul>
+
+      <h2>7. Responsabilidade pela carga</h2>
+      <p>
+        O Entregador deve entregar a encomenda nas mesmas condições em que a coletou. Avaria ou extravio decorrente de
+        sua <b>má conduta, dolo ou culpa</b> é de sua responsabilidade, excetuados os casos de <b>força maior ou caso
+        fortuito</b> (ex.: roubo com violência devidamente registrado). O Entregador pode <b>recusar</b> coleta de item
+        com embalagem inadequada ou com suspeita de item proibido.
+      </p>
+
+      <h2>8. Geolocalização e rastreamento</h2>
+      <p>
+        O uso exige permissão de <b>localização em tempo real</b> enquanto o Entregador está on-line, para oferta de
+        corridas, rastreamento e prova de entrega. O lojista e o destinatário <b>apenas visualizam</b> a posição durante
+        a entrega; não recebem os dados brutos de localização.
+      </p>
+
+      <h2>9. Suspensão, bloqueio e desativação</h2>
+      <p>
+        O modelo é <b>escalonado</b>: inativação por dados irregulares ou inatividade; bloqueio temporário por
+        descumprimento de conduta; e bloqueio geral por falta grave (apropriação indevida de mercadoria ou valores,
+        fraude documental, violência, encerrar a entrega sem coletar). Ao receber uma denúncia, o Entregador entra em
+        status <b>&quot;Pendente&quot;</b> e tem <b>2 dias úteis</b> para se defender pelo suporte; a análise ocorre em
+        até 2 dias úteis, com <b>direito de revisão</b> da decisão. Faltas graves podem gerar desativação imediata,
+        resguardado o direito de manifestação.
+      </p>
+
+      <h2>10. Propriedade intelectual e imagem</h2>
+      <p>
+        O uso da marca e do aplicativo é licenciado apenas para operar o serviço. Eventual uso da imagem do Entregador
+        em materiais de divulgação depende de <b>autorização específica e revogável</b>.
+      </p>
+
+      <h2>11. Inexistência de garantias</h2>
+      <p>
+        A plataforma é fornecida &quot;no estado em que se encontra&quot;; não garantimos volume mínimo de ofertas,
+        rentabilidade ou funcionamento ininterrupto.
+      </p>
+
+      <h2>12. Alterações e foro</h2>
+      <p>
+        Mudanças relevantes são comunicadas com <b>30 dias de antecedência</b>, podendo exigir novo aceite. Aplica-se a
+        legislação brasileira; fica eleito o foro da comarca de <b>Palmas-TO</b>, ressalvado, nas relações de consumo, o
+        foro do domicílio do consumidor.
+      </p>
+    </>
+  );
+}

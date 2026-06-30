@@ -156,7 +156,7 @@ export default function CadastroEntregador() {
           <input type="checkbox" checked={aceiteTermos} onChange={(e) => setAceiteTermos(e.target.checked)} />
           <span className="ct">
             Li e concordo com os{" "}
-            <button type="button" className="lk" onClick={() => setModalDoc("termos")}>Termos do Entregador</button> e a{" "}
+            <button type="button" className="lk" onClick={() => setModalDoc("termos_entregador")}>Termos do Entregador</button> e a{" "}
             <button type="button" className="lk" onClick={() => setModalDoc("privacidade")}>Política de Privacidade</button>.
           </span>
         </label>
