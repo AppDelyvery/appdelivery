@@ -40,6 +40,9 @@ const TITLES: Record<EntregadorView, string> = {
 
 export default function EntregadorFlow() {
   const { view, setView, frac, running, done, eta, setRouteMeta, pedidoId } = useEntregador();
+  const pedidoCorrida = usePedido(pedidoId);
+  const coletaPt = pedidoCorrida?.coleta_lat != null && pedidoCorrida?.coleta_lng != null ? { lat: pedidoCorrida.coleta_lat, lng: pedidoCorrida.coleta_lng } : null;
+  const entregaPt = pedidoCorrida?.entrega_lat != null && pedidoCorrida?.entrega_lng != null ? { lat: pedidoCorrida.entrega_lat, lng: pedidoCorrida.entrega_lng } : null;
 
   // GPS real → Broadcast no canal do pedido (token), pra lojista e cliente verem ao vivo.
   const [token, setToken] = useState<string | null>(null);
@@ -112,7 +115,7 @@ export default function EntregadorFlow() {
         {view === "concluido" && <Concluido />}
       </div>
       {!noMap && (
-        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} idleLabel="Sua localização · Palmas-TO" posicaoReal={gps} />
+        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} idleLabel="Sua localização · Palmas-TO" posicaoReal={gps} origem={coletaPt} destino={entregaPt} />
       )}
     </AppShell>
   );
