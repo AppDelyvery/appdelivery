@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { Map as MbMap, Marker as MbMarker } from "mapbox-gl";
+import type { Map as MbMap, Marker as MbMarker, GeoJSONSource } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MAPBOX_TOKEN, fetchDirections, hasMapbox } from "@/lib/mapbox";
 import {
@@ -32,6 +32,9 @@ type Props = {
   origem?: Ponto;
   /** Entrega (destino) no modo prévia. */
   destino?: Ponto;
+  /** Corrida do entregador: desenha 2 pernas (busca→coleta e coleta→entrega) e alterna
+   *  o destaque por fase. "busca" = indo pegar; "entrega" = já coletou, indo entregar. */
+  fase?: "busca" | "entrega";
 };
 
 // SVGs crus p/ os marcadores DOM do Mapbox (zero emoji).
@@ -53,6 +56,7 @@ export default function MapaAoVivo({
   preview = false,
   origem,
   destino,
+  fase,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MbMap | null>(null);
@@ -64,17 +68,74 @@ export default function MapaAoVivo({
 
   // Props sempre atuais p/ o desenho assíncrono, sem re-disparar o mount.
   const metaRef = useRef(onRouteMeta);
-  const odRef = useRef({ preview, origem, destino });
+  const odRef = useRef({ preview, origem, destino, fase });
+  const posRealRef = useRef(posicaoReal);
   useEffect(() => {
     metaRef.current = onRouteMeta;
-    odRef.current = { preview, origem, destino };
+    odRef.current = { preview, origem, destino, fase };
+    posRealRef.current = posicaoReal;
   });
+
+  // Corrida do entregador: 2 pernas (busca = motoboy→coleta, entrega = coleta→destino),
+  // com o destaque alternando por fase. Isolado — só roda quando `fase` está setada.
+  async function desenharFases() {
+    const map = mapRef.current;
+    const mbgl = mbglRef.current;
+    if (!map || !mbgl) return;
+    const { origem: o, destino: d, fase: f } = odRef.current;
+    if (!o || !d) return;
+    const meu = posRealRef.current;
+
+    pinsRef.current.forEach((m) => m.remove());
+    pinsRef.current = [];
+
+    const real = await fetchDirections([o.lng, o.lat], [d.lng, d.lat]);
+    const entregaCoords: LngLat[] = real?.coords ?? [[o.lng, o.lat], [d.lng, d.lat]];
+    if (real) metaRef.current?.(real.distKm, real.durMin);
+    const buscaCoords: LngLat[] = meu ? [meu, [o.lng, o.lat]] : [];
+    const ehBusca = f === "busca";
+
+    const setLeg = (id: string, coords: LngLat[], cor: string, largura: number, op: number, visivel: boolean) => {
+      const data = { type: "Feature" as const, geometry: { type: "LineString" as const, coordinates: visivel && coords.length > 1 ? coords : [] }, properties: {} };
+      const src = map.getSource(id) as GeoJSONSource | undefined;
+      if (src) src.setData(data);
+      else map.addSource(id, { type: "geojson", data });
+      if (!map.getLayer(id)) {
+        map.addLayer({ id, type: "line", source: id, paint: { "line-color": cor, "line-width": largura, "line-opacity": op }, layout: { "line-cap": "round", "line-join": "round" } });
+      } else {
+        map.setPaintProperty(id, "line-color", cor);
+        map.setPaintProperty(id, "line-width", largura);
+        map.setPaintProperty(id, "line-opacity", op);
+      }
+    };
+    // entrega entra primeiro (fica embaixo); busca por cima. Destaque alterna por fase.
+    setLeg("leg-entrega", entregaCoords, ehBusca ? "#9aa3b2" : "#059669", ehBusca ? 4 : 6, ehBusca ? 0.85 : 1, true);
+    setLeg("leg-busca", buscaCoords, "#4f46e5", 6, 1, ehBusca);
+
+    const fpin = (p: { lng: number; lat: number }, cls: "o" | "d", svg: string, nome: string) => {
+      const el = document.createElement("div");
+      el.className = "pt-marker " + cls;
+      el.innerHTML = svg;
+      pinsRef.current.push(new mbgl.Marker({ element: el, anchor: "bottom" }).setLngLat([p.lng, p.lat]).setPopup(new mbgl.Popup({ offset: 20 }).setText(nome)).addTo(map));
+    };
+    fpin(o, "o", SVG_PIN, "Coleta");
+    fpin(d, "d", SVG_PKG, "Entrega");
+
+    routeRef.current = null;
+    const b = new mbgl.LngLatBounds();
+    if (meu) b.extend(meu);
+    b.extend([o.lng, o.lat]);
+    b.extend([d.lng, d.lat]);
+    map.fitBounds(b, { padding: 70, duration: 600, maxZoom: 15 });
+    readyRef.current = true;
+  }
 
   // (Re)desenha a rota e os pontos conforme o modo atual.
   async function desenhar() {
     const map = mapRef.current;
     const mbgl = mbglRef.current;
     if (!map || !mbgl) return;
+    if (odRef.current.fase) { await desenharFases(); return; }
     const { preview: pv, origem: o, destino: d } = odRef.current;
     const provided = !!(o || d); // coords reais do pedido vieram por prop
     const O: Ponto = o ?? (pv ? null : { lng: ORIGEM.lng, lat: ORIGEM.lat });
@@ -195,12 +256,12 @@ export default function MapaAoVivo({
     };
   }, []);
 
-  // Modo prévia: redesenha quando a coleta/entrega mudam.
+  // Prévia ou corrida (fase): redesenha quando coleta/entrega/fase mudam.
   useEffect(() => {
-    if (!preview || !readyRef.current) return;
+    if ((!preview && !fase) || !readyRef.current) return;
     desenhar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [preview, origem?.lng, origem?.lat, destino?.lng, destino?.lat]);
+  }, [preview, fase, origem?.lng, origem?.lat, destino?.lng, destino?.lat]);
 
   // Move o motoboy. Rastreamento REAL (origem/destino do pedido): motoboy só com GPS real.
   // Demo puro (sem coords): segue a simulação por frac.
@@ -224,6 +285,11 @@ export default function MapaAoVivo({
       } else if (motoRef.current) {
         motoRef.current.remove();
         motoRef.current = null;
+      }
+      // na fase de busca, a perna pontilhada acompanha o motoboy até a coleta
+      if (odRef.current.fase === "busca" && posicaoReal && origem) {
+        const src = map.getSource("leg-busca") as GeoJSONSource | undefined;
+        if (src) src.setData({ type: "Feature", geometry: { type: "LineString", coordinates: [posicaoReal, [origem.lng, origem.lat]] }, properties: {} });
       }
       return;
     }

@@ -115,7 +115,7 @@ export default function EntregadorFlow() {
         {view === "concluido" && <Concluido />}
       </div>
       {!noMap && (
-        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} idleLabel="Sua localização · Palmas-TO" posicaoReal={gps} origem={coletaPt} destino={entregaPt} />
+        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} idleLabel="Sua localização · Palmas-TO" posicaoReal={gps} origem={coletaPt} destino={entregaPt} fase={view === "coleta" ? "busca" : "entrega"} />
       )}
     </AppShell>
   );
