@@ -145,6 +145,18 @@
   .float.a{top:18px;left:-24px}
   .float.b{bottom:20px;right:-20px}
   @media(max-width:860px){.hero-in{grid-template-columns:1fr;gap:32px;padding-top:40px;padding-bottom:52px}.hero h1{font-size:36px}.float.a{left:6px}.float.b{right:6px}}
+  .hero-bg{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+  .hero .eyebrow{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);padding:7px 14px;border-radius:30px;color:#eaf2ff}
+  .hero .htrust{display:flex;gap:16px;flex-wrap:wrap;margin-top:24px}
+  .hero .htrust span{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;color:#eaf2ff}
+  .hero .htrust svg{width:18px;height:18px;color:#6ee7b7;background:rgba(110,231,183,.16);border-radius:50%;padding:3px;box-sizing:border-box;flex-shrink:0}
+  .hero-art .appcard{padding:0;overflow:hidden}
+  .hero-art .appcard img{border-radius:0}
+  .hero-art .appbar{display:flex;align-items:center;gap:9px;padding:11px 15px;border-bottom:1px solid var(--line);font-size:12.5px;font-weight:700;color:var(--muted)}
+  .live-dot{position:relative;width:9px;height:9px;border-radius:50%;background:#10b981;display:inline-block;flex-shrink:0}
+  .live-dot::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid #10b981;animation:ring 2s ease-out infinite}
+  @keyframes ring{0%{transform:scale(.5);opacity:.7}100%{transform:scale(1.5);opacity:0}}
+  @media(prefers-reduced-motion:reduce){.live-dot::after{animation:none}}
 
   .strip{background:var(--navy);color:#fff;}
   .strip-in{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;padding-top:30px;padding-bottom:30px;}
@@ -288,6 +300,7 @@
 <symbol id="i-glasses" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="13" r="3"/><circle cx="17" cy="13" r="3"/><path d="M10 13h4"/><path d="M4 11l1.6-3.2M20 11l-1.6-3.2"/></symbol>
 <symbol id="i-part" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 19.8 7.5 19.8 16.5 12 21 4.2 16.5 4.2 7.5Z"/><circle cx="12" cy="12" r="3.2"/></symbol>
 <symbol id="i-bag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8h13l.9 11.5a1 1 0 0 1-1 1.1H5.6a1 1 0 0 1-1-1.1z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
 <symbol id="i-wpp" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.372-.025-.521-.075-.148-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></symbol>
 </svg>
 
@@ -308,7 +321,15 @@
   </div>
 </nav>
 
-<header id="top" class="hero"><div class="wrap hero-in">
+<header id="top" class="hero">
+<svg class="hero-bg" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs><pattern id="hdots" width="36" height="36" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.5" fill="rgba(255,255,255,.07)"/></pattern></defs>
+  <rect width="1200" height="600" fill="url(#hdots)"/>
+  <path d="M-40 480 C 280 480 360 210 700 230 S 1160 150 1260 140" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2.5" stroke-dasharray="1 13" stroke-linecap="round"/>
+  <circle cx="150" cy="470" r="8" fill="#ffffff"/><circle cx="150" cy="470" r="18" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2"/>
+  <circle cx="1120" cy="150" r="8" fill="#34d399"/><circle cx="1120" cy="150" r="18" fill="none" stroke="rgba(52,211,153,.45)" stroke-width="2"/>
+</svg>
+<div class="wrap hero-in">
   <div>
     <span class="eyebrow"><svg style="width:15px;height:15px"><use href="#i-shield"/></svg> Entregador verificado por antecedentes</span>
     <h1>Suas entregas com quem você <span class="hl">pode confiar.</span></h1>
@@ -318,10 +339,10 @@
       <a class="btn btn-go btn-lg" href="/seja-entregador"><svg><use href="#i-moto"/></svg> Quero ser entregador</a>
     </div>
     <a class="hero-link" href="#como">Ver como funciona →</a>
-    <div class="micro"><span><b>Moto · Carro · Van</b></span><span>·</span><span><b>Rastreio ao vivo</b></span><span>·</span><span><b>Sem mensalidade</b></span></div>
+    <div class="htrust"><span><svg><use href="#i-check"/></svg> Antecedentes + CNH</span><span><svg><use href="#i-check"/></svg> Rastreio ao vivo</span><span><svg><use href="#i-check"/></svg> Comprovante na entrega</span></div>
   </div>
   <div class="hero-art">
-    <div class="appcard"><img src="/site/img/app-negocio.png" alt="Painel do negócio APPDELYVERY — pedido em andamento"></div>
+    <div class="appcard"><div class="appbar"><span class="live-dot"></span> Pedido em andamento · ao vivo</div><img src="/site/img/app-negocio.png" alt="Painel do negócio APPDELYVERY — pedido em andamento"></div>
     <div class="float a"><span class="av"><svg><use href="#i-shield"/></svg></span><div><div class="ft">Carlos · verificado</div><div class="fs">antecedentes + CNH checados</div></div></div>
     <div class="float b"><span class="av" style="background:linear-gradient(135deg,var(--indigo),var(--indigo-d))"><svg><use href="#i-pin"/></svg></span><div><div class="ft">A caminho · 6 min</div><div class="fs">rastreio ao vivo no mapa</div></div></div>
   </div>
