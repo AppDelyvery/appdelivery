@@ -8,6 +8,15 @@ import MapaPinPicker, { type PontoMapa } from "./MapaPinPicker";
 
 export type Lugar = { endereco: string; lat: number; lng: number };
 
+// O geocoder do Mapbox resolve só até a alameda (não tem o lote/casa de Palmas no banco).
+// Extrai o complemento que o usuário digitou (lote, casa, nº, apto, bloco) pra preservá-lo
+// no endereço salvo — o entregador lê "lote 9" mesmo com o pino no nível da alameda.
+function extrairComplemento(raw: string): string {
+  const re = /\b(lote|lt|casa|cs|apto?|apartamento|bloco|bl|n[ºo°]|n[uú]mero)\.?\s*\d+[a-z]?\b/gi;
+  const achados = raw.match(re);
+  return achados ? achados.join(", ") : "";
+}
+
 // Busca de endereço com autocomplete (Mapbox Geocoding), enviesada pra Palmas-TO.
 // Devolve o lugar COM coordenadas — sem isso o pedido não tem lat/lng real.
 export default function AddressAutocomplete({
@@ -80,8 +89,13 @@ export default function AddressAutocomplete({
   };
 
   const escolher = (l: Lugar) => {
-    setTexto(l.endereco);
-    onSelecionar(l);
+    // mantém o complemento (lote/casa/nº) que o usuário digitou e o geocoder não resolve
+    const comp = extrairComplemento(texto);
+    const endereco = comp && !l.endereco.toLowerCase().includes(comp.toLowerCase())
+      ? `${l.endereco}, ${comp}`
+      : l.endereco;
+    setTexto(endereco);
+    onSelecionar({ ...l, endereco });
     setSugestoes([]);
     setAberto(false);
   };
