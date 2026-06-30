@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import Link from "next/link";
 import AppShell, { type ShellNavGroup } from "../AppShell";
 import BotaoSuporte from "../BotaoSuporte";
@@ -50,6 +50,9 @@ export default function NovoPedidoFlow() {
   const { view, setView, frac, running, done, eta, setRouteMeta, pedido } = useEntrega();
   const posReal = usePosicaoAoVivo(pedido?.token ?? null);
   const emAndamento = (["matching", "tracking", "done"] as NegocioView[]).includes(view);
+  // coleta/entrega vivem no pai p/ o mapa de prévia (rota negócio→destino) refletir as escolhas.
+  const [coleta, setColeta] = useState<Lugar | null>(null);
+  const [entrega, setEntrega] = useState<Lugar | null>(null);
 
   const nav: ShellNavGroup[] = [
     {
@@ -90,21 +93,28 @@ export default function NovoPedidoFlow() {
   return (
     <AppShell title={TITLES[view]} nav={nav} demo="negocio">
       <div className="panel">
-        {view === "form" && <FormScreen />}
+        {view === "form" && <FormScreen coleta={coleta} setColeta={setColeta} entrega={entrega} setEntrega={setEntrega} />}
         {view === "matching" && <MatchingScreen />}
         {view === "tracking" && <TrackingScreen />}
         {view === "done" && <DoneScreen />}
       </div>
-      <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} posicaoReal={posReal} />
+      {view === "form" ? (
+        <MapaAoVivo preview origem={coleta} destino={entrega} idleLabel="Escolha o destino — a rota sai do seu negócio" frac={0} running={false} done={false} eta={{ min: 0, km: "" }} />
+      ) : (
+        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} posicaoReal={posReal} />
+      )}
     </AppShell>
   );
 }
 
-function FormScreen() {
+function FormScreen({ coleta, setColeta, entrega, setEntrega }: {
+  coleta: Lugar | null;
+  setColeta: Dispatch<SetStateAction<Lugar | null>>;
+  entrega: Lugar | null;
+  setEntrega: Dispatch<SetStateAction<Lugar | null>>;
+}) {
   const { veh, setVeh, distKm, durMin, setView, setPedido } = useEntrega();
   const teto = useTetoProtecao();
-  const [coleta, setColeta] = useState<Lugar | null>(null);
-  const [entrega, setEntrega] = useState<Lugar | null>(null);
   const [rota, setRota] = useState<{ distKm: number; durMin: number } | null>(null);
   const [conteudo, setConteudo] = useState("");
   const [valor, setValor] = useState("");
