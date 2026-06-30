@@ -17,21 +17,24 @@ export function useWakeLock(ativo: boolean) {
     let vivo = true;
 
     const pedir = async () => {
+      if (!vivo || sentinela || (typeof document !== "undefined" && document.visibilityState !== "visible")) return;
       try {
         sentinela = await nav.wakeLock!.request("screen");
         sentinela.addEventListener("release", () => { sentinela = null; });
       } catch {
-        /* negado / sem suporte — segue sem travar a tela */
+        /* negado / sem suporte / pouca energia — segue sem travar a tela */
       }
     };
-    const aoVoltar = () => {
-      if (document.visibilityState === "visible" && vivo && !sentinela) pedir();
-    };
+    const aoVoltar = () => { if (document.visibilityState === "visible") pedir(); };
 
     pedir();
     document.addEventListener("visibilitychange", aoVoltar);
+    // heartbeat: o iOS solta o lock sozinho (tempo / pouca energia) mesmo com a página
+    // visível — sem isso a tela voltava a apagar. Repõe enquanto estiver ativo.
+    const hb = setInterval(pedir, 10000);
     return () => {
       vivo = false;
+      clearInterval(hb);
       document.removeEventListener("visibilitychange", aoVoltar);
       sentinela?.release().catch(() => {});
       sentinela = null;
