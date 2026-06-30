@@ -8,6 +8,7 @@ import { getBrowserSupabase } from "@/lib/supabase/browser";
 import type { Veiculo } from "@/lib/precos";
 import { validarCPF, mascaraCPF, mascaraTelefone } from "@/lib/validacao";
 import Turnstile, { TURNSTILE_ENABLED } from "./Turnstile";
+import { registrarConsentimentos } from "@/lib/legal";
 
 export default function CadastroEntregador() {
   const router = useRouter();
@@ -16,6 +17,9 @@ export default function CadastroEntregador() {
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [captcha, setCaptcha] = useState<string | null>(null);
+  const [aceiteTermos, setAceiteTermos] = useState(false);
+  const [aceiteVerif, setAceiteVerif] = useState(false);
+  const [aceiteMkt, setAceiteMkt] = useState(false);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -34,6 +38,14 @@ export default function CadastroEntregador() {
     }
     if (TURNSTILE_ENABLED && !captcha) {
       setErro("Confirme o desafio anti-robô antes de continuar.");
+      return;
+    }
+    if (!aceiteTermos) {
+      setErro("Para criar a conta, é preciso aceitar os Termos do Entregador e a Política de Privacidade.");
+      return;
+    }
+    if (!aceiteVerif) {
+      setErro("É preciso autorizar a verificação de antecedentes e CNH para ser um entregador verificado.");
       return;
     }
     setCarregando(true);
@@ -59,6 +71,14 @@ export default function CadastroEntregador() {
         vehicle_type: veh,
       });
       if (e3) throw e3;
+
+      // consentimentos LGPD (aceite demonstrável + verificação destacada) + read-after-write interno
+      await registrarConsentimentos(sb, user.id, [
+        { tipo: "termos_entregador", aceito: true },
+        { tipo: "privacidade", aceito: true },
+        { tipo: "verificacao_sensivel", aceito: true },
+        { tipo: "marketing", aceito: aceiteMkt },
+      ]);
 
       // read-after-write (λ.prova-na-fonte)
       const { data: check, error: e4 } = await sb
@@ -129,6 +149,28 @@ export default function CadastroEntregador() {
         </div>
 
         <Turnstile onToken={setCaptcha} />
+
+        <label className="consent">
+          <input type="checkbox" checked={aceiteTermos} onChange={(e) => setAceiteTermos(e.target.checked)} />
+          <span className="ct">
+            Li e concordo com os{" "}
+            <Link href="/termos" target="_blank">Termos do Entregador</Link> e a{" "}
+            <Link href="/privacidade" target="_blank">Política de Privacidade</Link>.
+          </span>
+        </label>
+        <label className="consent destaque">
+          <input type="checkbox" checked={aceiteVerif} onChange={(e) => setAceiteVerif(e.target.checked)} />
+          <span className="ct">
+            Estou ciente e <b>autorizo a verificação dos meus antecedentes criminais e da minha CNH</b> para
+            fins de segurança da operação, na forma da Política de Privacidade.
+          </span>
+        </label>
+        <label className="consent">
+          <input type="checkbox" checked={aceiteMkt} onChange={(e) => setAceiteMkt(e.target.checked)} />
+          <span className="ct">
+            Aceito receber comunicados e oportunidades por WhatsApp e e-mail. <i>(Opcional)</i>
+          </span>
+        </label>
 
         {erro && (
           <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)" }}>

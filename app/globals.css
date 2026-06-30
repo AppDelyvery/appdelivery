@@ -109,6 +109,15 @@ body {
 .field .input { width: 100%; border: 1.5px solid var(--line-2); border-radius: 11px; padding: 11px 13px; font-size: 13.5px; font-family: inherit; color: var(--ink); background: #fbfcfe; transition: .15s; }
 .field .input:focus { outline: none; border-color: var(--brand); background: #fff; box-shadow: 0 0 0 3px var(--brand-light); }
 .field .input::placeholder { color: var(--faint); }
+
+/* Aceite & consentimento (cadastro) */
+.consent { display: flex; gap: 9px; align-items: flex-start; margin: 11px 0 0; cursor: pointer; }
+.consent input[type="checkbox"] { width: 17px; height: 17px; margin: 1px 0 0; accent-color: var(--brand); flex-shrink: 0; cursor: pointer; }
+.consent .ct { font-size: 12px; line-height: 1.45; color: var(--ink-2); }
+.consent .ct a { color: var(--brand); font-weight: 700; text-decoration: underline; }
+.consent .ct i { opacity: .65; font-style: normal; }
+.consent.destaque { background: var(--brand-light); border: 1px solid #e0e3ff; border-radius: 11px; padding: 11px 12px; margin-top: 12px; }
+
 .with-icon { position: relative; }
 .with-icon svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--muted); }
 .with-icon .input { padding-left: 38px; }

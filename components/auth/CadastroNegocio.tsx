@@ -8,6 +8,7 @@ import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { validarCnpjOuCpf, mascaraCnpjOuCpf, mascaraTelefone } from "@/lib/validacao";
 import Turnstile, { TURNSTILE_ENABLED } from "./Turnstile";
 import AddressAutocomplete, { type Lugar } from "../AddressAutocomplete";
+import { registrarConsentimentos } from "@/lib/legal";
 
 export default function CadastroNegocio() {
   const router = useRouter();
@@ -23,6 +24,8 @@ export default function CadastroNegocio() {
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [captcha, setCaptcha] = useState<string | null>(null);
+  const [aceiteTermos, setAceiteTermos] = useState(false);
+  const [aceiteMkt, setAceiteMkt] = useState(false);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -41,6 +44,10 @@ export default function CadastroNegocio() {
     }
     if (TURNSTILE_ENABLED && !captcha) {
       setErro("Confirme o desafio anti-robô antes de continuar.");
+      return;
+    }
+    if (!aceiteTermos) {
+      setErro("Para criar a conta, é preciso aceitar os Termos de Uso e a Política de Privacidade.");
       return;
     }
     setCarregando(true);
@@ -71,6 +78,13 @@ export default function CadastroNegocio() {
         lng: enderecoLugar?.lng ?? null,
       });
       if (e3) throw e3;
+
+      // 3.5) consentimentos LGPD (aceite demonstrável) + read-after-write interno
+      await registrarConsentimentos(sb, user.id, [
+        { tipo: "termos_negocio", aceito: true },
+        { tipo: "privacidade", aceito: true },
+        { tipo: "marketing", aceito: aceiteMkt },
+      ]);
 
       // 4) read-after-write — a única prova de que gravou (λ.prova-na-fonte)
       const { data: check, error: e4 } = await sb
@@ -130,6 +144,21 @@ export default function CadastroNegocio() {
         <p className="hint" style={{ marginTop: -2 }}>É daqui que suas entregas saem por padrão. Dá pra mudar a cada pedido.</p>
 
         <Turnstile onToken={setCaptcha} />
+
+        <label className="consent">
+          <input type="checkbox" checked={aceiteTermos} onChange={(e) => setAceiteTermos(e.target.checked)} />
+          <span className="ct">
+            Li e concordo com os{" "}
+            <Link href="/termos" target="_blank">Termos de Uso</Link> e a{" "}
+            <Link href="/privacidade" target="_blank">Política de Privacidade</Link>.
+          </span>
+        </label>
+        <label className="consent">
+          <input type="checkbox" checked={aceiteMkt} onChange={(e) => setAceiteMkt(e.target.checked)} />
+          <span className="ct">
+            Aceito receber novidades e ofertas por WhatsApp e e-mail. <i>(Opcional)</i>
+          </span>
+        </label>
 
         {erro && (
           <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)" }}>
