@@ -254,6 +254,29 @@
   .driver ul{list-style:none;margin:20px 0}
   .driver li{padding:7px 0 7px 28px;position:relative;color:#e8eaff;font-size:15px}
   .driver li:before{content:"✓";position:absolute;left:0;color:#6ee7b7;font-weight:900}
+  /* --- section polish (Verbo) --- */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:42px;position:relative}
+  .steps::before{content:"";position:absolute;top:27px;left:16.6%;right:16.6%;border-top:2.5px dashed var(--line-2);z-index:0}
+  .step{position:relative;z-index:1;text-align:center;padding:0 8px}
+  .step .snode{width:54px;height:54px;border-radius:50%;background:var(--indigo);color:#fff;font-family:'Sora';font-weight:800;font-size:21px;display:grid;place-items:center;margin:0 auto 16px;box-shadow:0 12px 26px -10px rgba(37,99,235,.65);border:5px solid var(--bg-soft)}
+  .step h4{font-size:18px;font-weight:800}
+  .step p{font-size:14.5px;color:var(--muted);margin-top:8px;max-width:300px;margin-left:auto;margin-right:auto}
+  @media(max-width:860px){.steps{grid-template-columns:1fr;gap:30px}.steps::before{display:none}}
+  .strip .si{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.1);display:grid;place-items:center;margin-bottom:10px}
+  .strip .si svg{width:18px;height:18px;color:#bfdbfe}
+  .plan{transition:transform .18s,box-shadow .18s}
+  .plan:hover{transform:translateY(-5px);box-shadow:0 22px 44px -22px rgba(20,27,71,.4)}
+  @media(min-width:861px){.plan.hi{transform:scale(1.04)}.plan.hi:hover{transform:scale(1.04) translateY(-5px)}}
+  .region .r{transition:transform .18s,box-shadow .18s}
+  .region .r:hover{transform:translateY(-3px);box-shadow:var(--shadow-sm)}
+  .region .r .km{display:inline-flex;align-items:center;gap:6px}
+  .region .r .km svg{width:14px;height:14px}
+  .card{transition:transform .18s,box-shadow .18s}
+  .card:hover{transform:translateY(-4px);box-shadow:0 18px 40px -20px rgba(20,27,71,.28)}
+  footer h5{color:#fff;font-size:13px;font-weight:800;letter-spacing:.04em;margin-bottom:12px}
+  footer .footer-cols a{display:block;margin:7px 0}
+  .foot-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .foot-tags span{font-size:12px;font-weight:700;color:#cdd2f0;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:5px 11px;border-radius:20px}
 
   .finalcta{background:linear-gradient(135deg,var(--indigo),var(--indigo-d));border-radius:26px;padding:58px 50px;text-align:center;color:#fff}
   .finalcta h2{color:#fff;font-size:36px;font-weight:800;max-width:640px;margin:0 auto}
@@ -301,6 +324,8 @@
 <symbol id="i-part" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 19.8 7.5 19.8 16.5 12 21 4.2 16.5 4.2 7.5Z"/><circle cx="12" cy="12" r="3.2"/></symbol>
 <symbol id="i-bag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8h13l.9 11.5a1 1 0 0 1-1 1.1H5.6a1 1 0 0 1-1-1.1z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></symbol>
 <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol>
 <symbol id="i-wpp" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.372-.025-.521-.075-.148-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></symbol>
 </svg>
 
@@ -348,10 +373,10 @@
 </div></header>
 
 <div class="strip"><div class="wrap strip-in">
-  <div><div class="v">100%</div><div class="l">dos entregadores verificados</div></div>
-  <div><div class="v">3</div><div class="l">veículos: moto, carro e van</div></div>
-  <div><div class="v">~30s</div><div class="l">para um entregador aceitar</div></div>
-  <div><div class="v">API</div><div class="l">integração com o seu sistema</div></div>
+  <div><div class="si"><svg><use href="#i-shield"/></svg></div><div class="v">100%</div><div class="l">dos entregadores verificados</div></div>
+  <div><div class="si"><svg><use href="#i-moto"/></svg></div><div class="v">3</div><div class="l">veículos: moto, carro e van</div></div>
+  <div><div class="si"><svg><use href="#i-clock"/></svg></div><div class="v">~30s</div><div class="l">para um entregador aceitar</div></div>
+  <div><div class="si"><svg><use href="#i-code"/></svg></div><div class="v">API</div><div class="l">integração com o seu sistema</div></div>
 </div></div>
 
 <section id="negocios" class="blk"><div class="wrap split">
@@ -368,10 +393,10 @@
 
 <section id="como" class="blk bg-soft"><div class="wrap">
   <div class="sechead center"><span class="eyebrow">Como funciona</span><h2>Da solicitação à entrega, com tudo registrado.</h2></div>
-  <div class="cards">
-    <div class="card"><div class="n">1</div><h4>Você pede</h4><p>Informe coleta, destino e o que enviar. O sistema reconhece os endereços de Palmas e mostra o preço de moto, carro e van na hora.</p></div>
-    <div class="card"><div class="n">2</div><h4>O sistema aciona</h4><p>A entrega é oferecida ao entregador verificado mais próximo e melhor avaliado. Se ele recusa, passa para o próximo na hora.</p></div>
-    <div class="card"><div class="n">3</div><h4>Você acompanha</h4><p>Você e o seu cliente veem o entregador no mapa por um link no WhatsApp, sem instalar nada. No final, comprovante com foto e assinatura.</p></div>
+  <div class="steps">
+    <div class="step"><div class="snode">1</div><h4>Você pede</h4><p>Informe coleta, destino e o que enviar. O sistema reconhece os endereços de Palmas e mostra o preço de moto, carro e van na hora.</p></div>
+    <div class="step"><div class="snode">2</div><h4>O sistema aciona</h4><p>A entrega é oferecida ao entregador verificado mais próximo e melhor avaliado. Se ele recusa, passa para o próximo na hora.</p></div>
+    <div class="step"><div class="snode">3</div><h4>Você acompanha</h4><p>Você e o seu cliente veem o entregador no mapa por um link no WhatsApp, sem instalar nada. No final, comprovante com foto e assinatura.</p></div>
   </div>
 </div></section>
 
@@ -424,9 +449,9 @@
     <h2 style="font-size:38px;font-weight:800;margin-top:12px">Palmas, e o que vem por perto.</h2>
     <p style="font-size:16.5px;color:var(--ink-2);margin-top:12px">Começamos em Palmas e abrimos a região com a Van, chegando onde a sua empresa precisa entregar.</p>
     <div class="region">
-      <div class="r"><div class="km">~10 min</div><h4>Luzimangues</h4><p>Polo industrial e atacadista com mais de 1.100 empresas, a poucos minutos de Palmas.</p></div>
-      <div class="r"><div class="km">68 km</div><h4>Porto Nacional</h4><p>Trajeto intercidade curto, ideal para a Van e cargas maiores.</p></div>
-      <div class="r"><div class="km">230 km</div><h4>Gurupi</h4><p>Polo regional. Entrega intercidade agendada (em breve).</p></div>
+      <div class="r"><div class="km"><svg><use href="#i-pin"/></svg>~10 min</div><h4>Luzimangues</h4><p>Polo industrial e atacadista com mais de 1.100 empresas, a poucos minutos de Palmas.</p></div>
+      <div class="r"><div class="km"><svg><use href="#i-pin"/></svg>68 km</div><h4>Porto Nacional</h4><p>Trajeto intercidade curto, ideal para a Van e cargas maiores.</p></div>
+      <div class="r"><div class="km"><svg><use href="#i-pin"/></svg>230 km</div><h4>Gurupi</h4><p>Polo regional. Entrega intercidade agendada (em breve).</p></div>
     </div>
   </div>
 </div></section>
@@ -509,6 +534,7 @@
     <div>
       <a class="brand" href="#top" style="color:#fff"><span class="mk"><svg><use href="#i-moto"/></svg></span><span style="color:#fff"><b style="color:#a5acff">APP</b>DELYVERY</span></a>
       <p style="margin-top:12px;max-width:300px">Entrega de encomendas para empresas, com entregador verificado. Palmas-TO e região.</p>
+      <div class="foot-tags"><span>Palmas</span><span>Luzimangues</span><span>Porto Nacional</span></div>
     </div>
     <div><h5>Plataforma</h5><a href="#negocios">Para empresas</a><a href="/seja-entregador">Para entregadores</a><a href="#planos">Planos</a></div>
     <div><h5>Acesso</h5><a href="/login">Entrar</a><a href="/cadastro">Cadastrar empresa</a><a href="/cadastro/entregador">Ser entregador</a><a href="/termos">Termos</a><a href="/privacidade">Privacidade</a></div>
