@@ -6,6 +6,7 @@ import { Icon } from "../Icons";
 import MapaBase, { type TemaMapa } from "./MapaBase";
 import { money } from "@/lib/precos";
 import { registerPush } from "@/lib/push";
+import { liberarAudio, tocarAlerta, pararAlerta } from "@/lib/alertaSom";
 import { geoDist } from "@/lib/rota";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { useGeolocation } from "@/lib/useGeolocation";
@@ -76,6 +77,13 @@ export default function EntregadorHome() {
   const segRestantes = oferta ? Math.max(0, Math.round((new Date(oferta.expira_at).getTime() - Date.now()) / 1000)) : 0;
   void tick;
 
+  // toque estilo 99: bipe repetido enquanto a oferta está na tela
+  useEffect(() => {
+    if (oferta) tocarAlerta();
+    else pararAlerta();
+    return () => pararAlerta();
+  }, [oferta?.oferta_id]);
+
   const onAceitar = async () => {
     if (!oferta) return;
     setMsg(null);
@@ -91,7 +99,14 @@ export default function EntregadorHome() {
 
   return (
     <div className="emap">
-      <MapaBase pos={gps} tema={tema} recenterRef={recenterRef} />
+      <MapaBase
+        pos={gps}
+        tema={tema}
+        recenterRef={recenterRef}
+        oferta={oferta && oferta.coleta_lat != null && oferta.coleta_lng != null
+          ? { coletaLat: oferta.coleta_lat, coletaLng: oferta.coleta_lng, entregaLat: oferta.entrega_lat, entregaLng: oferta.entrega_lng }
+          : null}
+      />
 
       {/* topo: hambúrguer + pílula de ganhos */}
       <button className="emap-fab emap-burger" onClick={() => setMenu(true)} aria-label="Menu">
@@ -129,7 +144,7 @@ export default function EntregadorHome() {
             <div className="emap-status off"><span className="dot" /> Você está offline</div>
             <p className="emap-sub">Conecte pra receber entregas da sua região.</p>
             {erro && <div className="emap-erro">{erro}</div>}
-            <button className="btn" style={{ background: "var(--go)", color: "#fff" }} disabled={busy} onClick={() => { registerPush(); alternar(true, gps); }}>
+            <button className="btn" style={{ background: "var(--go)", color: "#fff" }} disabled={busy} onClick={() => { liberarAudio(); registerPush(); alternar(true, gps); }}>
               {busy ? "…" : "Conectar"}
             </button>
           </>
@@ -149,7 +164,7 @@ export default function EntregadorHome() {
                   <div className="offer-top">
                     <div>
                       <div className="offer-amount-xl">{money(oferta.preco_entregador ?? 0)}</div>
-                      <div className="offer-amount-sub">você recebe 80%</div>
+                      <div className="offer-amount-sub">já é o seu líquido · taxa descontada</div>
                     </div>
                     <span className="veh-badge"><Icon name={oferta.vehicle_type === "carro" ? "car" : oferta.vehicle_type === "van" ? "van" : "moto"} /> {VEIC[oferta.vehicle_type] ?? oferta.vehicle_type}</span>
                   </div>

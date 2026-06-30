@@ -16,6 +16,8 @@ export type OfertaAtual = {
   coleta_lat: number | null;
   coleta_lng: number | null;
   entrega_endereco: string;
+  entrega_lat: number | null;
+  entrega_lng: number | null;
   distancia_km: number | null;
   duracao_min: number | null;
 };
