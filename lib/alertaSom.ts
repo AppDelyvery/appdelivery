@@ -27,27 +27,37 @@ function bipe() {
   if (!c) return;
   if (c.state === "suspended") c.resume().catch(() => {});
   const t0 = c.currentTime;
-  // dois tons (ding-dong) curtos, bem audíveis
-  [[880, 0], [1320, 0.16]].forEach(([freq, off]) => {
-    const o = c.createOscillator();
-    const g = c.createGain();
-    o.type = "triangle";
-    o.frequency.setValueAtTime(freq, t0 + off);
-    g.gain.setValueAtTime(0.0001, t0 + off);
-    g.gain.exponentialRampToValueAtTime(0.6, t0 + off + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + off + 0.28);
-    o.connect(g);
-    g.connect(c.destination);
-    o.start(t0 + off);
-    o.stop(t0 + off + 0.3);
-  });
+  const master = c.createGain();
+  master.gain.value = 0.95;
+  master.connect(c.destination);
+
+  // cada nota é um acorde: grave (corpo/presença) + fundamental brilhante + harmônico
+  const nota = (start: number, dur: number, freqs: number[]) => {
+    freqs.forEach((f, i) => {
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = i === 0 ? "sine" : i === 1 ? "sawtooth" : "triangle";
+      o.frequency.setValueAtTime(f, start);
+      const vol = i === 0 ? 0.34 : 0.2; // grave mais forte = presença
+      g.gain.setValueAtTime(0.0001, start);
+      g.gain.exponentialRampToValueAtTime(vol, start + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+      o.connect(g);
+      g.connect(master);
+      o.start(start);
+      o.stop(start + dur + 0.03);
+    });
+  };
+  // "ring-ring" que sobe — chamada, com grave de corpo
+  nota(t0, 0.24, [196, 392, 588]);
+  nota(t0 + 0.3, 0.34, [261, 523, 784, 1046]);
 }
 
 // Começa o toque repetido (idempotente).
 export function tocarAlerta() {
   if (loop) return;
   bipe();
-  loop = setInterval(bipe, 1100);
+  loop = setInterval(bipe, 1300);
 }
 
 export function pararAlerta() {
