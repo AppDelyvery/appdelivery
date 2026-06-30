@@ -11,6 +11,7 @@ import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { useMinhaOferta } from "@/lib/oferta";
 import { useDisponibilidade, useAtualizarPosicao } from "@/lib/disponibilidade";
+import { useWakeLock } from "@/lib/useWakeLock";
 import { useEntregador } from "./EntregadorContext";
 
 type PerfilMenu = { nome: string; rating: number | null; total_entregas: number; taxa_aceitacao: number | null; taxa_finalizacao: number | null };
@@ -26,6 +27,7 @@ export default function EntregadorHome() {
   const { pos: gps } = useGeolocation(true);
   const { online, busy, erro, alternar } = useDisponibilidade();
   useAtualizarPosicao(online, gps);
+  useWakeLock(true); // mapa tela-cheia: mantém a tela acesa enquanto o entregador está aqui
   const { oferta, aceitar, recusar } = useMinhaOferta(online);
 
   const [tema, setTema] = useState<TemaMapa>("auto");

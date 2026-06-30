@@ -12,6 +12,7 @@ import AvaliarEntrega from "../AvaliarEntrega";
 import { distanciaAte, estaLonge } from "@/lib/geofence";
 import { Icon } from "../Icons";
 import MapaAoVivo from "../MapaAoVivo";
+import { useWakeLock } from "@/lib/useWakeLock";
 import { hasSupabase } from "@/lib/integracoes";
 import { usePedido } from "@/lib/pedido";
 import { useTetoProtecao, cobertura } from "@/lib/protecao";
@@ -60,6 +61,7 @@ export default function EntregadorFlow() {
   }, [gps, enviarPos]);
   const emCorrida = (["coleta", "rota", "finalizar", "concluido"] as EntregadorView[]).includes(view);
   const noMap = !(view === "coleta" || view === "rota");
+  useWakeLock(!noMap); // tela do mapa (coleta/rota): mantém a tela acesa
 
   const nav: ShellNavGroup[] = [
     {
