@@ -30,14 +30,6 @@ export default function LegalShell({
         </button>
       </div>
 
-      <div className="legal-aviso" style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-        <Icon name="shield" style={{ width: 18, height: 18, flexShrink: 0, marginTop: 1 }} />
-        <span>
-          RASCUNHO — este texto é uma base e <b>precisa de revisão de um advogado</b> antes de ir ao ar. Não substitui
-          parecer jurídico, sobretudo no tratamento de antecedentes criminais (dado sensível, LGPD).
-        </span>
-      </div>
-
       <h1>{titulo}</h1>
       <div className="vig">{vigencia}</div>
       {children}

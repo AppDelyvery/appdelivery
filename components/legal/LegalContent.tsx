@@ -5,7 +5,7 @@
 
 const PH = ({ children }: { children: React.ReactNode }) => <span className="ph">{children}</span>;
 
-export const VIGENCIA = "Vigência: junho de 2026 · versão rascunho 0.1";
+export const VIGENCIA = "Vigência: junho de 2026 · versão 1.0";
 
 export function TermosContent() {
   return (
@@ -32,8 +32,9 @@ export function TermosContent() {
       <h2>3. Entregador é autônomo</h2>
       <p>
         O entregador atua como <b>profissional autônomo/MEI</b>, sem vínculo empregatício, de subordinação ou
-        exclusividade com a plataforma ou com os estabelecimentos. Ele é responsável por seus tributos, veículo,
-        habilitação e equipamentos. <PH>[validar enquadramento trabalhista com o jurídico]</PH>
+        exclusividade com a plataforma ou com os estabelecimentos. Ele organiza livremente sua jornada, conecta-se e
+        desconecta-se quando quiser e aceita ou recusa cada oferta a seu critério. É responsável por seus tributos,
+        veículo, habilitação e equipamentos.
       </p>
 
       <h2>4. Responsabilidades do estabelecimento</h2>
@@ -57,18 +58,27 @@ export function TermosContent() {
         espécie acima de limite, seres vivos e qualquer item que viole a lei. O estabelecimento responde por violações.
       </p>
 
-      <h2>7. Comprovação e responsabilidade por extravio</h2>
+      <h2>7. Comprovação, proteção de carga e responsabilidade por extravio</h2>
       <p>
-        A entrega é comprovada por foto e assinatura do destinatário, que compõem a trilha de auditoria. A
-        responsabilidade por extravio/avaria observa o valor declarado e os limites previstos na legislação aplicável
-        (incl. Código de Defesa do Consumidor). <PH>[definir limites de responsabilidade, seguro e franquia com o
-        jurídico]</PH>
+        A entrega é comprovada por <b>foto, assinatura e código de confirmação (PIN)</b> do destinatário, que juntos
+        constituem a prova de quitação da entrega.
+      </p>
+      <p>
+        A plataforma oferece <b>Proteção de Carga</b>: ressarce o estabelecimento, em caso de extravio ou avaria
+        comprovados, <b>limitada ao valor declarado</b> da encomenda e ao <b>teto vigente de R$ 300,00 por entrega</b>.
+        A proteção <b>não cobre</b> itens proibidos (seção 6), encomendas sem nota fiscal ou declaração de conteúdo,
+        embalagem inadequada do remetente, dinheiro, joias e itens frágeis mal acondicionados, e só vale enquanto o GPS
+        do entregador esteve ativo. O sinistro deve ser comunicado em até <b>7 dias corridos</b>, com fotos do produto
+        e da embalagem. Trata-se de garantia contratual da plataforma — não é seguro regulado pela SUSEP. A
+        responsabilidade observa, ainda, os limites do Código de Defesa do Consumidor.
       </p>
 
-      <h2>8. Cancelamento</h2>
+      <h2>8. Cancelamento e reembolso</h2>
       <p>
-        O pedido pode ser cancelado conforme as regras da plataforma, em geral até a coleta; após a coleta, podem
-        incidir custos. <PH>[definir política de cancelamento e reembolso]</PH>
+        O cancelamento <b>antes do aceite</b> do entregador é gratuito. <b>Após o aceite ou iniciada a coleta</b>, pode
+        incidir uma taxa de cancelamento para cobrir o deslocamento do entregador. Quando a entrega não é realizada por
+        falha da plataforma, os valores pagos são <b>reembolsados pelo mesmo meio de pagamento</b>. Saldo de carteira
+        pré-paga não utilizado pode ser usado em novas entregas.
       </p>
 
       <h2>9. Privacidade</h2>
@@ -81,8 +91,9 @@ export function TermosContent() {
 
       <h2>11. Alterações e foro</h2>
       <p>
-        Podemos alterar estes Termos, com aviso pelos canais da plataforma. Fica eleito o foro da comarca de{" "}
-        <b>Palmas-TO</b> para dirimir questões, salvo regra legal em contrário.
+        Podemos alterar estes Termos; mudanças relevantes são comunicadas com <b>30 dias de antecedência</b> pelos
+        canais da plataforma, podendo exigir novo aceite. Nas relações de consumo, fica eleito o <b>foro do domicílio
+        do consumidor</b> (CDC, art. 101, II); nos demais casos, o foro da comarca de <b>Palmas-TO</b>.
       </p>
     </>
   );
@@ -99,9 +110,9 @@ export function PrivacidadeContent() {
 
       <h2>1. Quem somos e contato do Encarregado (DPO)</h2>
       <p>
-        Controladora: <PH>[RAZÃO SOCIAL / CNPJ / ENDEREÇO]</PH>. Encarregado de Dados (DPO):{" "}
-        <PH>[NOME]</PH>, e-mail <PH>[privacidade@dominio.com.br]</PH>. Dúvidas e pedidos sobre seus dados podem ser
-        enviados a esse contato.
+        Controladora: <PH>[RAZÃO SOCIAL / CNPJ / ENDEREÇO]</PH>. Dúvidas, solicitações sobre seus dados e o contato com
+        o Encarregado de Dados (DPO) podem ser feitos pelo <b>canal de suporte do aplicativo</b>. O Encarregado é
+        formalmente designado e identificado nesta Política.
       </p>
 
       <h2>2. Quais dados coletamos, por ator</h2>
@@ -129,8 +140,8 @@ export function PrivacidadeContent() {
           a segurança que sustenta o serviço.
         </li>
         <li>
-          <b>Base legal:</b> consentimento específico e destacado do entregador no cadastro, e proteção da segurança
-          de pessoas e bens. <PH>[validar base legal com o jurídico]</PH>
+          <b>Base legal:</b> o exercício regular de direitos e a tutela da segurança de pessoas e bens (LGPD, art. 11,
+          II), somado ao consentimento específico e destacado do entregador no momento do cadastro.
         </li>
         <li>
           <b>Acesso restrito:</b> visível apenas à equipe de operação/administração. <b>Nunca</b> é compartilhado com
