@@ -202,6 +202,7 @@ body {
 .vcheck.run .vc-ic svg { color: var(--brand); animation: spin 1s linear infinite; }
 .vcheck.ok .vc-ic svg { color: var(--go-dark); animation: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
+.girando svg { animation: spin 1s linear infinite; }
 .vcheck .vc-t { font-size: 13.5px; font-weight: 700; flex: 1; }
 .vcheck .vc-s { font-size: 11px; color: var(--muted); }
 

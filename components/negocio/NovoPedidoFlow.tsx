@@ -503,7 +503,7 @@ function TrackingScreen() {
         ) : (
           // ainda sem entregador designado → procurando
           <div className="driver" style={{ alignItems: "center" }}>
-            <div className="avatar" style={{ background: "var(--bg)", color: "var(--brand)" }}><Icon name="spinner" /></div>
+            <div className="avatar girando" style={{ background: "var(--bg)", color: "var(--brand)" }}><Icon name="spinner" /></div>
             <div className="driver-info">
               <div className="name">Procurando entregador</div>
               <div className="meta">Ofertando pro entregador verificado mais próximo…</div>
