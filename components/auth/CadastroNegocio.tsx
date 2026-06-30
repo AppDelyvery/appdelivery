@@ -9,6 +9,7 @@ import { validarCnpjOuCpf, mascaraCnpjOuCpf, mascaraTelefone } from "@/lib/valid
 import Turnstile, { TURNSTILE_ENABLED } from "./Turnstile";
 import AddressAutocomplete, { type Lugar } from "../AddressAutocomplete";
 import { registrarConsentimentos } from "@/lib/legal";
+import LegalModal, { type LegalDoc } from "@/components/legal/LegalModal";
 
 export default function CadastroNegocio() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function CadastroNegocio() {
   const [captcha, setCaptcha] = useState<string | null>(null);
   const [aceiteTermos, setAceiteTermos] = useState(false);
   const [aceiteMkt, setAceiteMkt] = useState(false);
+  const [modalDoc, setModalDoc] = useState<LegalDoc | null>(null);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -149,8 +151,8 @@ export default function CadastroNegocio() {
           <input type="checkbox" checked={aceiteTermos} onChange={(e) => setAceiteTermos(e.target.checked)} />
           <span className="ct">
             Li e concordo com os{" "}
-            <Link href="/termos" target="_blank">Termos de Uso</Link> e a{" "}
-            <Link href="/privacidade" target="_blank">Política de Privacidade</Link>.
+            <button type="button" className="lk" onClick={() => setModalDoc("termos")}>Termos de Uso</button> e a{" "}
+            <button type="button" className="lk" onClick={() => setModalDoc("privacidade")}>Política de Privacidade</button>.
           </span>
         </label>
         <label className="consent">
@@ -177,6 +179,7 @@ export default function CadastroNegocio() {
           </Link>
         </div>
       </form>
+      <LegalModal doc={modalDoc} onClose={() => setModalDoc(null)} />
     </div>
   );
 }

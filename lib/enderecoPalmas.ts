@@ -25,7 +25,19 @@ export function arseParaNumerico(texto: string): string | null {
   return `Quadra ${novo} ${band}, Palmas - TO`;
 }
 
-// Query pronta pro geocoder: se for ARSE, usa a forma numérica; senão, o texto cru.
+// Query pronta pro geocoder. Converte SÓ o token ARSE pra forma numérica e
+// PRESERVA o complemento (alameda, lote, etc.) — sem isso o Mapbox recebia só
+// "Quadra 1206 Sul" e devolvia alamedas aleatórias da quadra.
 export function queryGeocoder(texto: string): string {
-  return arseParaNumerico(texto) ?? texto;
+  const m = texto.match(RX);
+  if (!m) return texto;
+  const band = m[2].toUpperCase() === "S" ? "Sul" : "Norte";
+  const lado = m[3].toUpperCase() === "E" ? 2 : 1;
+  const n = m[4];
+  const resto = parseInt(n.slice(0, -1), 10);
+  const d = parseInt(n.slice(-1), 10);
+  if (!Number.isFinite(resto) || !Number.isFinite(d)) return texto;
+  const novo = resto * 100 + (2 * d + lado);
+  const convertido = texto.replace(RX, `Quadra ${novo} ${band}`);
+  return /palmas/i.test(convertido) ? convertido : `${convertido}, Palmas - TO`;
 }

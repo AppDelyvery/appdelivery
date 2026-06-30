@@ -117,6 +117,20 @@ body {
 .consent .ct a { color: var(--brand); font-weight: 700; text-decoration: underline; }
 .consent .ct i { opacity: .65; font-style: normal; }
 .consent.destaque { background: var(--brand-light); border: 1px solid #e0e3ff; border-radius: 11px; padding: 11px 12px; margin-top: 12px; }
+.consent .ct .lk { background: none; border: none; padding: 0; font: inherit; color: var(--brand); font-weight: 700; text-decoration: underline; cursor: pointer; }
+
+/* Modal de leitura dos termos/privacidade (sobre o cadastro — não perde o formulário) */
+.legal-modal-ov { position: fixed; inset: 0; z-index: 1000; background: rgba(13,20,36,.55); display: flex; align-items: flex-end; justify-content: center; }
+.legal-modal { background: var(--card,#fff); width: 100%; max-width: 560px; max-height: 92vh; border-radius: 18px 18px 0 0; display: flex; flex-direction: column; box-shadow: 0 -8px 40px rgba(0,0,0,.25); animation: lmUp .22s ease; }
+@keyframes lmUp { from { transform: translateY(26px); opacity: .5; } to { transform: translateY(0); opacity: 1; } }
+.legal-modal-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid var(--line-2,#eee); }
+.lm-titulo { font-size: 17px; font-weight: 800; color: var(--ink); letter-spacing: -.3px; }
+.lm-vig { font-size: 11.5px; color: var(--muted,#888); margin-top: 2px; }
+.lm-fechar { background: none; border: none; font-size: 13.5px; font-weight: 700; color: var(--brand); cursor: pointer; flex-shrink: 0; padding: 4px 2px; }
+.legal-modal-body { padding: 14px 18px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.legal-modal-f { padding: 12px 18px 16px; border-top: 1px solid var(--line-2,#eee); }
+.legal-modal-f .btn { width: 100%; }
+@media (min-width: 640px) { .legal-modal-ov { align-items: center; } .legal-modal { border-radius: 18px; } }
 
 .with-icon { position: relative; }
 .with-icon svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--muted); }

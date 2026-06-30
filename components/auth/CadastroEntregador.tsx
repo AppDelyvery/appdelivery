@@ -9,6 +9,7 @@ import type { Veiculo } from "@/lib/precos";
 import { validarCPF, mascaraCPF, mascaraTelefone } from "@/lib/validacao";
 import Turnstile, { TURNSTILE_ENABLED } from "./Turnstile";
 import { registrarConsentimentos } from "@/lib/legal";
+import LegalModal, { type LegalDoc } from "@/components/legal/LegalModal";
 
 export default function CadastroEntregador() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function CadastroEntregador() {
   const [aceiteTermos, setAceiteTermos] = useState(false);
   const [aceiteVerif, setAceiteVerif] = useState(false);
   const [aceiteMkt, setAceiteMkt] = useState(false);
+  const [modalDoc, setModalDoc] = useState<LegalDoc | null>(null);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -154,8 +156,8 @@ export default function CadastroEntregador() {
           <input type="checkbox" checked={aceiteTermos} onChange={(e) => setAceiteTermos(e.target.checked)} />
           <span className="ct">
             Li e concordo com os{" "}
-            <Link href="/termos" target="_blank">Termos do Entregador</Link> e a{" "}
-            <Link href="/privacidade" target="_blank">Política de Privacidade</Link>.
+            <button type="button" className="lk" onClick={() => setModalDoc("termos")}>Termos do Entregador</button> e a{" "}
+            <button type="button" className="lk" onClick={() => setModalDoc("privacidade")}>Política de Privacidade</button>.
           </span>
         </label>
         <label className="consent destaque">
@@ -191,6 +193,7 @@ export default function CadastroEntregador() {
           </Link>
         </div>
       </form>
+      <LegalModal doc={modalDoc} onClose={() => setModalDoc(null)} />
     </div>
   );
 }
