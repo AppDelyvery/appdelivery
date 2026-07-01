@@ -480,6 +480,31 @@ function TrackingScreen({ real, posReal, entrega }: { real: StatusNeg | null; po
     return { min: Math.max(1, Math.round(km / 0.4)), km: km.toFixed(1).replace(".", ",") };
   })();
 
+  // feedback de busca (#10): tempo procurando + entregadores disponíveis na praça
+  const procurando = usarReal && real?.status === "buscando";
+  const [segsBusca, setSegsBusca] = useState(0);
+  const [qtdPraca, setQtdPraca] = useState<number | null>(null);
+  useEffect(() => {
+    if (!procurando) { setSegsBusca(0); return; }
+    const t0 = Date.now();
+    const t = setInterval(() => setSegsBusca(Math.round((Date.now() - t0) / 1000)), 1000);
+    return () => clearInterval(t);
+  }, [procurando]);
+  useEffect(() => {
+    if (!procurando || !pedido?.id) { setQtdPraca(null); return; }
+    let vivo = true;
+    const puxar = async () => {
+      const sb = getBrowserSupabase();
+      if (!sb) return;
+      const { data } = await sb.rpc("qtd_entregadores_praca", { p_pedido_id: pedido.id });
+      if (vivo) setQtdPraca(typeof data === "number" ? data : null);
+    };
+    puxar();
+    const t = setInterval(puxar, 8000);
+    return () => { vivo = false; clearInterval(t); };
+  }, [procurando, pedido?.id]);
+  const tempoBusca = segsBusca >= 60 ? `${Math.floor(segsBusca / 60)} min` : `${segsBusca}s`;
+
   const cancelarPedido = async (motivo: string) => {
     const sb = getBrowserSupabase();
     if (sb && pedido) await sb.rpc("cancelar_pedido_estabelecimento", { p_pedido_id: pedido.id, p_motivo: motivo });
@@ -517,14 +542,34 @@ function TrackingScreen({ real, posReal, entrega }: { real: StatusNeg | null; po
             </div>
           </>
         ) : (
-          // ainda sem entregador designado → procurando
-          <div className="driver" style={{ alignItems: "center" }}>
-            <div className="avatar girando" style={{ background: "var(--bg)", color: "var(--brand)" }}><Icon name="spinner" /></div>
-            <div className="driver-info">
-              <div className="name">Procurando entregador</div>
-              <div className="meta">Ofertando pro entregador verificado mais próximo…</div>
+          // ainda sem entregador designado → procurando (com feedback real)
+          <>
+            <div className="driver" style={{ alignItems: "center" }}>
+              <div className="avatar girando" style={{ background: "var(--bg)", color: "var(--brand)" }}><Icon name="spinner" /></div>
+              <div className="driver-info">
+                <div className="name">Procurando entregador{segsBusca >= 10 ? ` · ${tempoBusca}` : ""}</div>
+                <div className="meta">
+                  {qtdPraca === 0
+                    ? "Nenhum entregador disponível na praça agora."
+                    : qtdPraca != null
+                      ? `${qtdPraca} entregador${qtdPraca > 1 ? "es" : ""} online — ofertando ao mais próximo…`
+                      : "Ofertando pro entregador verificado mais próximo…"}
+                </div>
+              </div>
             </div>
-          </div>
+            {qtdPraca === 0 && (
+              <div className="trust-banner" style={{ background: "var(--warn-bg)", borderColor: "#f3d6a8", color: "var(--warn)", marginTop: 10 }}>
+                <Icon name="alert" />
+                <div>Nenhum entregador online agora. Você pode <b>aguardar</b> (avisamos quando aparecer) ou <b>cancelar</b> abaixo.</div>
+              </div>
+            )}
+            {qtdPraca !== 0 && segsBusca >= 60 && (
+              <div className="trust-banner" style={{ marginTop: 10 }}>
+                <Icon name="clock" />
+                <div>A busca está demorando um pouco. Assim que um entregador aceitar, você é avisado.</div>
+              </div>
+            )}
+          </>
         )}
         <div className="trust-banner">
           <Icon name="shield" />
