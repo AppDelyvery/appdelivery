@@ -54,6 +54,26 @@ export default function NovoPedidoFlow() {
   const [coleta, setColeta] = useState<Lugar | null>(null);
   const [entrega, setEntrega] = useState<Lugar | null>(null);
 
+  // status REAL do pedido no pai (serve o mapa fase + o acompanhamento). Poll único.
+  const [statusReal, setStatusReal] = useState<StatusNeg | null>(null);
+  useEffect(() => {
+    if (!pedido?.id || !emAndamento) { setStatusReal(null); return; }
+    let vivo = true;
+    const puxar = async () => {
+      const sb = getBrowserSupabase();
+      if (!sb) return;
+      const { data } = await sb.rpc("status_pedido_negocio", { p_pedido_id: pedido.id });
+      if (vivo && data) setStatusReal(data as StatusNeg);
+    };
+    puxar();
+    const t = setInterval(puxar, 4000);
+    return () => { vivo = false; clearInterval(t); };
+  }, [pedido?.id, emAndamento]);
+  const faseNeg: "busca" | "entrega" | undefined =
+    statusReal && ["coletado", "a_caminho_entrega"].includes(statusReal.status) ? "entrega"
+      : statusReal && ["aceito", "a_caminho_coleta"].includes(statusReal.status) ? "busca"
+        : undefined;
+
   const nav: ShellNavGroup[] = [
     {
       group: "Operação",
@@ -95,13 +115,13 @@ export default function NovoPedidoFlow() {
       <div className="panel">
         {view === "form" && <FormScreen coleta={coleta} setColeta={setColeta} entrega={entrega} setEntrega={setEntrega} />}
         {view === "matching" && <MatchingScreen />}
-        {view === "tracking" && <TrackingScreen />}
+        {view === "tracking" && <TrackingScreen real={statusReal} posReal={posReal} entrega={entrega} />}
         {view === "done" && <DoneScreen />}
       </div>
       {view === "form" ? (
         <MapaAoVivo preview origem={coleta} destino={entrega} idleLabel="Escolha o destino — a rota sai do seu negócio" frac={0} running={false} done={false} eta={{ min: 0, km: "" }} />
       ) : (
-        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} posicaoReal={posReal} origem={coleta} destino={entrega} />
+        <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} posicaoReal={posReal} origem={coleta} destino={entrega} fase={faseNeg} />
       )}
     </AppShell>
   );
@@ -436,26 +456,10 @@ const STATUS_TXT: Record<string, string> = {
 const inic = (n: string) => n.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
 const VEH_TXT: Record<string, string> = { moto: "Moto", carro: "Carro", van: "Van", bike: "Bike" };
 
-function TrackingScreen() {
+function TrackingScreen({ real, posReal, entrega }: { real: StatusNeg | null; posReal: [number, number] | null; entrega: Lugar | null }) {
   const { step, done, running, eta, start, reset, setView, pedido, setPedido } = useEntrega();
   const chat = useChatAuth(pedido?.id ?? null, "estabelecimento");
   const [cancelar, setCancelar] = useState(false);
-  const [real, setReal] = useState<StatusNeg | null>(null);
-
-  // acompanha o status REAL do pedido (entregador designado, via poll)
-  useEffect(() => {
-    if (!pedido?.id) return;
-    let vivo = true;
-    const puxar = async () => {
-      const sb = getBrowserSupabase();
-      if (!sb) return;
-      const { data } = await sb.rpc("status_pedido_negocio", { p_pedido_id: pedido.id });
-      if (vivo && data) setReal(data as StatusNeg);
-    };
-    puxar();
-    const t = setInterval(puxar, 4000);
-    return () => { vivo = false; clearInterval(t); };
-  }, [pedido?.id]);
 
   const ent = real?.entregador ?? null;
   // havendo pedido REAL, timeline/ETA seguem o status do banco — não a simulação demo.
@@ -464,6 +468,17 @@ function TrackingScreen() {
   const stepEff = real ? (STATUS_STEP[real.status] ?? -1) : step;
   const doneEff = real ? real.status === "entregue" : done;
   const finalizado = real ? (real.status === "entregue" || real.status === "cancelado") : done;
+
+  // ETA ao vivo: distância do entregador (GPS real) até o destino, em tempo real.
+  const etaVivo = (() => {
+    if (!real || real.status === "entregue" || !posReal || !entrega) return null;
+    if (!["aceito", "a_caminho_coleta", "coletado", "a_caminho_entrega"].includes(real.status)) return null;
+    const R = 6371, rd = (d: number) => (d * Math.PI) / 180;
+    const dLat = rd(entrega.lat - posReal[1]), dLng = rd(entrega.lng - posReal[0]);
+    const s = Math.sin(dLat / 2) ** 2 + Math.cos(rd(posReal[1])) * Math.cos(rd(entrega.lat)) * Math.sin(dLng / 2) ** 2;
+    const km = 2 * R * Math.asin(Math.sqrt(s));
+    return { min: Math.max(1, Math.round(km / 0.4)), km: km.toFixed(1).replace(".", ",") };
+  })();
 
   const cancelarPedido = async (motivo: string) => {
     const sb = getBrowserSupabase();
@@ -546,11 +561,11 @@ function TrackingScreen() {
         </div>
         <div className="eta-row">
           <div className="eta-box">
-            <div className="big">{usarReal ? (doneEff ? 0 : "—") : done ? 0 : eta.min}</div>
+            <div className="big">{usarReal ? (doneEff ? 0 : etaVivo ? etaVivo.min : "—") : done ? 0 : eta.min}</div>
             <div className="lbl">minutos</div>
           </div>
           <div className="eta-box">
-            <div className="big">{usarReal ? (doneEff ? "0,0" : "—") : done ? "0,0" : eta.km.replace(".", ",")}</div>
+            <div className="big">{usarReal ? (doneEff ? "0,0" : etaVivo ? etaVivo.km : "—") : done ? "0,0" : eta.km.replace(".", ",")}</div>
             <div className="lbl">km restantes</div>
           </div>
         </div>
