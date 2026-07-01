@@ -123,6 +123,9 @@ body {
 .legal-modal-ov { position: fixed; inset: 0; z-index: 1000; background: rgba(13,20,36,.55); display: flex; align-items: flex-end; justify-content: center; }
 .legal-modal { background: var(--card,#fff); width: 100%; max-width: 560px; max-height: 92vh; border-radius: 18px 18px 0 0; display: flex; flex-direction: column; box-shadow: 0 -8px 40px rgba(0,0,0,.25); animation: lmUp .22s ease; }
 @keyframes lmUp { from { transform: translateY(26px); opacity: .5; } to { transform: translateY(0); opacity: 1; } }
+.status-toast { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); left: 50%; transform: translateX(-50%); z-index: 400; background: var(--go); color: #fff; font-weight: 800; font-size: 13.5px; padding: 11px 18px; border-radius: 999px; box-shadow: 0 8px 24px rgba(5,150,105,.35); display: flex; align-items: center; gap: 8px; animation: statusToast .3s ease; }
+.status-toast svg { width: 16px; height: 16px; }
+@keyframes statusToast { from { transform: translate(-50%, -14px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 .legal-modal-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid var(--line-2,#eee); }
 .lm-titulo { font-size: 17px; font-weight: 800; color: var(--ink); letter-spacing: -.3px; }
 .lm-vig { font-size: 11.5px; color: var(--muted,#888); margin-top: 2px; }

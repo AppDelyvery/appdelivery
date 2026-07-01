@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import Link from "next/link";
 import AppShell, { type ShellNavGroup } from "../AppShell";
 import BotaoSuporte from "../BotaoSuporte";
@@ -18,6 +18,7 @@ import { usePosicaoAoVivo } from "@/lib/realtime";
 import { criarPedido } from "@/actions/criarPedido";
 import { abrirDisputa } from "@/actions/disputas";
 import { registerPush } from "@/lib/push";
+import { prepararSomStatus, liberarSomStatus, tocarSomStatus } from "@/lib/somStatus";
 import { hasSupabase } from "@/lib/integracoes";
 import { money, PRICE, priceCalc, faixaDoVeiculo, VEICULOS } from "@/lib/precos";
 import { STEPS } from "@/lib/rota";
@@ -74,6 +75,26 @@ export default function NovoPedidoFlow() {
       : statusReal && ["aceito", "a_caminho_coleta"].includes(statusReal.status) ? "busca"
         : undefined;
 
+  // #11: alerta (som curto + toast) quando o status do pedido muda
+  const prevStatusRef = useRef<string | null>(null);
+  const [toastStatus, setToastStatus] = useState<string | null>(null);
+  useEffect(() => { void prepararSomStatus(); }, []);
+  useEffect(() => {
+    const s = statusReal?.status;
+    if (!s) { prevStatusRef.current = null; return; }
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = s;
+    if (prev && prev !== s && TOAST_STATUS[s]) {
+      tocarSomStatus();
+      setToastStatus(TOAST_STATUS[s]);
+    }
+  }, [statusReal?.status]);
+  useEffect(() => {
+    if (!toastStatus) return;
+    const t = setTimeout(() => setToastStatus(null), 4500);
+    return () => clearTimeout(t);
+  }, [toastStatus]);
+
   const nav: ShellNavGroup[] = [
     {
       group: "Operação",
@@ -112,6 +133,9 @@ export default function NovoPedidoFlow() {
 
   return (
     <AppShell title={TITLES[view]} nav={nav} demo="negocio">
+      {toastStatus && (
+        <div className="status-toast"><Icon name="checkThin" /> {toastStatus}</div>
+      )}
       <div className="panel">
         {view === "form" && <FormScreen coleta={coleta} setColeta={setColeta} entrega={entrega} setEntrega={setEntrega} />}
         {view === "matching" && <MatchingScreen />}
@@ -191,6 +215,7 @@ function FormScreen({ coleta, setColeta, entrega, setEntrega }: {
   async function solicitar() {
     setErro(null);
     registerPush(); // gesto do usuário: autoriza push pra receber updates da entrega
+    liberarSomStatus(); // destrava o som de status (aceito/coletado/entregue) no iOS
     // Sem backend configurado → mantém a simulação (demo).
     if (!prontoBackend) {
       setView("matching");
@@ -452,6 +477,13 @@ const STATUS_TXT: Record<string, string> = {
   a_caminho_entrega: "A caminho da entrega",
   entregue: "Entrega concluída",
   cancelado: "Pedido cancelado",
+};
+const TOAST_STATUS: Record<string, string> = {
+  aceito: "Entregador aceitou a corrida!",
+  coletado: "Encomenda coletada!",
+  a_caminho_entrega: "A caminho da entrega!",
+  entregue: "Entrega concluída!",
+  cancelado: "Pedido cancelado.",
 };
 const inic = (n: string) => n.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
 const VEH_TXT: Record<string, string> = { moto: "Moto", carro: "Carro", van: "Van", bike: "Bike" };
