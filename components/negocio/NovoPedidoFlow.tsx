@@ -101,6 +101,7 @@ export default function NovoPedidoFlow() {
       items: [
         { ic: "pkg", label: "Nova entrega", active: view === "form", onClick: () => setView("form") },
         { ic: "moto", label: "Em andamento", active: emAndamento, onClick: () => setView("tracking"), disabled: !emAndamento },
+        { ic: "pin", label: "Entregas ativas", href: "/negocio/entregas" },
         { ic: "list", label: "Histórico", href: "/negocio/historico" },
         { ic: "chart", label: "Relatórios", href: "/negocio/relatorios" },
       ],
