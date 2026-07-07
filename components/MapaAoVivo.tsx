@@ -45,6 +45,14 @@ const SVG_PIN =
 const SVG_PKG =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>';
 
+// distância em metros entre 2 pontos [lng,lat] — pra throttle da rota de busca
+function distM(a: [number, number], b: [number, number]): number {
+  const R = 6371000, rad = (d: number) => (d * Math.PI) / 180;
+  const dLat = rad(b[1] - a[1]), dLng = rad(b[0] - a[0]);
+  const s = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a[1])) * Math.cos(rad(b[1])) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
+
 export default function MapaAoVivo({
   frac,
   running,
@@ -65,6 +73,8 @@ export default function MapaAoVivo({
   const pinsRef = useRef<MbMarker[]>([]);
   const routeRef = useRef<{ coords: LngLat[]; cum: number[]; total: number } | null>(null);
   const readyRef = useRef(false);
+  const buscaFetchRef = useRef<[number, number] | null>(null); // última posição usada na rota de busca
+  const buscaBusyRef = useRef(false);
 
   // Props sempre atuais p/ o desenho assíncrono, sem re-disparar o mount.
   const metaRef = useRef(onRouteMeta);
@@ -92,7 +102,12 @@ export default function MapaAoVivo({
     const real = await fetchDirections([o.lng, o.lat], [d.lng, d.lat]);
     const entregaCoords: LngLat[] = real?.coords ?? [[o.lng, o.lat], [d.lng, d.lat]];
     if (real) metaRef.current?.(real.distKm, real.durMin);
-    const buscaCoords: LngLat[] = meu ? [meu, [o.lng, o.lat]] : [];
+    let buscaCoords: LngLat[] = [];
+    if (meu) {
+      const rb = await fetchDirections(meu, [o.lng, o.lat]);
+      buscaCoords = rb?.coords ?? [meu, [o.lng, o.lat]];
+      buscaFetchRef.current = meu;
+    }
     const ehBusca = f === "busca";
 
     const setLeg = (id: string, coords: LngLat[], cor: string, largura: number, op: number, visivel: boolean) => {
@@ -286,10 +301,22 @@ export default function MapaAoVivo({
         motoRef.current.remove();
         motoRef.current = null;
       }
-      // na fase de busca, a perna pontilhada acompanha o motoboy até a coleta
+      // fase de busca: mantém a ROTA REAL até a coleta, refazendo só se andou bastante (>120m)
       if (odRef.current.fase === "busca" && posicaoReal && origem) {
-        const src = map.getSource("leg-busca") as GeoJSONSource | undefined;
-        if (src) src.setData({ type: "Feature", geometry: { type: "LineString", coordinates: [posicaoReal, [origem.lng, origem.lat]] }, properties: {} });
+        const last = buscaFetchRef.current;
+        if ((!last || distM(last, posicaoReal) > 120) && !buscaBusyRef.current) {
+          buscaBusyRef.current = true;
+          buscaFetchRef.current = posicaoReal;
+          const alvo: [number, number] = [origem.lng, origem.lat];
+          const de = posicaoReal;
+          fetchDirections(de, alvo)
+            .then((rb) => {
+              const src = map.getSource("leg-busca") as GeoJSONSource | undefined;
+              if (src) src.setData({ type: "Feature", geometry: { type: "LineString", coordinates: rb?.coords ?? [de, alvo] }, properties: {} });
+            })
+            .catch(() => {})
+            .finally(() => { buscaBusyRef.current = false; });
+        }
       }
       return;
     }
