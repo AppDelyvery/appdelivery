@@ -98,6 +98,9 @@ export default function MapaAoVivo({
 
     pinsRef.current.forEach((m) => m.remove());
     pinsRef.current = [];
+    // limpa a rota do modo não-fase, se existir (evita linha sobrando)
+    const rsrc = map.getSource("route") as GeoJSONSource | undefined;
+    if (rsrc) rsrc.setData({ type: "Feature", geometry: { type: "LineString", coordinates: [] }, properties: {} });
 
     const real = await fetchDirections([o.lng, o.lat], [d.lng, d.lat]);
     const entregaCoords: LngLat[] = real?.coords ?? [[o.lng, o.lat], [d.lng, d.lat]];
@@ -151,6 +154,11 @@ export default function MapaAoVivo({
     const mbgl = mbglRef.current;
     if (!map || !mbgl) return;
     if (odRef.current.fase) { await desenharFases(); return; }
+    // saiu do modo corrida (ou nunca entrou): limpa as pernas de fase pra não sobrar rota fantasma
+    for (const id of ["leg-busca", "leg-entrega"]) {
+      const s = map.getSource(id) as GeoJSONSource | undefined;
+      if (s) s.setData({ type: "Feature", geometry: { type: "LineString", coordinates: [] }, properties: {} });
+    }
     const { preview: pv, origem: o, destino: d } = odRef.current;
     const provided = !!(o || d); // coords reais do pedido vieram por prop
     const O: Ponto = o ?? (pv ? null : { lng: ORIGEM.lng, lat: ORIGEM.lat });

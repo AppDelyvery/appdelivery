@@ -39,10 +39,25 @@ const TITLES: Record<EntregadorView, string> = {
 };
 
 export default function EntregadorFlow() {
-  const { view, setView, frac, running, done, eta, setRouteMeta, pedidoId } = useEntregador();
+  const { view, setView, frac, running, done, eta, setRouteMeta, pedidoId, setPedidoId } = useEntregador();
   const pedidoCorrida = usePedido(pedidoId);
   const coletaPt = pedidoCorrida?.coleta_lat != null && pedidoCorrida?.coleta_lng != null ? { lat: pedidoCorrida.coleta_lat, lng: pedidoCorrida.coleta_lng } : null;
   const entregaPt = pedidoCorrida?.entrega_lat != null && pedidoCorrida?.entrega_lng != null ? { lat: pedidoCorrida.entrega_lat, lng: pedidoCorrida.entrega_lng } : null;
+
+  // pedido CANCELADO (negócio/admin) durante a corrida → tira o entregador de campo
+  const [cancelAviso, setCancelAviso] = useState(false);
+  useEffect(() => {
+    if (pedidoId && pedidoCorrida?.status === "cancelado") {
+      setCancelAviso(true);
+      setPedidoId(null);
+      setView("disponivel");
+    }
+  }, [pedidoCorrida?.status, pedidoId, setPedidoId, setView]);
+  useEffect(() => {
+    if (!cancelAviso) return;
+    const t = setTimeout(() => setCancelAviso(false), 6000);
+    return () => clearTimeout(t);
+  }, [cancelAviso]);
 
   // GPS real → Broadcast no canal do pedido (token), pra lojista e cliente verem ao vivo.
   const [token, setToken] = useState<string | null>(null);
@@ -100,11 +115,19 @@ export default function EntregadorFlow() {
     },
   ];
 
+  const cancelToast = cancelAviso ? (
+    <div style={{ position: "fixed", top: "calc(env(safe-area-inset-top, 0px) + 14px)", left: "50%", transform: "translateX(-50%)", zIndex: 600, background: "#dc2626", color: "#fff", fontWeight: 800, fontSize: 13.5, padding: "11px 18px", borderRadius: 999, boxShadow: "0 8px 24px rgba(220,38,38,.35)", display: "flex", alignItems: "center", gap: 8 }}>
+      <Icon name="stop" /> Corrida cancelada pelo estabelecimento
+    </div>
+  ) : null;
+
   // Home imersiva (padrão 99): a tela principal é o MAPA. Resto no menu.
-  if (view === "disponivel" && hasSupabase()) return <EntregadorHome />;
+  if (view === "disponivel" && hasSupabase()) return (<>{cancelToast}<EntregadorHome /></>);
 
   return (
-    <AppShell title={TITLES[view]} nav={nav} demo="entregador" noMap={noMap}>
+    <>
+      {cancelToast}
+      <AppShell title={TITLES[view]} nav={nav} demo="entregador" noMap={noMap}>
       <div className="panel">
         {view === "cadastro" && <Cadastro />}
         {view === "verificando" && <Verificando />}
@@ -117,7 +140,8 @@ export default function EntregadorFlow() {
       {!noMap && (
         <MapaAoVivo frac={frac} running={running} done={done} eta={eta} onRouteMeta={setRouteMeta} idleLabel="Sua localização · Palmas-TO" posicaoReal={gps} origem={coletaPt} destino={entregaPt} fase={view === "coleta" ? "busca" : "entrega"} />
       )}
-    </AppShell>
+      </AppShell>
+    </>
   );
 }
 
