@@ -22,6 +22,10 @@ type Info = {
   entregue_at: string | null;
   comprovante_foto: string | null;
   comprovante_assinatura: string | null;
+  coleta_lat: number | null;
+  coleta_lng: number | null;
+  entrega_lat: number | null;
+  entrega_lng: number | null;
 };
 
 const VEIC: Record<string, string> = { moto: "Moto", carro: "Carro", van: "Van" };
@@ -71,6 +75,9 @@ export default function RastreioPublico({ token }: { token: string }) {
   const cancelado = info?.status === "cancelado";
   const stepIdx = done ? 4 : info ? STATUS_STEP[info.status] ?? -1 : -1;
   const codigo = info?.codigo_entrega ?? null;
+  // rota REAL do pedido (coleta→entrega) — fim da rota fixa de demo no rastreio
+  const coleta = info?.coleta_lat != null && info?.coleta_lng != null ? { lat: info.coleta_lat, lng: info.coleta_lng } : null;
+  const entrega = info?.entrega_lat != null && info?.entrega_lng != null ? { lat: info.entrega_lat, lng: info.entrega_lng } : null;
   const titulo = cancelado
     ? "Entrega cancelada"
     : done
@@ -296,6 +303,8 @@ export default function RastreioPublico({ token }: { token: string }) {
           onRouteMeta={setRouteMeta}
           idleLabel={temEntregador ? "Localizando entregador…" : "Aguardando um entregador aceitar…"}
           posicaoReal={posReal}
+          origem={coleta}
+          destino={entrega}
         />
       </div>
     </div>
